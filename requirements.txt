@@ -1,0 +1,32 @@
+-e warbler.py
+
+awscli
+coverage
+click
+graphviz
+h5py
+hdbscan
+ipywidgets
+joblib
+librosa
+networkx
+noisereduce
+notebook
+numba==0.53.*
+numpy==1.22.0
+pandas
+pillow
+plotly
+pydub
+pygraphviz; sys_platform == 'linux'
+pysoundfile
+pytest
+python-dotenv
+tqdm
+seaborn
+scikit-learn
+scipy
+tensorflow_gpu
+tensorflow
+umap-learn
+voila
