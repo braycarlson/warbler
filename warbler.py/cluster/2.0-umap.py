@@ -3,35 +3,31 @@ import pandas as pd
 import umap
 
 from functions.preprocessing_functions import calc_zscore, pad_spectro
-from functions.custom_dist_functions_umap import unpack_specs
+from parameters import Parameters
 from path import DATA
 from pathlib import Path
 
 
+# Dataframe
+file = Path('dataframe.json')
+dataframe = Parameters(file)
+
+
+# Parameters
+file = Path('parameters.json')
+parameters = Parameters(file)
+
+
 # Name of pickled dataframe with metadata and spectrograms
 DF_NAME = DATA.joinpath('df.pkl')
-
-# column that is used for UMAP
-# Could also choose 'denoised_spectrograms' or 'stretched_spectrograms', etc...
-INPUT_COL = 'spectrograms'
-
-# Distance metric used in UMAP. Check UMAP documentation for other options
-# e.g. 'euclidean', correlation', 'cosine', 'manhattan' ...
-METRIC_TYPE = 'euclidean'
-
-# Number of dimensions desired in latent space
-N_COMP = 3
-
-
 df = pd.read_pickle(DF_NAME)
-
 
 # Basic pipeline
 # No time-shift allowed, spectrograms should be aligned at the start.
 # All spectrograms are zero-padded to equal length
 
 # Choose spectrogram column
-specs = df[INPUT_COL]
+specs = df[dataframe.input_column]
 
 # z-transform each spectrogram
 specs = [calc_zscore(s) for s in specs]
@@ -47,9 +43,9 @@ data = np.asarray(flattened_specs)
 
 
 reducer = umap.UMAP(
-    n_components=N_COMP,
+    n_components=parameters.dimension,
     # Specify parameters of UMAP reducer
-    metric=METRIC_TYPE,
+    metric=dataframe.metric,
     min_dist=0,
     random_state=2204
 )
@@ -58,9 +54,12 @@ reducer = umap.UMAP(
 embedding = reducer.fit_transform(data)
 
 # Add UMAP coordinates to dataframe
-for i in range(N_COMP):
+for i in range(parameters.dimension):
     df['UMAP' + str(i + 1)] = embedding[:, i]
 
 # Save dataframe
 df_umap = DATA.joinpath('df_umap.pkl')
 df.to_pickle(df_umap)
+
+dataframe.close()
+parameters.close()

@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 @bootstrap
 def main():
-    with open(DATA.joinpath('info_file.csv'), mode='w+') as file:
+    with open(DATA.joinpath('notes.csv'), mode='w+') as file:
         writer = csv.writer(
             file,
             delimiter=';',
@@ -45,7 +45,11 @@ def main():
 
             for file in files:
                 with open(file, 'r') as f:
-                    data = json.load(f)
+                    try:
+                        data = json.load(f)
+                    except json.decoder.JSONDecodeError:
+                        print(f"Unable to open: {file}")
+                        continue
 
                     common = data.get('common_name')
                     scientific = data.get('species')

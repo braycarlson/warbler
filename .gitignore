@@ -3,11 +3,12 @@ data/
 logs/
 notebook/.ipynb_checkpoints/
 notes/
+warbler.py/inspect/spectrograms
 warbler.py/warbler.py.egg-info/
 
-env.bat
+*.pkl
+*.bat
 notes.txt
-setup.bat
 
 
 # Byte-compiled / optimized / DLL files

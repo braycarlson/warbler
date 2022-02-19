@@ -1,6 +1,0 @@
-N_MELS = 40
-FFT_WIN = 0.03
-FFT_HOP = 0.00375
-WINDOW = "hann"
-FMIN = 0
-FMAX = 22050

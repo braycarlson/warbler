@@ -8,12 +8,14 @@ h5py
 hdbscan
 ipywidgets
 joblib
+keyboard
 librosa
 networkx
 noisereduce
 notebook
 numba==0.53.*
 numpy==1.22.0
+openpyxl
 pandas
 pillow
 plotly

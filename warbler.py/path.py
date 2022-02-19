@@ -20,6 +20,24 @@ DATA = CWD.joinpath('data')
 # The directory for saving all segmented notes
 NOTES = CWD.joinpath('notes')
 
+# The root directory for the package
+PACKAGE = CWD.joinpath('warbler.py')
+
+# The directory for the cluster package
+CLUSTER = PACKAGE.joinpath('cluster')
+
+# The directory for the inspect package
+INSPECT = PACKAGE.joinpath('inspect')
+
+# The directory for generated spectrograms to be inspected
+SPECTROGRAMS = INSPECT.joinpath('spectrograms')
+
+# The directory for the noise package
+NOISE = PACKAGE.joinpath('noise')
+
+# The directory for the segment package
+SEGMENT = PACKAGE.joinpath('segment')
+
 # Get each individual's directory from the original dataset
 DIRECTORIES = sorted([
     directory
@@ -43,6 +61,8 @@ def bootstrap(func):
         DATA.mkdir(parents=True, exist_ok=True)
 
         NOTES.mkdir(parents=True, exist_ok=True)
+
+        SPECTROGRAMS.mkdir(parents=True, exist_ok=True)
 
         for directory in DIRECTORIES:
             (

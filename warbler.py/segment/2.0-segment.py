@@ -13,44 +13,56 @@ from avgn.signalprocessing.create_spectrogram_dataset import (
 )
 from avgn.utils.hparams import HParams
 from avgn.visualization.spectrogram import draw_spec_set
-from parameters import PARAMETERS
 from joblib import Parallel, delayed
+from parameters import Parameters
 from path import INDIVIDUALS
+from pathlib import Path
 from tqdm.autonotebook import tqdm
 
 
-# Create a set of hyperparameters for processing the dataset
-hparams = HParams(
-    n_fft=PARAMETERS.get('n_fft'),
-    hop_length_ms=PARAMETERS.get('hop_length_ms'),
-    win_length_ms=PARAMETERS.get('win_length_ms'),
-    ref_level_db=PARAMETERS.get('ref_level_db'),
-    pre=PARAMETERS.get('pre'),
-    min_level_db=PARAMETERS.get('min_level_db'),
-    min_level_db_floor=PARAMETERS.get('min_level_db_floor'),
-    db_delta=PARAMETERS.get('db_delta'),
-    silence_threshold=PARAMETERS.get('silence_threshold'),
-    min_silence_for_spec=PARAMETERS.get('min_silence_for_spec'),
-    max_vocal_for_spec=PARAMETERS.get('max_vocal_for_spec'),
-    min_syllable_length_s=PARAMETERS.get('min_syllable_length_s'),
-    spectral_range=PARAMETERS.get('spectral_range'),
+# [Optional]
+# Normalize the spectrograms into uint8
+# This will make the dataset smaller
+def norm(x):
+    return (x - np.min(x)) / (np.max(x) - np.min(x))
 
-    num_mel_bins=PARAMETERS.get('num_mel_bins'),
-    mel_lower_edge_hertz=PARAMETERS.get('mel_lower_edge_hertz'),
-    mel_upper_edge_hertz=PARAMETERS.get('mel_upper_edge_hertz'),
-    butter_lowcut=PARAMETERS.get('butter_lowcut'),
-    butter_highcut=PARAMETERS.get('butter_highcut'),
-    mask_spec=PARAMETERS.get('mask_spec'),
-    nex=PARAMETERS.get('nex'),
-    n_jobs=PARAMETERS.get('n_jobs'),
-    verbosity=PARAMETERS.get('verbosity')
+
+# Parameters
+file = Path('parameters.json')
+parameters = Parameters(file)
+
+# Create a set of parameters for processing the dataset
+hparams = HParams(
+    n_fft=parameters.n_fft,
+    hop_length_ms=parameters.hop_length_ms,
+    win_length_ms=parameters.win_length_ms,
+    ref_level_db=parameters.ref_level_db,
+    pre=parameters.pre,
+    min_level_db=parameters.min_level_db,
+    min_level_db_floor=parameters.min_level_db_floor,
+    db_delta=parameters.db_delta,
+    silence_threshold=parameters.silence_threshold,
+    min_silence_for_spec=parameters.min_silence_for_spec,
+    max_vocal_for_spec=parameters.max_vocal_for_spec,
+    min_syllable_length_s=parameters.min_syllable_length_s,
+    spectral_range=parameters.spectral_range,
+
+    num_mel_bins=parameters.num_mel_bins,
+    mel_lower_edge_hertz=parameters.mel_lower_edge_hertz,
+    mel_upper_edge_hertz=parameters.mel_upper_edge_hertz,
+    butter_lowcut=parameters.butter_lowcut,
+    butter_highcut=parameters.butter_highcut,
+    mask_spec=parameters.mask_spec,
+    nex=parameters.nex,
+    n_jobs=parameters.n_jobs,
+    verbosity=parameters.verbosity
 )
 
 
 dataset = DataSet(INDIVIDUALS, hparams=hparams)
 
-n_jobs = PARAMETERS.get('n_jobs')
-verbosity = PARAMETERS.get('verbosity')
+n_jobs = parameters.n_jobs
+verbosity = parameters.n_jobs
 
 with Parallel(n_jobs=n_jobs, verbose=verbosity) as parallel:
     syllable_dfs = parallel(
@@ -95,6 +107,7 @@ syllable_df['audio'] = [
 nrows = 5
 ncols = 10
 zoom = 2
+
 fig, axs = plt.subplots(
     ncols=ncols,
     nrows=nrows,
@@ -154,13 +167,6 @@ draw_spec_set(
 )
 
 plt.show()
-
-# [Optional]
-# Normalize the spectrograms into uint8
-# This will make the dataset smaller
-def norm(x):
-    return (x - np.min(x)) / (np.max(x) - np.min(x))
-
 
 syllables_spec = [
     (norm(i) * 255).astype('uint8') for i in tqdm(syllables_spec)

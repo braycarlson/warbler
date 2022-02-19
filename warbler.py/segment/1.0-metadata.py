@@ -4,9 +4,10 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 
-from parameters import PARAMETERS
 from logger import logger
+from parameters import Parameters
 from path import bootstrap, INDIVIDUALS
+from pathlib import Path
 from scipy.io import wavfile
 from vocalseg.dynamic_thresholding import (
     dynamic_threshold_segmentation
@@ -22,24 +23,14 @@ from vocalseg.utils import (
 log = logging.getLogger(__name__)
 
 
-# See: parameters.py for more information
-n_fft = PARAMETERS.get('n_fft')
-hop_length_ms = PARAMETERS.get('hop_length_ms')
-win_length_ms = PARAMETERS.get('win_length_ms')
-ref_level_db = PARAMETERS.get('ref_level_db')
-pre = PARAMETERS.get('pre')
-min_level_db = PARAMETERS.get('min_level_db')
-silence_threshold = PARAMETERS.get('silence_threshold')
-min_silence_for_spec = PARAMETERS.get('min_silence_for_spec')
-max_vocal_for_spec = PARAMETERS.get('max_vocal_for_spec')
-min_syllable_length_s = PARAMETERS.get('min_syllable_length_s')
-spectral_range = PARAMETERS.get('spectral_range')
-
-low, high = spectral_range
+# Parameters
+file = Path('parameters.json')
+parameters = Parameters(file)
 
 
 def get_notes(wav):
     rate, data = wavfile.read(wav)
+    low, high = parameters.spectral_range
 
     data = butter_bandpass_filter(
         int16tofloat32(data),
@@ -51,16 +42,16 @@ def get_notes(wav):
     results = dynamic_threshold_segmentation(
         data,
         rate,
-        n_fft=n_fft,
-        hop_length_ms=hop_length_ms,
-        win_length_ms=win_length_ms,
-        ref_level_db=ref_level_db,
-        pre=pre,
-        min_level_db=min_level_db,
-        silence_threshold=silence_threshold,
-        verbose=False,
-        spectral_range=spectral_range,
-        min_syllable_length_s=min_syllable_length_s
+        n_fft=parameters.n_fft,
+        hop_length_ms=parameters.hop_length_ms,
+        win_length_ms=parameters.win_length_ms,
+        ref_level_db=parameters.ref_level_db,
+        pre=parameters.pre,
+        min_level_db=parameters.min_level_db,
+        silence_threshold=parameters.silence_threshold,
+        verbose=parameters.verbosity,
+        spectral_range=parameters.spectral_range,
+        min_syllable_length_s=parameters.min_syllable_length_s
     )
 
     if results is not None:
@@ -85,12 +76,12 @@ def get_notes(wav):
     spec = spectrogram(
         data,
         rate,
-        n_fft=n_fft,
-        hop_length_ms=hop_length_ms,
-        win_length_ms=win_length_ms,
-        ref_level_db=ref_level_db,
-        pre=pre,
-        min_level_db=min_level_db,
+        n_fft=parameters.n_fft,
+        hop_length_ms=parameters.hop_length_ms,
+        win_length_ms=parameters.win_length_ms,
+        ref_level_db=parameters.ref_level_db,
+        pre=parameters.pre,
+        min_level_db=parameters.min_level_db,
     )
 
     np.shape(spec)

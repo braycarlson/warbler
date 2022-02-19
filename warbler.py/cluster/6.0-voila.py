@@ -3,18 +3,24 @@ import pickle
 
 from IPython.display import Audio, display
 from ipywidgets import Image, HTML, Layout, Output, VBox, HBox
-from path import CWD, DATA
+from parameters import Parameters
+from path import DATA
+from pathlib import Path
 from plotly import graph_objs as go
 
 
-LABEL_COL = "label"       # Column that contains label - calls in the plot will be colored by this column
-ID_COL = "callID"         # Column that contains call identifier
-AUDIO_COL = "raw_audio"   # Column that contains audio data, which is played back.
-                          # could also use filtered_audio
+# Dataframe
+file = Path('dataframe.json')
+dataframe = Parameters(file)
 
-HOVER_COLS = [LABEL_COL, ID_COL] # hover_details are those data that will
-                                 # be provided in the info table when hovering
-                                 # over the plot. Add any columns of df that you like.
+
+# hover_details are those data that will
+# be provided in the info table when hovering
+# over the plot. Add any columns of df that you like.
+HOVER_COLUMN = [
+    dataframe.label_column,
+    dataframe.call_identifier_column
+]
 
 distinct_colors_20 = [
     '#e6194b',
@@ -41,24 +47,21 @@ distinct_colors_20 = [
     '#000000'
 ]
 
-P_DIR = str(CWD)
-
-DF_NAME = DATA.joinpath('df_umap.pkl')
-
 # Load dataframe
+DF_NAME = DATA.joinpath('df_umap.pkl')
 df = pd.read_pickle(DF_NAME)
 
 # Load image data (deserialize)
 with open(DATA.joinpath('image_data.pkl'), 'rb') as handle:
     image_data = pickle.load(handle)
 
-if ID_COL not in df.columns:
-    print("Missing identifier column: ", ID_COL)
+if dataframe.call_identifier_column not in df.columns:
+    print("Missing identifier column: ", dataframe.call_identifier_column)
     raise
 
 labeltypes = sorted(
     list(
-        set(df[LABEL_COL])
+        set(df[dataframe.label_column])
     )
 )
 
@@ -82,7 +85,7 @@ else:
 # hover_details are those data that will be provided in the info table when hovering
 # over datapoints
 
-hover_details = HOVER_COLS
+hover_details = HOVER_COLUMN
 
 # Everything here is separated by labeltype, so that all datapoints from one specific label have their own trace
 
@@ -94,7 +97,7 @@ sub_df_dict = {} # dictionary that contains the dataframe for each labeltype
 for i, labeltype in enumerate(labeltypes):
     sub_df = df.loc[df.label == labeltype, :]
     sub_df_dict[i] = sub_df
-    audio_dict[i] = sub_df[AUDIO_COL]
+    audio_dict[i] = sub_df[dataframe.audio_column]
     sr_dict[i] = sub_df['samplerate_hz']
 
 # build traces
@@ -113,7 +116,9 @@ for i, labeltype in enumerate(labeltypes):
                 opacity=0.8
             ),
             name=labeltype,
-            hovertemplate=[x for x in sub_df[LABEL_COL]]
+            hovertemplate=[
+                x for x in sub_df[dataframe.label_column]
+            ]
     )
     traces.append(trace)
 
@@ -151,7 +156,7 @@ def hover_fn(trace, points, state):
         sub_df = sub_df_dict[trace_ind]
         ind = points.point_inds[0]
         # Update image widget
-        img_ind = sub_df.iloc[ind][ID_COL]
+        img_ind = sub_df.iloc[ind][dataframe.call_identifier_column]
         image_widget.value = image_data[img_ind]
 
         # Update details

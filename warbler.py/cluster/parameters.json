@@ -1,0 +1,15 @@
+{
+    "plot_examples": true,
+    "bandpass_filter": false,
+    "median_subtracted": false,
+    "stretch": false,
+    "mel_bins": 40,
+    "fft_win": 0.03,
+    "fft_hop": 0.00375,
+    "window": "hann",
+    "fmin": 0,
+    "fmax": 22050,
+    "minimum_duration": 0,
+    "maximum_duration": 1,
+    "dimension": 3
+}

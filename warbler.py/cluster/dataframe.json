@@ -1,0 +1,9 @@
+{
+    "label_column": "label",
+    "input_column": "spectrograms",
+    "audio_column": "raw_audio",
+    "call_identifier_column": "callID",
+    "metric": "euclidean",
+    "na_descriptor": ["None"],
+    "na_label": "Unknown"
+}

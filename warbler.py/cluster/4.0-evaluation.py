@@ -1,38 +1,30 @@
 import librosa
 import librosa.display
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
-import pickle
 import random
 import scipy
 import seaborn as sns
-import sys
 
-from functions.plot_functions import umap_2Dplot, umap_3Dplot, plotly_viz
-from functions.preprocessing_functions import calc_zscore, pad_spectro
+from functions.plot_functions import umap_2Dplot, umap_3Dplot
 from functions.evaluation_functions import plot_within_without
 from functions.evaluation_functions import nn, sil
-from pandas.core.common import flatten
-from parameters import FMIN, FMAX, FFT_WIN, FFT_HOP
-from path import CWD, DATA
+from parameters import Parameters
+from path import DATA
 from pathlib import Path
-from scipy.spatial.distance import pdist, squareform
 from sklearn.neighbors import NearestNeighbors
 
 
-P_DIR = str(CWD)
+# Dataframe
+file = Path('dataframe.json')
+dataframe = Parameters(file)
 
-#  path to dataframe with UMAP coordinates
-DF_PATH = DATA.joinpath('df_umap.pkl')
 
+# Parameters
+file = Path('parameters.json')
+parameters = Parameters(file)
 
-# column with label identifier
-LABEL_COL = 'label'
-
-NA_INDICATOR = "unknown"
 
 distinct_colors_20 = [
     '#e6194b',
@@ -59,11 +51,15 @@ distinct_colors_20 = [
     '#000000'
 ]
 
+
+#  path to dataframe with UMAP coordinates
+DF_PATH = DATA.joinpath('df_umap.pkl')
+
 # Load dataframe
 df = pd.read_pickle(DF_PATH)
 
 # labels
-labels = df[LABEL_COL]
+labels = df[dataframe.label_column]
 
 umap_2Dplot(
     x=df['UMAP1'],                  # xaxis coordinates
@@ -89,13 +85,13 @@ umap_3Dplot(
 plt.show()
 
 # create dataframe with only the labelled datapoints
-labelled_df = df.loc[df[LABEL_COL] != NA_INDICATOR, :]
+labelled_df = df.loc[df[dataframe.label_column] != dataframe.na_label, :]
 
 # detects UMAP columns
 UMAP_COLS = [x for x in labelled_df.columns if 'UMAP' in x]
 print("Found", len(UMAP_COLS), "UMAP columns in df, using all ",len(UMAP_COLS)," for subsequent analyses.")
 
-labels = labelled_df[LABEL_COL]                # manual labels
+labels = labelled_df[dataframe.label_column]                # manual labels
 embedding = np.asarray(labelled_df[UMAP_COLS]) # UMAP coordinates
 
 knn = 5 #  for knn=5 nearest neighbors
@@ -166,8 +162,6 @@ sil_stats.plot_sil(outname=None)
 
 sil_stats.get_avrg_score()
 
-DISPLAY_COL = 'spectrograms'  # which spectrograms to display
-                              # could also choose denoised_spectrograms or other
 
 knn = 5
 
@@ -205,7 +199,7 @@ example_indices = random.sample(
 for i, ind in enumerate(example_indices):
     # Plot the random example spectrogram
 
-    img_of_interest = labelled_df.iloc[ind, :][DISPLAY_COL]
+    img_of_interest = labelled_df.iloc[ind, :][dataframe.input_column]
     embedding_of_interest = embedding[ind, :]
     plt.subplot(n_examples, knn + 1, k)
     sr = labelled_df.iloc[ind, :].samplerate_hz
@@ -213,9 +207,9 @@ for i, ind in enumerate(example_indices):
     librosa.display.specshow(
         img_of_interest,
         sr=sr,
-        hop_length=int(FFT_HOP * sr),
-        fmin=FMIN,
-        fmax=FMAX,
+        hop_length=int(parameters.fft_hop * sr),
+        fmin=parameters.fmin,
+        fmax=parameters.fmax,
         y_axis='mel',
         x_axis='s',
         cmap='viridis'
@@ -231,15 +225,17 @@ for i, ind in enumerate(example_indices):
             embedding_of_interest,
             neighbor_embedding
         )
-        neighbor_img = labelled_df.iloc[neighbor, :][DISPLAY_COL]
+        neighbor_img = labelled_df.iloc[neighbor, :][dataframe.input_column]
 
         plt.subplot(n_examples, knn + 1, k)
         sr = labelled_df.iloc[neighbor,:].samplerate_hz
         librosa.display.specshow(
             neighbor_img,
             sr=sr,
-            hop_length=int(FFT_HOP * sr),
-            fmin=FMIN, fmax=FMAX, y_axis='mel',
+            hop_length=int(parameters.fft_hop * sr),
+            fmin=parameters.fmin,
+            fmax=parameters.fmax,
+            y_axis='mel',
             x_axis='s',
             cmap='viridis'
         )
@@ -254,7 +250,7 @@ plt.tight_layout()
 
 n_examples = 8
 major_tick_interval = 20
-f_to_s = FFT_HOP
+f_to_s = parameters.fft_hop
 rotate_x = 0
 
 fig = plt.figure(
@@ -283,7 +279,7 @@ for i, ind in enumerate(example_indices):
 
     # Plot the random example spectrogram
 
-    img_of_interest = labelled_df.iloc[ind, :][DISPLAY_COL]
+    img_of_interest = labelled_df.iloc[ind, :][dataframe.input_column]
     embedding_of_interest = embedding[ind, :]
     plt.subplot(n_examples, knn + 1, k)
 
@@ -331,7 +327,7 @@ for i, ind in enumerate(example_indices):
             neighbor_embedding
         )
 
-        neighbor_img = labelled_df.iloc[neighbor, :][DISPLAY_COL]
+        neighbor_img = labelled_df.iloc[neighbor, :][dataframe.input_column]
 
         plt.subplot(n_examples, knn + 1, k)
         plt.imshow(
@@ -367,10 +363,13 @@ for i, ind in enumerate(example_indices):
 
 
 # filename (with path) where figure will be saved. Default: None -> figure not saved
-G = nn_stats.draw_simgraph(outname='test.png')
+G = nn_stats.draw_simgraph(outname=None)
 
 # show graph inline:
 G.draw(
     format='png',
     prog='neato'
 )
+
+dataframe.close()
+parameters.close()

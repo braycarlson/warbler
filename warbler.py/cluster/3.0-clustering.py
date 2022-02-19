@@ -1,32 +1,32 @@
 import hdbscan
-import json
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
-import pickle
 import scipy
 import seaborn as sns
-import sys
 
-from path import CWD, DATA
+from parameters import Parameters
+from path import DATA
 from pathlib import Path
-from scipy.stats import zscore
-from sklearn import metrics
 from sklearn.metrics.cluster import adjusted_rand_score
-from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.metrics import silhouette_score
-from functions.plot_functions import umap_3Dplot, plotly_viz
+from functions.plot_functions import umap_3Dplot
 
 
 # Import functions for calculating unadjusted Rand score
-# Resource: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
+
+# Resource:
+# https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
 
 def rand_index_score(clusters, classes):
     tp_plus_fp = scipy.special.comb(np.bincount(clusters), 2).sum()
     tp_plus_fn = scipy.special.comb(np.bincount(classes), 2).sum()
     A = np.c_[(clusters, classes)]
-    tp = sum(scipy.special.comb(np.bincount(A[A[:, 0] == i, 1]), 2).sum() for i in set(clusters))
+    tp = sum(
+        scipy.special.comb(
+            np.bincount(A[A[:, 0] == i, 1]), 2
+        ).sum() for i in set(clusters)
+    )
     fp = tp_plus_fp - tp
     fn = tp_plus_fn - tp
     tn = scipy.special.comb(len(A), 2) - tp - fp - fn
@@ -65,8 +65,9 @@ distinct_colors_22 = [
 ]
 
 
-# Column name of label variable
-LABEL_COL = 'label'
+# Dataframe
+file = Path('dataframe.json')
+dataframe = Parameters(file)
 
 # Load dataframe with UMAP coordinates
 pkl = DATA.joinpath('df_umap.pkl')
@@ -78,12 +79,13 @@ UMAP_COLS = [x for x in df.columns if 'UMAP' in x]
 # Save labels and embedding as variables
 
 # labels
-labels = df[LABEL_COL]
+labels = df[dataframe.label_column]
 
 # UMAP coordinates
 embedding = np.asarray(df[UMAP_COLS])
 
-print(f"Found: {len(UMAP_COLS)} UMAP columns. Label in column: {LABEL_COL}")
+print(f"Found: {len(UMAP_COLS)} UMAP columns.")
+print(f"Label in column: {dataframe.label_column}")
 
 
 # Clustering
@@ -103,8 +105,11 @@ df['HDBSCAN'] = hdb_labels
 # "Noise" datapoints are by default labelled as -1 by HDBSCAN
 
 hdb_labels_no_noise = hdb_labels.copy()
+
 assigned = np.full(
-    (len(hdb_labels_no_noise), ),
+    (
+        len(hdb_labels_no_noise),
+    ),
     False
 )
 
@@ -128,7 +133,7 @@ print("************************")
 print("HDBSCAN:")
 print("************************")
 cluster_labels = hdb_labels
-true_labels = df[LABEL_COL]
+true_labels = df[dataframe.label_column]
 embedding_data = embedding
 
 
@@ -141,7 +146,7 @@ print("************************")
 print("HDBSCAN-no-noise:")
 print("************************")
 cluster_labels = hdb_labels_no_noise
-true_labels = df_no_noise[LABEL_COL]
+true_labels = df_no_noise[dataframe.label_column]
 embedding_data = embedding_no_noise
 
 
@@ -186,16 +191,12 @@ umap_3Dplot(
     mycolors=distinct_colors_22,
     # filename (with path) where figure will be saved.
     # Default: None -> figure not saved
-    outname=CWD.joinpath('map.png'),
+    outname=None,
     # show legend if True else no legend
     showlegend=True
 )
 
 plt.show()
-
-# Column name of spectrogram to display
-# (denoised_spectrograms, spectrograms...)
-DISPLAY_COL = 'spectrograms'
 
 n_specs = 5
 
@@ -218,8 +219,8 @@ for cluster in clusters:
         n=n_specs,
         random_state=2204
     )
-    specs = example[DISPLAY_COL].values
-    labels = example[LABEL_COL].values
+    specs = example[dataframe.input_column].values
+    labels = example[dataframe.label_column].values
 
     i = 0
 
@@ -257,7 +258,7 @@ plt.tight_layout()
 
 # Column name of variable by which to analyze cluster content.
 # Select any variable of interest in DF
-analyze_by = LABEL_COL
+analyze_by = dataframe.label_column
 
 # Variable of cluster labels
 cluster_labels = hdb_labels
@@ -310,9 +311,6 @@ ax = sns.heatmap(
 ax.set_xlabel(analyze_by, fontsize=16)
 ax.set_ylabel("Cluster label", fontsize=16)
 ax.tick_params(labelsize=16)
-
-
-
 
 
 # Rowsums
@@ -383,3 +381,5 @@ ax = sns.heatmap(
 ax.set_xlabel(analyze_by, fontsize=16)
 ax.set_ylabel("Cluster label", fontsize=16)
 ax.tick_params(labelsize=16)
+
+dataframe.close()

@@ -9,11 +9,13 @@ def remove():
     logs = LOGS.joinpath('warbler.log')
     dataframe = DATA.joinpath('df.pkl')
     umap = DATA.joinpath('df_umap.pkl')
-    csv = DATA.joinpath('info_file.csv')
+    image = DATA.joinpath('image_data.pkl')
+    csv = DATA.joinpath('notes.csv')
 
     logs.unlink(missing_ok=True)
     dataframe.unlink(missing_ok=True)
     umap.unlink(missing_ok=True)
+    image.unlink(missing_ok=True)
     csv.unlink(missing_ok=True)
 
     if NOTES.exists():
@@ -58,8 +60,8 @@ def execute():
 
 
 def main():
-    # remove()
-    execute()
+    remove()
+    # execute()
 
     print('Done')
 
