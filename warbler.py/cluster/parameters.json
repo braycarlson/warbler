@@ -1,6 +1,6 @@
 {
     "plot_examples": true,
-    "bandpass_filter": false,
+    "bandpass_filter": true,
     "median_subtracted": false,
     "stretch": false,
     "mel_bins": 40,
@@ -9,6 +9,8 @@
     "window": "hann",
     "fmin": 0,
     "fmax": 22050,
+    "lowcut": 1500,
+    "highcut": 10000,
     "minimum_duration": 0,
     "maximum_duration": 1,
     "dimension": 3

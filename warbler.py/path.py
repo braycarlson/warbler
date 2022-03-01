@@ -1,3 +1,5 @@
+import pickle
+
 from functools import wraps
 from pathlib import Path
 
@@ -6,7 +8,7 @@ from pathlib import Path
 CWD = Path.cwd().parent.parent
 
 # The drive of the project
-ROOT = Path(CWD.drive).joinpath('/')
+ROOT = Path(CWD.anchor)
 
 # The directory for the original dataset
 DATASET = ROOT.joinpath('dataset/logue/adelaideswarbler')
@@ -26,17 +28,35 @@ PACKAGE = CWD.joinpath('warbler.py')
 # The directory for the cluster package
 CLUSTER = PACKAGE.joinpath('cluster')
 
-# The directory for the inspect package
-INSPECT = PACKAGE.joinpath('inspect')
+# The directory for the analyze package
+ANALYZE = PACKAGE.joinpath('analyze')
+
+# The directory for the Luscinia printouts
+PRINTOUT = ANALYZE.joinpath('printout')
 
 # The directory for generated spectrograms to be inspected
-SPECTROGRAMS = INSPECT.joinpath('spectrograms')
+SPECTROGRAM = ANALYZE.joinpath('spectrogram')
+
+# The directory for spectrograms deemed good
+GOOD = SPECTROGRAM.joinpath('good')
+
+# The directory for spectrograms deemed mediocre
+MEDIOCRE = SPECTROGRAM.joinpath('mediocre')
+
+# The directory for spectrograms deemed bad
+BAD = SPECTROGRAM.joinpath('bad')
 
 # The directory for the noise package
 NOISE = PACKAGE.joinpath('noise')
 
 # The directory for the segment package
 SEGMENT = PACKAGE.joinpath('segment')
+
+# The directory for the custom parameters
+PARAMETER = SEGMENT.joinpath('parameter')
+
+# The directory for pickled songs
+PICKLE = SEGMENT.joinpath('pickle')
 
 # Get each individual's directory from the original dataset
 DIRECTORIES = sorted([
@@ -52,17 +72,45 @@ INDIVIDUALS = sorted([
     if individual.is_dir()
 ])
 
+# Get each individual's custom parameters
+PARAMETERS = sorted([
+    parameter.stem
+    for parameter in PARAMETER.glob('*.json')
+    if parameter.is_file()
+])
+
+# Get each individual's directory from the printouts
+PRINTOUTS = sorted([
+    individual
+    for individual in PRINTOUT.glob('*/')
+    if individual.is_dir()
+])
+
+
+with open(PICKLE.joinpath('bad.pkl'), 'rb') as handle:
+    ignore = pickle.load(handle)
+
+IGNORE = [Path(file['filename']).stem for file in ignore]
+
 
 def bootstrap(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+        # Data
         LOGS.mkdir(parents=True, exist_ok=True)
-
         DATA.mkdir(parents=True, exist_ok=True)
-
         NOTES.mkdir(parents=True, exist_ok=True)
 
-        SPECTROGRAMS.mkdir(parents=True, exist_ok=True)
+        # Analyze
+        PRINTOUT.mkdir(parents=True, exist_ok=True)
+        SPECTROGRAM.mkdir(parents=True, exist_ok=True)
+        GOOD.mkdir(parents=True, exist_ok=True)
+        MEDIOCRE.mkdir(parents=True, exist_ok=True)
+        BAD.mkdir(parents=True, exist_ok=True)
+
+        # Segment
+        PARAMETER.mkdir(parents=True, exist_ok=True)
+        PICKLE.mkdir(parents=True, exist_ok=True)
 
         for directory in DIRECTORIES:
             (

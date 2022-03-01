@@ -41,7 +41,6 @@ flattened_specs = [pad_spectro(spec, maxlen).flatten() for spec in specs]
 # data is the final input data for UMAP
 data = np.asarray(flattened_specs)
 
-
 reducer = umap.UMAP(
     n_components=parameters.dimension,
     # Specify parameters of UMAP reducer

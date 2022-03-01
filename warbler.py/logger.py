@@ -1,7 +1,7 @@
 import logging
 
 from contextlib import contextmanager
-from path import CWD
+from path import LOGS
 
 
 @contextmanager
@@ -10,9 +10,7 @@ def logger():
         log = logging.getLogger()
         log.setLevel(logging.INFO)
 
-        directory = CWD.joinpath('logs')
-        directory.mkdir(exist_ok=True)
-        path = directory / 'warbler.log'
+        path = LOGS.joinpath('warbler.log')
         path.open('a', encoding='utf-8').close()
 
         file_handler = logging.FileHandler(

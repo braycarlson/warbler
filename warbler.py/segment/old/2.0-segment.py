@@ -1,3 +1,4 @@
+import json
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,10 +14,11 @@ from avgn.signalprocessing.create_spectrogram_dataset import (
 )
 from avgn.utils.hparams import HParams
 from avgn.visualization.spectrogram import draw_spec_set
-from joblib import Parallel, delayed
+from joblib import delayed, Parallel
 from parameters import Parameters
-from path import INDIVIDUALS
+from path import DATA, INDIVIDUALS
 from pathlib import Path
+from scipy.io import wavfile
 from tqdm.autonotebook import tqdm
 
 
@@ -46,7 +48,7 @@ hparams = HParams(
     max_vocal_for_spec=parameters.max_vocal_for_spec,
     min_syllable_length_s=parameters.min_syllable_length_s,
     spectral_range=parameters.spectral_range,
-
+    reduce_noise=parameters.reduce_noise,
     num_mel_bins=parameters.num_mel_bins,
     mel_lower_edge_hertz=parameters.mel_lower_edge_hertz,
     mel_upper_edge_hertz=parameters.mel_upper_edge_hertz,
@@ -62,14 +64,14 @@ hparams = HParams(
 dataset = DataSet(INDIVIDUALS, hparams=hparams)
 
 n_jobs = parameters.n_jobs
-verbosity = parameters.n_jobs
+verbosity = parameters.verbosity
 
 with Parallel(n_jobs=n_jobs, verbose=verbosity) as parallel:
     syllable_dfs = parallel(
         delayed(create_label_df)(
             dataset.data_files[key].data,
             hparams=dataset.hparams,
-            labels_to_retain=["labels", "sequence_num"],
+            labels_to_retain=["labels", "filename"],
             unit="notes",
             dict_features_to_retain=[],
             key=key,
@@ -102,6 +104,52 @@ syllable_df = syllable_df[np.array(df_mask)]
 syllable_df['audio'] = [
     librosa.util.normalize(i) for i in syllable_df.audio.values
 ]
+
+region = {
+    k: v for k, v in syllable_df.groupby('filename')
+}
+
+for filename in region.keys():
+    ic = region[filename].index
+    bc = region[filename].get('indv')
+    ac = region[filename].get('audio').tolist()
+    rc = region[filename].get('rate')
+
+    notes = []
+
+    for index, bird, audio, rate in zip(ic, bc, ac, rc):
+        index = str(index).zfill(2)
+        rate = int(rate)
+
+        directory = DATA.joinpath(bird, 'notes')
+        path = directory.joinpath(filename + '_' + index + '.wav')
+
+        wavfile.write(
+            path,
+            rate,
+            audio
+        )
+
+        path = path.as_posix()
+        notes.append(path)
+
+    directory = DATA.joinpath(bc[0], 'json')
+    path = directory.joinpath(filename + '.json')
+
+    with open(path, 'r') as file:
+        try:
+            data = json.load(file)
+        except json.decoder.JSONDecodeError:
+            print(f"Unable to open: {path}")
+            continue
+
+        template = data.get('indvs').get(bc[0]).get('notes')
+        template['files'] = notes
+
+    with open(path, 'w+') as file:
+        text = json.dumps(data, indent=2)
+        file.write(text)
+
 
 # Plot some example audio
 nrows = 5

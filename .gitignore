@@ -3,8 +3,11 @@ data/
 logs/
 notebook/.ipynb_checkpoints/
 notes/
-warbler.py/inspect/spectrograms
+warbler.py/analyze/printout
+warbler.py/analyze/spectrogram
+warbler.py/segment/pickle
 warbler.py/warbler.py.egg-info/
+ui/
 
 *.pkl
 *.bat

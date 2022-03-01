@@ -4,6 +4,7 @@ import logging
 
 from logger import logger
 from path import bootstrap, DATA, INDIVIDUALS
+from pathlib import Path
 
 
 log = logging.getLogger(__name__)
@@ -38,7 +39,8 @@ def main():
 
         for individual in INDIVIDUALS:
             files = [
-                file for file in individual.joinpath('json').glob('*.json')
+                file
+                for file in individual.joinpath('json').glob('*.json')
             ]
 
             name = individual.stem.replace('_STE2017', '')
@@ -65,12 +67,11 @@ def main():
                     start = notes.get('start_times')
                     end = notes.get('end_times')
                     label = notes.get('labels')
-                    sequence = notes.get('sequence_num')
                     note = notes.get('files')
 
-                    for s, e, l, i, n in zip(start, end, label, sequence, note):
+                    for s, e, l, n in zip(start, end, label, note):
                         writer.writerow([
-                            n,
+                            Path(n).name,
                             l,
                             name,
                             s,
@@ -78,7 +79,7 @@ def main():
 
                             common,
                             scientific,
-                            wav,
+                            Path(wav).stem,
                             sample_rate,
                             duration
                         ])

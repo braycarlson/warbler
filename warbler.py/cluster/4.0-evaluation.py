@@ -89,7 +89,7 @@ labelled_df = df.loc[df[dataframe.label_column] != dataframe.na_label, :]
 
 # detects UMAP columns
 UMAP_COLS = [x for x in labelled_df.columns if 'UMAP' in x]
-print("Found", len(UMAP_COLS), "UMAP columns in df, using all ",len(UMAP_COLS)," for subsequent analyses.")
+print(f"Found {len(UMAP_COLS)} UMAP columns in df, using all {len(UMAP_COLS)} for subsequent analyses.")
 
 labels = labelled_df[dataframe.label_column]                # manual labels
 embedding = np.asarray(labelled_df[UMAP_COLS]) # UMAP coordinates
@@ -362,14 +362,14 @@ for i, ind in enumerate(example_indices):
         k = k + 1
 
 
-# filename (with path) where figure will be saved. Default: None -> figure not saved
-G = nn_stats.draw_simgraph(outname=None)
+# # filename (with path) where figure will be saved. Default: None -> figure not saved
+# G = nn_stats.draw_simgraph(outname=None)
 
-# show graph inline:
-G.draw(
-    format='png',
-    prog='neato'
-)
+# # show graph inline:
+# G.draw(
+#     format='png',
+#     prog='neato'
+# )
 
 dataframe.close()
 parameters.close()

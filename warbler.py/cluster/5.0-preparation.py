@@ -29,14 +29,9 @@ parameters = Parameters(file)
 # labels for the spectrogram images.
 
 # If you are using bandpass-filtered spectrograms...
-# if 'filtered' in dataframe.input_column:
-    # FMIN is set to LOWCUT,
-    # FMAX to HIGHCUT and
-    # N_MELS to N_MELS_FILTERED
-
-    # parameters.fmin = LOWCUT
-    # parameters.fmax = HIGHCUT
-    # N_MELS = N_MELS_FILTERED
+if dataframe.filtered_input_column:
+    parameters.fmin = parameters.lowcut
+    parameters.fmax = parameters.highcut
 
 DF_NAME = DATA.joinpath('df_umap.pkl')
 df = pd.read_pickle(DF_NAME)

@@ -4,7 +4,11 @@ import os
 import pandas as pd
 import random
 
-from functions.audio_functions import generate_mel_spectrogram, read_wavfile
+from functions.audio_functions import (
+    butter_bandpass_filter,
+    generate_mel_spectrogram,
+    read_wavfile
+)
 from parameters import Parameters
 from path import DATA, NOTES
 from pathlib import Path
@@ -68,7 +72,7 @@ files_in_audio_directory = os.listdir(NOTES)
 
 raw_audio, samplerate_hz = map(
     list,
-    zip(*[read_wavfile(x) for x in audiofiles])
+    zip(*[read_wavfile(path) for path in df['path'].values])
 )
 
 df['raw_audio'] = raw_audio
@@ -78,17 +82,17 @@ df['samplerate_hz'] = samplerate_hz
 
 nrows = df.shape[0]
 df.dropna(subset=['raw_audio'], inplace=True)
-print("Dropped ", nrows - df.shape[0], " rows due to missing/failed audio")
+print(f"Dropped {nrows - df.shape[0]} rows due to missing/failed audio")
 
 # Extract duration of calls
-df['duration_s'] = [x.shape[0] for x in df['raw_audio']]/df['samplerate_hz']
+df['duration_s'] = [x.shape[0] for x in df['raw_audio']] / df['samplerate_hz']
 
 
-print(f"Dropped {df.loc[df['duration_s'] < parameters.minimum_duration, :].shape[0]} rows below {parameters.minimum_duration} s")
-df = df.loc[df['duration_s'] >= parameters.minimum_duration, :]
+# print(f"Dropped {df.loc[df['duration_s'] < parameters.minimum_duration, :].shape[0]} rows below {parameters.minimum_duration} s")
+# df = df.loc[df['duration_s'] >= parameters.minimum_duration, :]
 
-print(f"Dropped {df.loc[df['duration_s'] < parameters.maximum_duration, :].shape[0]} rows above {parameters.maximum_duration} s")
-df = df.loc[df['duration_s'] <= parameters.maximum_duration, :]
+# print(f"Dropped {df.loc[df['duration_s'] < parameters.maximum_duration, :].shape[0]} rows above {parameters.maximum_duration} s")
+# df = df.loc[df['duration_s'] <= parameters.maximum_duration, :]
 
 parameters.update(
     'fft_hop',
@@ -119,6 +123,7 @@ df['spectrograms'] = spectrograms
 
 # Removing NA rows
 nrows = df.shape[0]
+
 df.dropna(subset=['spectrograms'], inplace=True)
 print(f"Dropped {nrows-df.shape[0]} rows due to failed spectrogram generation")
 
@@ -130,6 +135,39 @@ random_indices = [
 ]
 
 plot_examples(df, random_indices, 'spectrograms')
+
+
+if parameters.bandpass_filter:
+    # Create filtered audio
+    df['filtered_audio'] = df.apply(
+        lambda row:
+        butter_bandpass_filter(
+            data=row['raw_audio'],
+            lowcut=parameters.lowcut,
+            highcut=parameters.highcut,
+            sr=row['samplerate_hz'],
+            order=6
+        ),
+        axis=1
+    )
+
+    # Create spectrograms from filtered audio
+    df['filtered_spectrograms'] = df.apply(
+        lambda row:
+        generate_mel_spectrogram(
+            data=row['filtered_audio'],
+            rate=row['samplerate_hz'],
+            n_mels=parameters.mel_bins,
+            window=parameters.window,
+            fft_win=parameters.fft_win,
+            fft_hop=parameters.fft_hop,
+            fmax=parameters.highcut,
+            fmin=parameters.lowcut
+        ),
+        axis=1
+    )
+
+plot_examples(df, random_indices, 'filtered_spectrograms')
 
 # Original labels are saved in "original_label" column
 df['original_label'] = df[dataframe.label_column]

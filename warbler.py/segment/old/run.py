@@ -2,33 +2,24 @@ import platform
 import shutil
 import subprocess
 
-from path import (
-    CWD,
-    DATA,
-    INDIVIDUALS,
-    LOGS,
-    NOTES,
-    # PICKLE,
-    # SPECTROGRAM
-)
+from path import CWD, DATA, INDIVIDUALS, LOGS, NOTES
 
 
 def remove():
-    LOGS.joinpath('warbler.log').unlink(missing_ok=True)
+    logs = LOGS.joinpath('warbler.log')
+    dataframe = DATA.joinpath('df.pkl')
+    umap = DATA.joinpath('df_umap.pkl')
+    image = DATA.joinpath('image_data.pkl')
+    csv = DATA.joinpath('notes.csv')
 
-    DATA.joinpath('df.pkl').unlink(missing_ok=True)
-    DATA.joinpath('df_umap.pkl').unlink(missing_ok=True)
-    DATA.joinpath('image_data.pkl').unlink(missing_ok=True)
-    DATA.joinpath('notes.csv').unlink(missing_ok=True)
+    logs.unlink(missing_ok=True)
+    dataframe.unlink(missing_ok=True)
+    umap.unlink(missing_ok=True)
+    image.unlink(missing_ok=True)
+    csv.unlink(missing_ok=True)
 
     if NOTES.exists():
         shutil.rmtree(NOTES)
-
-    # if PICKLE.exists():
-    #     shutil.rmtree(PICKLE)
-
-    # if SPECTROGRAM.exists():
-    #     shutil.rmtree(SPECTROGRAM)
 
     for individual in INDIVIDUALS:
         try:
@@ -57,16 +48,14 @@ def execute():
     warbler = CWD.joinpath('warbler.py')
     segment = warbler.joinpath('segment')
 
-    spreadsheet = segment.joinpath('1.0-spreadsheet.py')
-    metadata = segment.joinpath('2.0-metadata.py')
-    segment = segment.joinpath('3.0-segment.py')
-    copy = segment.joinpath('4.0-copy.py')
-    csv = segment.joinpath('5.0-csv.py')
+    metadata = segment.joinpath('1.0-metadata.py')
+    segment = segment.joinpath('2.0-segment.py')
+    split = segment.joinpath('3.0-split.py')
+    csv = segment.joinpath('4.0-csv.py')
 
-    subprocess.call([venv, spreadsheet])
     subprocess.call([venv, metadata])
     subprocess.call([venv, segment])
-    subprocess.call([venv, copy])
+    subprocess.call([venv, split])
     subprocess.call([venv, csv])
 
 

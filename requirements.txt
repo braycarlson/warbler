@@ -21,6 +21,10 @@ pillow
 plotly
 pydub
 pygraphviz; sys_platform == 'linux'
+pymupdf
+PySide2
+pysimplegui
+PySimpleGUIDesigner
 pysoundfile
 pytest
 python-dotenv
@@ -32,3 +36,5 @@ tensorflow_gpu
 tensorflow
 umap-learn
 voila
+
+
