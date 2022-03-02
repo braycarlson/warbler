@@ -17,11 +17,11 @@ warbler.py is a pipeline for segmenting, clustering and visualizing Adelaide's w
 ### Linux (Debian)
 
 ```
-$ sudo apt install graphviz graphviz-dev
+sudo apt install graphviz graphviz-dev
 ```
 
 ```
-$ sudo apt install ffmpeg
+sudo apt install ffmpeg
 ```
 
 ## Setup
@@ -29,33 +29,33 @@ $ sudo apt install ffmpeg
 ### pyenv
 
 ```
-$ pyenv install 3.9.5
+pyenv install 3.9.5
 ```
 
 ```
-$ pyenv local 3.9.5
+pyenv local 3.9.5
 ```
 
 ### Virtual Environment
 
 ```
-$ python -m venv venv
+python -m venv venv
 ```
 
 #### Windows
 
 ```
-$ "venv/Scripts/activate"
+"venv/Scripts/activate"
 ```
 
 #### Unix
 
 ```
-$ source venv/bin/activate
+source venv/bin/activate
 ```
 
 ### Packages
 
 ```
-$ pip install -U -r requirements.txt && pip install -U -r local.txt
+pip install -U -r requirements.txt && pip install -U -r local.txt
 ```
