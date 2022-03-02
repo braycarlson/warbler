@@ -5,10 +5,14 @@ notebook/.ipynb_checkpoints/
 notes/
 warbler.py/analyze/printout
 warbler.py/analyze/spectrogram
+warbler.py/cluster/working
 warbler.py/segment/pickle
+warbler.py/segment/old
 warbler.py/warbler.py.egg-info/
 ui/
 
+*.7z
+*.zip
 *.pkl
 *.bat
 notes.txt

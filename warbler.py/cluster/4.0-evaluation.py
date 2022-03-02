@@ -1,30 +1,25 @@
-import librosa
-import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import random
 import scipy
 import seaborn as sns
+import librosa
+import librosa.display
 
 from functions.plot_functions import umap_2Dplot, umap_3Dplot
 from functions.evaluation_functions import plot_within_without
 from functions.evaluation_functions import nn, sil
-from parameters import Parameters
+# from IPython.display import Image
 from path import DATA
-from pathlib import Path
 from sklearn.neighbors import NearestNeighbors
+from spec_params import FMIN, FMAX, FFT_HOP
 
 
-# Dataframe
-file = Path('dataframe.json')
-dataframe = Parameters(file)
+DF_PATH = DATA.joinpath('df_umap.pkl')
 
-
-# Parameters
-file = Path('parameters.json')
-parameters = Parameters(file)
-
+LABEL_COL = 'label'
+NA_INDICATOR = "unknown"
 
 distinct_colors_20 = [
     '#e6194b',
@@ -51,144 +46,135 @@ distinct_colors_20 = [
     '#000000'
 ]
 
-
-#  path to dataframe with UMAP coordinates
-DF_PATH = DATA.joinpath('df_umap.pkl')
-
 # Load dataframe
 df = pd.read_pickle(DF_PATH)
 
 # labels
-labels = df[dataframe.label_column]
+labels = df[LABEL_COL]
+
+print(df.columns)
 
 umap_2Dplot(
-    x=df['UMAP1'],                  # xaxis coordinates
-    y=df['UMAP2'],                  # yaxis coordinates
-    scat_labels=labels,             # labels (if available)
-    mycolors=distinct_colors_20,    # sns.Palette color scheme name or list of colors
-    outname=None,                   # filename (with path) where figure will be saved. Default: None -> figure not saved
-    showlegend=True                 # show legend if True else no legend
+    x=df['UMAP1'],
+    y=df['UMAP2'],
+    scat_labels=labels,
+    mycolors=distinct_colors_20,
+    outname=None,
+    showlegend=True
 )
-
-plt.show()
 
 umap_3Dplot(
-    x=df['UMAP1'],                  # xaxis coordinates
-    y=df['UMAP2'],                  # yaxis coordinates
-    z=df['UMAP3'],                  # zaxis coordinates
-    scat_labels=labels,             # labels (if available)
-    mycolors=distinct_colors_20,    # sns.Palette color scheme name or list of colors
-    outname=None,                   # filename (with path) where figure will be saved. Default: None -> figure not saved
-    showlegend=True                 # show legend if True else no legend
+    x=df['UMAP1'],
+    y=df['UMAP2'],
+    z=df['UMAP3'],
+    scat_labels=labels,
+    mycolors=distinct_colors_20,
+    outname=None,
+    showlegend=True
 )
 
-plt.show()
+labelled_df = df.loc[df[LABEL_COL] != NA_INDICATOR, :]
 
-# create dataframe with only the labelled datapoints
-labelled_df = df.loc[df[dataframe.label_column] != dataframe.na_label, :]
+UMAP_COLS = [
+    x for x in labelled_df.columns
+    if 'UMAP' in x
+]
 
-# detects UMAP columns
-UMAP_COLS = [x for x in labelled_df.columns if 'UMAP' in x]
 print(f"Found {len(UMAP_COLS)} UMAP columns in df, using all {len(UMAP_COLS)} for subsequent analyses.")
 
-labels = labelled_df[dataframe.label_column]                # manual labels
-embedding = np.asarray(labelled_df[UMAP_COLS]) # UMAP coordinates
 
-knn = 5 #  for knn=5 nearest neighbors
+labels = labelled_df[LABEL_COL]
+embedding = np.asarray(labelled_df[UMAP_COLS])
+
+knn = 5
 
 nn_stats = nn(embedding, np.asarray(labels), k=knn)
 
 # Summary scores
-print("Evaluation score S (unweighted average of same-class probability P for all classes):",round(nn_stats.get_S(),3))
-print("Evaluation score Snorm (unweighted average of normalized same-class probability Pnorm for all classes)::", round(nn_stats.get_Snorm(),3))
+print("Evaluation score S (unweighted average of same-class probability P for all classes):", round(nn_stats.get_S(), 3))
+print("Evaluation score Snorm (unweighted average of normalized same-class probability Pnorm for all classes)::", round(nn_stats.get_Snorm(), 3))
 
 nn_stats.plot_heat_S(
-    vmin=0,                         # lower end (for color scheme)
-    vmax=100,                       # upper end (for color scheme)
-    center=50,                      # center(for color scheme)
-    cmap=sns.color_palette(         # color scheme
+    vmin=0,
+    vmax=100,
+    center=50,
+    cmap=sns.color_palette(
         "Greens",
         as_cmap=True
     ),
-    cbar=None,                      # show colorbar if True else don't
-    outname=None                    # filename (with path) where figure will be saved. Default: None -> figure not saved
+    cbar=None,
+    outname=None
 )
 
 nn_stats.plot_heat_fold(
-    center=1,                       # center(for color scheme)
-    cmap=sns.diverging_palette(     # color scheme
+    center=1,
+    cmap=sns.diverging_palette(
         20,
         145,
         as_cmap=True
     ),
-    cbar=None,                      # show colorbar if True else don't
-    outname=None                    # filename (with path) where figure will be saved. Default: None -> figure not saved
+    cbar=None,
+    outname=None
 )
 
 nn_stats.plot_heat_Snorm(
-    vmin=-13,       # lower end (for color scheme)
-    vmax=13,        # upper end (for color scheme)
-    center=1,       # center(for color scheme)
-    cmap=sns.diverging_palette( # color scheme
+    vmin=-13,
+    vmax=13,
+    center=1,
+    cmap=sns.diverging_palette(
         20,
         145,
         as_cmap=True
     ),
-    cbar=None,      # show colorbar if True else don't
-    outname=None    # filename (with path) where figure will be saved. Default: None -> figure not saved
+    cbar=None,
+    outname=None
 )
 
 plot_within_without(
-    embedding=embedding,         # latent space coordinates (2D numpy array)
-    labels=labels,               # calltype labels
-    distance_metric='euclidean', # distance metric (all scipy distance metrics are valid)
-    outname=None,                # filename (with path) where figure will be saved. Default: None -> figure not saved
+    embedding=embedding,
+    labels=labels,
+    distance_metric='euclidean',
+    outname=None,
     xmin=0,
-    xmax=12,                     # xaxis minimum and maximum
-    ymax=0.5,                    # yaxis maximum
-    nbins=50,                    # number of bins
-    nrows=6,                     # number of rows of subplots
-    ncols=4,                     # number of cols of subplots
-    density=True                 # plot density if True else plot frequency
+    xmax=12,
+    ymax=0.5,
+    nbins=50,
+    nrows=6,
+    ncols=4,
+    density=True
 )
 
-plt.show()
 
 sil_stats = sil(embedding, labels)
-
-# filename (with path) where figure will be saved.
-# Default: None -> figure not saved
 sil_stats.plot_sil(outname=None)
 
 sil_stats.get_avrg_score()
 
+DISPLAY_COL = 'spectrograms'
 
 knn = 5
 
-# Find k nearest neighbors
 nbrs = NearestNeighbors(
     metric='euclidean',
-    n_neighbors=knn+1,
+    n_neighbors=knn + 1,
     algorithm='brute'
 ).fit(embedding)
 
 distances, indices = nbrs.kneighbors(embedding)
 
-# need to remove the first neighbor, because that is the datapoint itself
 indices = indices[:, 1:]
 distances = distances[:, 1:]
 
-# Randomly choose 10 calls and plot their 4 nearest neighbors
-# using LIBROSA.DISPLAY
-
 n_examples = 8
+
 fig = plt.figure(
     figsize=(20, 20)
 )
+
 k = 1
 
-# randomly choose
 random.seed(1)
+
 example_indices = random.sample(
     list(
         range(embedding.shape[0])
@@ -197,9 +183,7 @@ example_indices = random.sample(
 )
 
 for i, ind in enumerate(example_indices):
-    # Plot the random example spectrogram
-
-    img_of_interest = labelled_df.iloc[ind, :][dataframe.input_column]
+    img_of_interest = labelled_df.iloc[ind, :][DISPLAY_COL]
     embedding_of_interest = embedding[ind, :]
     plt.subplot(n_examples, knn + 1, k)
     sr = labelled_df.iloc[ind, :].samplerate_hz
@@ -207,9 +191,9 @@ for i, ind in enumerate(example_indices):
     librosa.display.specshow(
         img_of_interest,
         sr=sr,
-        hop_length=int(parameters.fft_hop * sr),
-        fmin=parameters.fmin,
-        fmax=parameters.fmax,
+        hop_length=int(FFT_HOP * sr),
+        fmin=FMIN,
+        fmax=FMAX,
         y_axis='mel',
         x_axis='s',
         cmap='viridis'
@@ -218,23 +202,26 @@ for i, ind in enumerate(example_indices):
     k = k + 1
 
     nearest_neighbors = indices[ind]
-    for neighbor in nearest_neighbors:
 
-        neighbor_embedding = embedding[neighbor,:]
+    for neighbor in nearest_neighbors:
+        neighbor_embedding = embedding[neighbor, :]
+
         dist_to_original = scipy.spatial.distance.euclidean(
             embedding_of_interest,
             neighbor_embedding
         )
-        neighbor_img = labelled_df.iloc[neighbor, :][dataframe.input_column]
+
+        neighbor_img = labelled_df.iloc[neighbor, :][DISPLAY_COL]
 
         plt.subplot(n_examples, knn + 1, k)
-        sr = labelled_df.iloc[neighbor,:].samplerate_hz
+        sr = labelled_df.iloc[neighbor, :].samplerate_hz
+
         librosa.display.specshow(
             neighbor_img,
             sr=sr,
-            hop_length=int(parameters.fft_hop * sr),
-            fmin=parameters.fmin,
-            fmax=parameters.fmax,
+            hop_length=int(FFT_HOP * sr),
+            fmin=FMIN,
+            fmax=FMAX,
             y_axis='mel',
             x_axis='s',
             cmap='viridis'
@@ -245,21 +232,20 @@ for i, ind in enumerate(example_indices):
 plt.tight_layout()
 
 
-# Randomly choose 10 calls and plot their 4 nearest neighbors
-# using PLT.IMSHOW
-
 n_examples = 8
 major_tick_interval = 20
-f_to_s = parameters.fft_hop
+f_to_s = FFT_HOP
 rotate_x = 0
 
 fig = plt.figure(
     figsize=(20, 20)
 )
+
 k = 1
 
 # randomly choose
 random.seed(1)
+
 example_indices = random.sample(
     list(
         range(embedding.shape[0])
@@ -267,25 +253,18 @@ example_indices = random.sample(
     n_examples
 )
 
-# Adjust! This is specific to your N_MELS and samplerate!
-freq_label_list = [
-    '512',
-    '1024',
-    '2048'
-]
-
+# adjust! this is specific to your N_MELS and samplerate!
+freq_label_list = ['512', '1024', '2048']
 
 for i, ind in enumerate(example_indices):
-
-    # Plot the random example spectrogram
-
-    img_of_interest = labelled_df.iloc[ind, :][dataframe.input_column]
+    img_of_interest = labelled_df.iloc[ind, :][DISPLAY_COL]
     embedding_of_interest = embedding[ind, :]
     plt.subplot(n_examples, knn + 1, k)
 
     # Align specs to left
     ax = plt.gca()
     ax.set_anchor('W')
+
     plt.imshow(
         img_of_interest,
         interpolation='nearest',
@@ -293,9 +272,6 @@ for i, ind in enumerate(example_indices):
         aspect='equal'
     )
 
-    # Set axis ticks and labels
-
-    # set major ticks in 0.5s steps
     major_xticks = np.arange(
         0,
         img_of_interest.shape[1],
@@ -304,12 +280,11 @@ for i, ind in enumerate(example_indices):
 
     major_xtick_labels = ["" for x in major_xticks]
 
-    major_yticks = [10,20,30]
+    major_yticks = [10, 20, 30]
     major_ytick_labels = freq_label_list
 
-    # If lowest row, add x tick labels
     if i == (n_examples - 1):
-        major_xtick_labels = [round(x*f_to_s, 2) for x in major_xticks]
+        major_xtick_labels = [round(x * f_to_s, 2) for x in major_xticks]
         plt.xlabel('Time (s)')
 
     plt.ylabel('Hz')
@@ -319,15 +294,16 @@ for i, ind in enumerate(example_indices):
     k = k + 1
 
     nearest_neighbors = indices[ind]
-    for neighbor in nearest_neighbors:
 
+    for neighbor in nearest_neighbors:
         neighbor_embedding = embedding[neighbor, :]
+
         dist_to_original = scipy.spatial.distance.euclidean(
             embedding_of_interest,
             neighbor_embedding
         )
 
-        neighbor_img = labelled_df.iloc[neighbor, :][dataframe.input_column]
+        neighbor_img = labelled_df.iloc[neighbor, :][DISPLAY_COL]
 
         plt.subplot(n_examples, knn + 1, k)
         plt.imshow(
@@ -337,11 +313,9 @@ for i, ind in enumerate(example_indices):
             aspect='equal'
         )
 
-        # Align specs to the left
         ax = plt.gca()
         ax.set_anchor('W')
 
-        # set major ticks in 0.5s steps
         major_xticks = np.arange(
             0,
             neighbor_img.shape[1],
@@ -361,15 +335,15 @@ for i, ind in enumerate(example_indices):
 
         k = k + 1
 
+plt.show()
 
-# # filename (with path) where figure will be saved. Default: None -> figure not saved
 # G = nn_stats.draw_simgraph(outname=None)
 
-# # show graph inline:
-# G.draw(
-#     format='png',
-#     prog='neato'
+# Image(
+#     G.draw(
+#         format='png',
+#         prog='neato'
+#     ),
+#     width=400,
+#     height=600
 # )
-
-dataframe.close()
-parameters.close()

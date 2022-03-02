@@ -1,30 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 import random
 
-from functions.audio_functions import (
-    butter_bandpass_filter,
-    generate_mel_spectrogram,
-    read_wavfile
-)
+from functions.audio_functions import generate_mel_spectrogram, read_wavfile
 from parameters import Parameters
-from path import DATA, NOTES
-from pathlib import Path
+from path import CLUSTER, DATA, NOTES
 
 
-# Function for plotting example spectrograms
+path = CLUSTER.joinpath('parameters.json')
+parameters = Parameters(path)
+
+path = CLUSTER.joinpath('dataframe.json')
+dataframe = Parameters(path)
+
+
 def plot_examples(df, random_indices, spec_type):
     if spec_type in df.columns:
+
         df_subset = df.iloc[random_indices, :]
         specs = df_subset[spec_type].values
 
-        plt.figure(
-            figsize=(
-                len(random_indices) * 3, 3
-            )
-        )
+        plt.figure(figsize=(len(random_indices) * 3, 3))
 
         for i, spec in enumerate(specs):
             plt.subplot(1, len(random_indices), i + 1)
@@ -32,47 +29,62 @@ def plot_examples(df, random_indices, spec_type):
 
         plt.suptitle(spec_type)
         plt.tight_layout()
-
-        plt.show()
     else:
         print(f"Error: {spec_type} not in df columns")
 
 
-# Dataframe
-file = Path('dataframe.json')
-dataframe = Parameters(file)
+NA_DESCRIPTORS = [
+    0,
+    np.nan,
+    "NA",
+    "na",
+    "not available",
+    "None",
+    "Unknown",
+    "unknown",
+    None,
+    ""
+]
 
+if not NOTES.is_dir():
+    print("No notes directory found")
 
-# Parameters
-file = Path('parameters.json')
-parameters = Parameters(file)
+file = DATA.joinpath('notes.csv')
+notes = [file.name for file in NOTES.glob('*.wav')]
 
-
-# Information about the notes.csv
-NOTES_FILE = DATA.joinpath('notes.csv')
-
-if NOTES_FILE.is_file():
-    df = pd.read_csv(NOTES_FILE, sep=";")
+if file.is_file():
+    df = pd.read_csv(file, sep=";")
 else:
-    print(f"Input file missing: {NOTES_FILE}")
-
-    audiofiles = os.listdir(NOTES)
-
-    if len(audiofiles) > 0:
+    if len(notes) > 0:
         df = pd.DataFrame(
             {
-                'filename': [Path(x).stem for x in audiofiles],
-                'label': ['Unknown'] * len(audiofiles)
+                'filename': [note for note in notes],
+                'label': ["unknown"] * len(notes)
             }
         )
 
+print(df)
 
-audiofiles = df['filename'].values
-files_in_audio_directory = os.listdir(NOTES)
+filenames = df['filename'].values
+
+missing_files = list(
+    set(filenames) - set(notes)
+)
+
+if len(missing_files) > 0:
+    length = len(missing_files)
+
+    print(f"Warning: {length} files with no matching note in notes directory")
+    print(missing_files)
+
+paths = [
+    NOTES.joinpath(filename).as_posix()
+    for filename in filenames
+]
 
 raw_audio, samplerate_hz = map(
     list,
-    zip(*[read_wavfile(path) for path in df['path'].values])
+    zip(*[read_wavfile(path) for path in paths])
 )
 
 df['raw_audio'] = raw_audio
@@ -81,18 +93,23 @@ df['samplerate_hz'] = samplerate_hz
 # Removing NA rows
 
 nrows = df.shape[0]
-df.dropna(subset=['raw_audio'], inplace=True)
+
+df.dropna(
+    subset=['raw_audio'],
+    inplace=True
+)
+
 print(f"Dropped {nrows - df.shape[0]} rows due to missing/failed audio")
 
 # Extract duration of calls
 df['duration_s'] = [x.shape[0] for x in df['raw_audio']] / df['samplerate_hz']
 
+print(f"Dropped {df.loc[df['duration_s'] < parameters.minimum_duration, :].shape[0]} rows below {parameters.minimum_duration}s (min_dur)")
+df = df.loc[df['duration_s'] >= parameters.minimum_duration, :]
 
-# print(f"Dropped {df.loc[df['duration_s'] < parameters.minimum_duration, :].shape[0]} rows below {parameters.minimum_duration} s")
-# df = df.loc[df['duration_s'] >= parameters.minimum_duration, :]
+print(f"Dropped {df.loc[df['duration_s'] > parameters.maximum_duration, :].shape[0]} rows above {parameters.maximum_duration}s (max_dur)")
+df = df.loc[df['duration_s'] <= parameters.maximum_duration, :]
 
-# print(f"Dropped {df.loc[df['duration_s'] < parameters.maximum_duration, :].shape[0]} rows above {parameters.maximum_duration} s")
-# df = df.loc[df['duration_s'] <= parameters.maximum_duration, :]
 
 parameters.update(
     'fft_hop',
@@ -107,38 +124,63 @@ parameters.update(
 parameters.save()
 
 spectrograms = df.apply(
-    lambda row: generate_mel_spectrogram(
-            data=row['raw_audio'],
-            rate=row['samplerate_hz'],
-            n_mels=parameters.mel_bins,
-            window=parameters.window,
-            fft_win=parameters.fft_win,
-            fft_hop=parameters.fft_hop,
-            fmax=parameters.fmax
-        ),
+    lambda row:
+    generate_mel_spectrogram(
+        data=row['raw_audio'],
+        rate=row['samplerate_hz'],
+        n_mels=parameters.mel_bins,
+        window=parameters.window,
+        fft_win=parameters.fft_win,
+        fft_hop=parameters.fft_hop,
+        fmax=parameters.fmax
+    ),
     axis=1
 )
 
 df['spectrograms'] = spectrograms
 
 # Removing NA rows
+
 nrows = df.shape[0]
 
-df.dropna(subset=['spectrograms'], inplace=True)
-print(f"Dropped {nrows-df.shape[0]} rows due to failed spectrogram generation")
+df.dropna(
+    subset=['spectrograms'],
+    inplace=True
+)
+
+print(f"Dropped {nrows - df.shape[0]} rows due to failed spectrogram generation")
+
 
 # Randomly choose some example vocalizations
-n_examples = 10
+
+n_examples = 3
 
 random_indices = [
     random.randint(0, df.shape[0]) for x in [0] * n_examples
 ]
 
-plot_examples(df, random_indices, 'spectrograms')
+if parameters.plot_examples:
+    plot_examples(df, random_indices, 'spectrograms')
 
+if parameters.median_subtracted:
+    df['denoised_spectrograms'] = [
+        spectrogram - np.median(
+            spectrogram,
+            axis=0)
+        for spectrogram in df['spectrograms']
+    ]
+
+if parameters.median_subtracted and parameters.plot_examples:
+    plot_examples(
+        df,
+        random_indices,
+        'denoised_spectrograms'
+    )
 
 if parameters.bandpass_filter:
-    # Create filtered audio
+    from functions.audio_functions import butter_bandpass_filter
+
+    # create filtered audio
     df['filtered_audio'] = df.apply(
         lambda row:
         butter_bandpass_filter(
@@ -151,13 +193,13 @@ if parameters.bandpass_filter:
         axis=1
     )
 
-    # Create spectrograms from filtered audio
+    # create spectrograms from filtered audio
     df['filtered_spectrograms'] = df.apply(
         lambda row:
         generate_mel_spectrogram(
             data=row['filtered_audio'],
             rate=row['samplerate_hz'],
-            n_mels=parameters.mel_bins,
+            n_mels=parameters.mel_bins_filtered,
             window=parameters.window,
             fft_win=parameters.fft_win,
             fft_hop=parameters.fft_hop,
@@ -167,25 +209,64 @@ if parameters.bandpass_filter:
         axis=1
     )
 
-plot_examples(df, random_indices, 'filtered_spectrograms')
+if parameters.bandpass_filter and parameters.plot_examples:
+    plot_examples(
+        df,
+        random_indices,
+        'filtered_spectrograms'
+    )
 
-# Original labels are saved in "original_label" column
+if parameters.stretch:
+    from functions.audio_functions import generate_stretched_mel_spectrogram
+
+    MAX_DURATION = np.max(df['duration_s'])
+
+    df['stretched_spectrograms'] = df.apply(
+        lambda row:
+        generate_stretched_mel_spectrogram(
+            row['raw_audio'],
+            row['samplerate_hz'],
+            row['duration_s'],
+            parameters.mel_bins,
+            parameters.window,
+            parameters.fft_win,
+            parameters.fft_hop,
+            parameters.maximum_duration
+        ),
+        axis=1
+    )
+
+if parameters.stretch and parameters.plot_examples:
+    plot_examples(
+        df,
+        random_indices,
+        'stretched_spectrograms'
+    )
+
+if 'filtered_spectrograms' in df.columns:
+    df['denoised_filtered_spectrograms'] = [
+        spectrogram - np.median(spectrogram, axis=0)
+        for spectrogram in df['filtered_spectrograms']
+    ]
+
+    if parameters.plot_examples:
+        plot_examples(
+            df,
+            random_indices,
+            'denoised_filtered_spectrograms'
+        )
+
+
 df['original_label'] = df[dataframe.label_column]
 
-# "Unknown" for all NA labels
 df['label'] = [
-    'Unknown' if x in dataframe.na_descriptor else x
-    for x in df[dataframe.label_column]
+    "unknown" if x in NA_DESCRIPTORS else
+    x for x in df[dataframe.label_column]
 ]
 
-# Double-check
 labels = df['label'].fillna(dataframe.na_label)
-
-# Transform to strings and save in df as "label" column
 df['label'] = labels.astype(str)
 
-pkl = DATA.joinpath('df.pkl')
-df.to_pickle(pkl)
-
-dataframe.close()
-parameters.close()
+df.to_pickle(
+    DATA.joinpath('df.pkl')
+)

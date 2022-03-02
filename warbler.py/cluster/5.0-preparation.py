@@ -1,67 +1,36 @@
 import io
 import librosa
 import librosa.display
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pickle
 
+from multiprocessing import cpu_count, Pool
 from parameters import Parameters
-from path import DATA
+from path import CLUSTER, DATA
 from pathlib import Path
 
 
-# Dataframe
-file = Path('dataframe.json')
-dataframe = Parameters(file)
+path = CLUSTER.joinpath('parameters.json')
+parameters = Parameters(path)
 
+path = CLUSTER.joinpath('dataframe.json')
+dataframe = Parameters(path)
 
-# Parameters
-file = Path('parameters.json')
-parameters = Parameters(file)
-
-
-# Spectrogramming parameters (needed for generating the images)
-
-# Make sure the spectrogramming parameters are correct!
-# They are used to set the correct time and frequency axis
-# labels for the spectrogram images.
-
-# If you are using bandpass-filtered spectrograms...
-if dataframe.filtered_input_column:
-    parameters.fmin = parameters.lowcut
-    parameters.fmax = parameters.highcut
-
-DF_NAME = DATA.joinpath('df_umap.pkl')
-df = pd.read_pickle(DF_NAME)
-
-
-# Default callID will be the name of the wav file
-
-if dataframe.call_identifier_column not in df.columns:
-    print(f"No ID-Column found ({dataframe.call_identifier_column})")
-
-    if 'filename' not in df.columns:
-        raise
-
-    print(f"Default ID column {dataframe.call_identifier_column} will be generated from filename.")
-    df[dataframe.call_identifier_column] = [
-        Path(x).stem for x in df['filename']
-    ]
-
-image_pickle = DATA.joinpath('image_data.pkl')
-
-# https://github.com/matplotlib/matplotlib/issues/21950
-matplotlib.use('Agg')
+df = pd.read_pickle(
+    DATA.joinpath('df_umap.pkl')
+)
 
 image_data = {}
 
-for i, dat in enumerate(df.spectrograms):
-    print(f"Processing: {i}/{df.shape[0]}")
+
+def create_spectrogram(i, dat):
+    print(f"\rCreating spectrogram: {i + 1}/{df.shape[0]}", end='')
 
     dat = np.asarray(df.iloc[i][dataframe.input_column])
     sr = df.iloc[i]['samplerate_hz']
+    plt.ioff()
     plt.figure()
 
     librosa.display.specshow(
@@ -75,18 +44,73 @@ for i, dat in enumerate(df.spectrograms):
         cmap='inferno'
     )
 
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    byte_im = buf.getvalue()
-    image_data[df.iloc[i][dataframe.call_identifier_column]] = byte_im
-
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png')
+    image = buffer.getvalue()
+    image_data[df.iloc[i][dataframe.call_identifier_column]] = image
     plt.close()
 
-# Store data (serialize)
-with open(image_pickle, 'wb') as file:
-    pickle.dump(image_data, file, protocol=pickle.HIGHEST_PROTOCOL)
 
-df.to_pickle(DF_NAME)
+def main():
+    if 'filtered' in dataframe.input_column:
+        parameters.update('fmin', parameters.lowcut)
+        parameters.update('fmax', parameters.highcut)
+        parameters.update('mel_bins', parameters.mel_bins_filtered)
+        parameters.save()
 
-dataframe.close()
-parameters.close()
+    if dataframe.call_identifier_column not in df.columns:
+        print(f"No ID-Column found: ({dataframe.call_identifier_column})")
+
+        if 'filename' in df.columns:
+            print(f"Default ID column {dataframe.call_identifier_column} will be generated from filename.")
+
+            df[dataframe.call_identifier_column] = [
+                Path(name).stem for name in df['filename']
+            ]
+        else:
+            raise
+
+    processes = cpu_count()
+
+    tasks = []
+
+    processes = int(cpu_count() / 2)
+    maxtasksperchild = 20
+
+    with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
+        for i, dat in enumerate(df.spectrograms):
+            print(f"\rProcessing: {i + 1}/{df.shape[0]}", end='')
+
+            tasks.append(
+                pool.apply_async(
+                    create_spectrogram,
+                    args=(i, dat)
+                )
+            )
+
+        pool.close()
+        pool.join()
+
+    with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
+        for i, task in enumerate(tasks):
+            print(f"\rProcessing task: {i}/{len(tasks)}", end='')
+
+            task.get(10)
+
+        pool.close()
+        pool.join()
+
+    with open(DATA.joinpath('image_data.pkl'), 'wb') as handle:
+        pickle.dump(
+            image_data,
+            handle,
+            protocol=pickle.HIGHEST_PROTOCOL
+        )
+
+    df.to_pickle(
+        DATA.joinpath('df_umap.pkl')
+    )
+
+
+if __name__ == '__main__':
+    main()
