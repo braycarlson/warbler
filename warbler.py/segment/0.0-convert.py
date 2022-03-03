@@ -3,6 +3,7 @@ import logging
 from logger import logger
 from path import bootstrap, DATA, DATASET, DIRECTORIES, INDIVIDUALS
 from pydub import AudioSegment
+from tqdm import tqdm
 
 
 log = logging.getLogger(__name__)
@@ -25,7 +26,10 @@ def main():
         for individual in INDIVIDUALS:
             if individual.stem == directory.stem:
                 # Note: pydub uses ffmpeg
-                for file in directory.glob('*.aif'):
+                files = [file for file in directory.glob('*.aif')]
+                total = len(files)
+
+                for file in tqdm(files, total=total):
                     wav = individual.joinpath('wav')
                     audio = AudioSegment.from_file(file, format='aiff')
 

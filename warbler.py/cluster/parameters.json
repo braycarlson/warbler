@@ -1,6 +1,6 @@
 {
     "plot_examples": true,
-    "bandpass_filter": true,
+    "bandpass_filter": false,
     "median_subtracted": false,
     "stretch": false,
     "mel_bins": 40,

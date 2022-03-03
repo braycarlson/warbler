@@ -21,13 +21,9 @@ from tqdm.autonotebook import tqdm
 class Dataset(object):
     def __init__(self, dataset_path):
         self.dataset_path = dataset_path
-
         self._get_wav()
-
         self._get_metadata()
-
         self._load()
-
         self._get_unique()
 
     def _get_wav(self):
