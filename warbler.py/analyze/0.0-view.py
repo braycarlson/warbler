@@ -4,7 +4,7 @@ from spectrogram.spectrogram import create_spectrogram
 
 
 def main():
-    path = DATA.joinpath('DgDgY_STE2017/wav/STE01_1_DgDgY2017.wav')
+    path = DATA.joinpath('LbLgLb_STE2017/wav/STE02_LbLgLb2017.wav')
     plt = create_spectrogram(path, BASELINE)
 
     plt.show()

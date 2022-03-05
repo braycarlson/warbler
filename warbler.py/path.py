@@ -87,10 +87,13 @@ PRINTOUTS = sorted([
 ])
 
 
-with open(PICKLE.joinpath('bad.pkl'), 'rb') as handle:
-    ignore = pickle.load(handle)
+bad = PICKLE.joinpath('bad.pkl')
 
-IGNORE = [Path(file['filename']).stem for file in ignore]
+if bad.is_file():
+    with open(bad, 'rb') as handle:
+        ignore = pickle.load(handle)
+
+    IGNORE = [Path(file['filename']).stem for file in ignore]
 
 
 def bootstrap(func):

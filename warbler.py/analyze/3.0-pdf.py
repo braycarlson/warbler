@@ -1,120 +1,141 @@
 import fitz
 import io
 import matplotlib
-import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import numpy as np
+import pandas as pd
 
-from parameters import Parameters
-from path import INDIVIDUALS, PRINTOUTS, SEGMENT
-from scipy.io import wavfile
-from vocalseg.utils import (
-    butter_bandpass_filter,
-    spectrogram,
-    int16tofloat32,
-    plot_spec
-)
-
-# Parameters
-file = SEGMENT.joinpath('parameters.json')
-parameters = Parameters(file)
+from multiprocessing import cpu_count, Pool
+from parameters import BASELINE
+from path import DATA, INDIVIDUALS, PRINTOUTS
+from spectrogram.spectrogram import create_spectrogram
+from tqdm import tqdm
 
 
-def create_spectrogram(path):
-    rate, data = wavfile.read(path)
+def process(data):
+    individual, filename, page = data
+    path = individual.joinpath('wav', filename)
 
-    data = butter_bandpass_filter(
-        int16tofloat32(data),
-        parameters.butter_lowcut,
-        parameters.butter_highcut,
-        rate
-    )
+    if not path.is_file():
+        raise
 
-    spec = spectrogram(
-        data,
-        rate,
-        n_fft=parameters.n_fft,
-        hop_length_ms=parameters.hop_length_ms,
-        win_length_ms=parameters.win_length_ms,
-        ref_level_db=parameters.ref_level_db,
-        pre=parameters.pre,
-        min_level_db=parameters.min_level_db,
-    )
+    template = {
+        'filename': filename,
+        'path': path,
+        'page': int(page) - 1,
+        'stream': io.BytesIO()
+    }
 
-    np.shape(spec)
+    stream = template.get('stream')
 
-    figsize = (20, 3)
-    fig, ax = plt.subplots(figsize=figsize)
-    plot_spec(spec, fig, ax)
+    plt = create_spectrogram(path, BASELINE)
+    plt.tight_layout()
+    plt.savefig(stream, format='png')
 
-    plt.ylim([0, 1000])
+    stream.seek(0)
+    plt.close()
 
-    ticks_y = ticker.FuncFormatter(
-        lambda x, pos: '{0:g}'.format(x / 1e2)
-    )
-
-    ax.yaxis.set_major_formatter(ticks_y)
-
-    ax.set_xlabel("Time (ms)")
-    ax.set_ylabel('Frequency (kHz)')
-
-    return plt
+    return template
 
 
 def main():
     # https://github.com/matplotlib/matplotlib/issues/21950
     matplotlib.use('Agg')
 
-    for individual, printout in zip(INDIVIDUALS, PRINTOUTS):
-        wav = [
-            wav for wav in individual.glob('wav/*.wav')
-        ]
+    spreadsheet = DATA.joinpath('2017.xlsx')
+    dataframe = pd.read_excel(spreadsheet, engine="openpyxl")
 
-        pdf = [
+    height = 98.97236633300781
+
+    # Set page size
+    page_size = fitz.Rect(
+        0.0,
+        0.0,
+        375,
+        155
+    )
+
+    # Add text
+    text_box = fitz.Rect(
+        0.0,
+        5.0,
+        375,
+        80
+    )
+
+    # Add image
+    image_box = fitz.Rect(
+        6.0,
+        5.0,
+        399,
+        height
+    )
+
+    processes = cpu_count()
+
+    processes = int(cpu_count() / 2)
+    maxtasksperchild = 200
+
+    for individual, printout in zip(INDIVIDUALS, PRINTOUTS):
+        row = dataframe[dataframe.Individual == individual.stem]
+
+        pdf = sorted([
             file for file in printout.glob('*.pdf')
             if 'Clean' in file.stem
-        ]
+        ])
 
         for p in pdf:
             handle = fitz.open(p)
-            pages = len(handle)
+            total = len(handle)
 
-            for page, song in zip(range(0, pages), wav):
-                current = handle.load_page(page)
+            with Pool(
+                processes=processes,
+                maxtasksperchild=maxtasksperchild
+            ) as pool:
+                data = [
+                    (individual, filename, page)
+                    for _, filename, page in zip(
+                        range(0, total),
+                        row.fileName.values,
+                        row.pageNumber.values
+                    )
+                ]
 
-                # width = 321.900390625
-                height = 98.97236633300781
+                total = len(data)
 
-                size = fitz.Rect(
-                    0.0,
-                    0.0,
-                    375,
-                    150
+                results = tqdm(
+                    pool.imap(
+                        process,
+                        data
+                    ),
+                    total=total
                 )
 
-                current.set_mediabox(size)
+                for result in results:
+                    page = result.get('page')
+                    filename = result.get('filename')
+                    stream = result.get('stream')
 
-                rectangle = fitz.Rect(
-                    6.0,
-                    7.0,
-                    399,
-                    height
-                )
+                    current = handle.load_page(page)
+                    current.set_mediabox(page_size)
 
-                stream = io.BytesIO()
+                    current.insert_textbox(
+                        text_box,
+                        filename,
+                        fontsize=8,
+                        fontname="Times-Roman",
+                        fontfile=None,
+                        align=1
+                    )
 
-                plt = create_spectrogram(song)
-                plt.tight_layout()
-                plt.savefig(stream, format='png')
+                    current.insert_image(
+                        image_box,
+                        stream=stream
+                    )
 
-                stream.seek(0)
+                    filename = individual.stem + '.pdf'
+                    handle.save(filename)
 
-                current.insert_image(rectangle, stream=stream)
-
-                filename = individual.stem + '.pdf'
-                handle.save(filename)
-
-                plt.close()
+                pool.close()
+                pool.join()
 
 
 if __name__ == '__main__':

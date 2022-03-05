@@ -79,7 +79,7 @@ def create_metadata(individual):
     for index, wav in enumerate(wavs, 1):
         # Do not process songs deemed undesirable
         if wav.stem in IGNORE:
-            log.warning(f'Skipping: {wav.stem}')
+            # log.warning(f'Skipping: {wav.stem}')
             continue
 
         # Padding index

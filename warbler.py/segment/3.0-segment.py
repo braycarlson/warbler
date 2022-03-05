@@ -15,7 +15,7 @@ from dataframe.dataframe import (
 )
 from avgn.visualization.spectrogram import draw_spec_set
 from joblib import delayed, Parallel
-from path import DATA, INDIVIDUALS
+from path import DATA, INDIVIDUALS, SEGMENT
 from scipy.io import wavfile
 from tqdm.autonotebook import tqdm
 
@@ -206,3 +206,9 @@ syllables_spec = [
 ]
 
 syllable_df['spectrogram'] = syllables_spec
+
+file = 'aw.pickle'
+
+syllable_df.to_pickle(
+    SEGMENT.joinpath(file)
+)
