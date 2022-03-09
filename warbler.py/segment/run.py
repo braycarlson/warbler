@@ -8,8 +8,8 @@ from path import (
     INDIVIDUALS,
     LOGS,
     NOTES,
-    # PICKLE,
-    # SPECTROGRAM
+    PICKLE,
+    SPECTROGRAM
 )
 
 
@@ -24,11 +24,11 @@ def remove():
     if NOTES.exists():
         shutil.rmtree(NOTES)
 
-    # if PICKLE.exists():
-    #     shutil.rmtree(PICKLE)
+    if PICKLE.exists():
+        shutil.rmtree(PICKLE)
 
-    # if SPECTROGRAM.exists():
-    #     shutil.rmtree(SPECTROGRAM)
+    if SPECTROGRAM.exists():
+        shutil.rmtree(SPECTROGRAM)
 
     for individual in INDIVIDUALS:
         try:

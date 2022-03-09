@@ -29,7 +29,7 @@ def create_spectrogram(iterable):
     i, dat = iterable
 
     dat = np.asarray(df.iloc[i][dataframe.input_column])
-    sr = df.iloc[i]['rate']
+    sr = df.iloc[i]['samplerate_hz']
     plt.figure()
 
     librosa.display.specshow(
@@ -80,7 +80,7 @@ def main():
     with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
         image_data = {}
 
-        iterable = [(i, dat) for i, dat in enumerate(df.spectrogram)]
+        iterable = [(i, dat) for i, dat in enumerate(df.spectrograms)]
 
         results = tqdm(
             pool.imap(

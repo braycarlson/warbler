@@ -55,7 +55,7 @@ with open(DATA.joinpath('image_data.pkl'), 'rb') as handle:
 
 
 if dataframe.call_identifier_column not in df.columns:
-    print('Missing identifier column: ', dataframe.call_identifier_column)
+    print("Missing identifier column: ", dataframe.call_identifier_column)
     raise
 
 
@@ -88,10 +88,10 @@ sr_dict = {}
 sub_df_dict = {}
 
 for i, labeltype in enumerate(labeltypes):
-    sub_df = df.loc[df.labels == labeltype, :]
+    sub_df = df.loc[df.label == labeltype, :]
     sub_df_dict[i] = sub_df
     audio_dict[i] = sub_df[dataframe.audio_column]
-    sr_dict[i] = sub_df['rate']
+    sr_dict[i] = sub_df['samplerate_hz']
 
 traces = []
 
@@ -189,7 +189,7 @@ VBox([
     details,
     HBox(
         [image_widget, fig],
-        layout=Layout(flex='none')
+        layout=Layout(flex="none")
     ),
     audio_widget
 ])

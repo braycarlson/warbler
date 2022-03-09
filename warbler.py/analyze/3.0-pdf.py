@@ -6,7 +6,10 @@ import pandas as pd
 from multiprocessing import cpu_count, Pool
 from parameters import BASELINE
 from path import DATA, INDIVIDUALS, PRINTOUTS
-from spectrogram.spectrogram import create_spectrogram
+from spectrogram.plot import (
+    create_luscinia_spectrogram,
+    # create_spectrogram
+)
 from tqdm import tqdm
 
 
@@ -15,6 +18,7 @@ def process(data):
     path = individual.joinpath('wav', filename)
 
     if not path.is_file():
+        print(path)
         raise
 
     template = {
@@ -26,8 +30,7 @@ def process(data):
 
     stream = template.get('stream')
 
-    plt = create_spectrogram(path, BASELINE)
-    plt.tight_layout()
+    plt = create_luscinia_spectrogram(path, BASELINE)
     plt.savefig(stream, format='png')
 
     stream.seek(0)
@@ -41,8 +44,13 @@ def main():
     matplotlib.use('Agg')
 
     spreadsheet = DATA.joinpath('2017.xlsx')
-    dataframe = pd.read_excel(spreadsheet, engine="openpyxl")
 
+    dataframe = pd.read_excel(
+        spreadsheet,
+        engine='openpyxl'
+    )
+
+    width = 321.900390625
     height = 98.97236633300781
 
     # Set page size
@@ -50,7 +58,7 @@ def main():
         0.0,
         0.0,
         375,
-        155
+        165
     )
 
     # Add text
@@ -63,9 +71,9 @@ def main():
 
     # Add image
     image_box = fitz.Rect(
-        6.0,
-        5.0,
-        399,
+        9.5,
+        8.0,
+        width - 2,
         height
     )
 
@@ -94,7 +102,7 @@ def main():
                     (individual, filename, page)
                     for _, filename, page in zip(
                         range(0, total),
-                        row.fileName.values,
+                        row.updatedFileName.values,
                         row.pageNumber.values
                     )
                 ]
@@ -121,7 +129,7 @@ def main():
                         text_box,
                         filename,
                         fontsize=8,
-                        fontname="Times-Roman",
+                        fontname='Times-Roman',
                         fontfile=None,
                         align=1
                     )

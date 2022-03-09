@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from dataclass.dataset import Dataset
 from dataframe.dataframe import (
     create_label_df,
-    Dataset,
     get_row_audio,
     log_resize_spec,
     make_spec,
@@ -15,20 +15,20 @@ from dataframe.dataframe import (
 )
 from avgn.visualization.spectrogram import draw_spec_set
 from joblib import delayed, Parallel
-from path import DATA, INDIVIDUALS, SEGMENT
+from path import DATA, INDIVIDUALS, PICKLE
 from scipy.io import wavfile
-from tqdm.autonotebook import tqdm
+from tqdm import tqdm
 
 
-dataset = Dataset(INDIVIDUALS)
+dataset = Dataset(INDIVIDUALS[:1])
 
 
 with Parallel(n_jobs=-1, verbose=1) as parallel:
     syllable_dfs = parallel(
         delayed(create_label_df)(
             dataset.datafiles[key].data,
-            labels_to_retain=["labels", "filename"],
-            unit="notes",
+            labels_to_retain=['labels', 'filename', 'parameters'],
+            unit='notes',
             dict_features_to_retain=[],
             key=key,
         )
@@ -73,13 +73,17 @@ for filename in region.keys():
     rc = region[filename].get('rate')
 
     notes = []
+    sequences = []
+    positions = []
 
     for index, bird, audio, rate in zip(ic, bc, ac, rc):
-        index = str(index).zfill(2)
         rate = int(rate)
 
         directory = DATA.joinpath(bird, 'notes')
-        path = directory.joinpath(filename + '_' + index + '.wav')
+
+        path = directory.joinpath(
+            filename + '_' + str(index).zfill(2) + '.wav'
+        )
 
         wavfile.write(
             path,
@@ -102,6 +106,8 @@ for filename in region.keys():
 
         template = data.get('indvs').get(bc[0]).get('notes')
         template['files'] = notes
+        template['sequence'] = sequences
+        template['position'] = positions
 
     with open(path, 'w+') as file:
         text = json.dumps(data, indent=2)
@@ -145,7 +151,7 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
                 syllable_df.key.values,
             ),
             total=len(syllable_df),
-            desc="Getting syllable spectrograms",
+            desc='Getting syllable spectrograms',
             leave=False,
         )
     )
@@ -160,7 +166,7 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
         delayed(log_resize_spec)(spec, scaling_factor=log_scaling_factor)
         for spec in tqdm(
             syllables_spec,
-            desc="scaling spectrograms",
+            desc='Scaling spectrograms',
             leave=False
         )
     )
@@ -190,7 +196,9 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
     syllables_spec = parallel(
         delayed(pad_spectrogram)(spec, pad_length)
         for spec in tqdm(
-            syllables_spec, desc="padding spectrograms", leave=False
+            syllables_spec,
+            desc='Padding spectrograms',
+            leave=False
         )
     )
 
@@ -207,8 +215,6 @@ syllables_spec = [
 
 syllable_df['spectrogram'] = syllables_spec
 
-file = 'aw.pickle'
-
 syllable_df.to_pickle(
-    SEGMENT.joinpath(file)
+    PICKLE.joinpath('aw.pkl')
 )

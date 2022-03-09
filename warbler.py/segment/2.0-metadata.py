@@ -1,7 +1,9 @@
 import json
-import librosa
 import logging
+import pickle
 
+from collections import OrderedDict
+from dataclass.signal import Signal
 from multiprocessing import cpu_count, Pool
 from logger import logger
 from parameters import BASELINE, Parameters
@@ -11,45 +13,20 @@ from path import (
     INDIVIDUALS,
     PARAMETER,
     PARAMETERS,
+    PICKLE
 )
-from scipy.io import wavfile
 from vocalseg.dynamic_thresholding import (
     dynamic_threshold_segmentation
-)
-from vocalseg.utils import (
-    butter_bandpass_filter,
-    int16tofloat32,
 )
 
 
 log = logging.getLogger(__name__)
 
 
-def get_parameters(individual):
-    parameters = BASELINE
-
-    if individual in PARAMETERS:
-        # Load the custom parameters
-        file = PARAMETER.joinpath(individual + '.json')
-        parameters = Parameters(file)
-
-    return parameters
-
-
-def get_notes(wav):
-    rate, data = wavfile.read(wav)
-    parameters = get_parameters(wav.stem)
-
-    data = butter_bandpass_filter(
-        int16tofloat32(data),
-        parameters.butter_lowcut,
-        parameters.butter_highcut,
-        rate
-    )
-
+def get_notes(signal, parameters):
     results = dynamic_threshold_segmentation(
-        data,
-        rate,
+        signal.data,
+        signal.rate,
         n_fft=parameters.n_fft,
         hop_length_ms=parameters.hop_length_ms,
         win_length_ms=parameters.win_length_ms,
@@ -62,75 +39,84 @@ def get_notes(wav):
     )
 
     if results is not None:
-        time = (results['onsets'], results['offsets'])
+        time = (
+            results['onsets'],
+            results['offsets']
+        )
+
         return time
 
-    log.warning(f"Error: {wav.stem}")
     return None
 
 
 def create_metadata(individual):
     name = individual.stem
+    label = name.replace('_STE2017', '')
 
-    # Get a list of .wav files
-    wavs = [file for file in individual.glob('wav/*.wav')]
-    wavs = list(wavs)
+    wavs = [
+        file for file in individual.glob('wav/*.wav')
+        if file.stem not in IGNORE
+    ]
+
+    wavs = sorted(wavs)
+
+    errors = []
 
     for index, wav in enumerate(wavs, 1):
-        # Do not process songs deemed undesirable
-        if wav.stem in IGNORE:
-            # log.warning(f'Skipping: {wav.stem}')
-            continue
+        parameters = BASELINE
+
+        if wav.stem in PARAMETERS:
+            # Load custom parameters
+            file = PARAMETER.joinpath(wav.stem + '.json')
+            parameters = Parameters(file)
+
+        signal = Signal(wav)
+
+        signal.filter(
+            parameters.butter_lowcut,
+            parameters.butter_highcut
+        )
 
         # Padding index
         index = str(index).zfill(2)
 
-        # Name of the individual
-        directory = wav.parent.parent.stem
-
-        if directory != name:
-            continue
-
-        label = wav.parent.parent.stem
-        label = label.replace('_STE2017', '')
-
-        # Get the .wav sample rate and duration
-        posix = wav.as_posix()
-        samplerate = librosa.get_samplerate(posix)
-        duration = librosa.get_duration(filename=posix)
-
-        bird = {}
+        bird = OrderedDict()
 
         bird['species'] = 'Setophaga adelaidae'
         bird['common_name'] = 'Adelaide\'s warbler'
-        bird['wav_loc'] = posix
-        bird['samplerate_hz'] = samplerate
-        bird['length_s'] = duration
+        bird['wav_loc'] = wav.as_posix()
+        bird['samplerate_hz'] = signal.rate
+        bird['length_s'] = signal.duration
 
-        bird["indvs"] = {
+        bird['indvs'] = {
             name: {
-                "notes": {
-                    "filename": wav.stem,
-                    "start_times": [],
-                    "end_times": [],
-                    "labels": [],
-                    "files": []
+                'notes': {
+                    'filename': wav.stem,
+                    'start_times': [],
+                    'end_times': [],
+                    'labels': [],
+                    'files': [],
+                    'parameters': parameters.path.as_posix()
                 }
             }
         }
 
         # Get note start/end time
-        notes = get_notes(wav)
+        notes = get_notes(signal, parameters)
 
-        if notes is not None:
-            start, end = notes
-            start = start.tolist()
-            end = end.tolist()
+        if notes is None:
+            log.warning(f"Error: {wav.stem}")
+            errors.append(wav.stem)
+            continue
 
-            bird['indvs'][name]['notes']['start_times'] = start
-            bird['indvs'][name]['notes']['end_times'] = end
+        start, end = notes
+        start = start.tolist()
+        end = end.tolist()
 
-            bird['indvs'][name]['notes']['labels'] = [label] * len(start)
+        bird['indvs'][name]['notes']['start_times'] = start
+        bird['indvs'][name]['notes']['end_times'] = end
+
+        bird['indvs'][name]['notes']['labels'] = [label] * len(start)
 
         # Name of the individual
         filename = wav.stem + '.json'
@@ -139,15 +125,15 @@ def create_metadata(individual):
             text = json.dumps(bird, indent=2)
             file.write(text)
 
+    return errors
+
 
 @bootstrap
 def main():
-    processes = cpu_count()
-
-    tasks = []
-
     processes = int(cpu_count() / 2)
     maxtasksperchild = 100
+
+    tasks = []
 
     with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
         for individual in INDIVIDUALS:
@@ -161,12 +147,24 @@ def main():
         pool.close()
         pool.join()
 
+    errors = []
+
     with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
         for task in tasks:
-            task.get(10)
+            error = task.get(10)
+            errors.extend(error)
 
         pool.close()
         pool.join()
+
+    e = PICKLE.joinpath('error.pkl')
+
+    if not e.is_file():
+        e.touch()
+
+    handle = open(e, 'wb')
+    pickle.dump(errors, handle)
+    handle.close()
 
 
 if __name__ == '__main__':

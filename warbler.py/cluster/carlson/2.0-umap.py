@@ -4,7 +4,7 @@ import umap
 
 from functions.preprocessing_functions import calc_zscore, pad_spectro
 from parameters import Parameters
-from path import CLUSTER, DATA, PICKLE
+from path import CLUSTER, DATA
 
 
 path = CLUSTER.joinpath('parameters.json')
@@ -15,7 +15,7 @@ dataframe = Parameters(path)
 
 
 df = pd.read_pickle(
-    PICKLE.joinpath('aw.pkl')
+    DATA.joinpath('df.pkl')
 )
 
 specs = df[dataframe.input_column]

@@ -17,14 +17,14 @@ from spectrogram.spectrogram import create_spectrogram
 
 def serialize(i, f, p, v, r, n):
     template = {
-        "individual": None,
-        "filename": None,
-        "page": None,
-        "viability": None,
-        "reason": None,
-        "notes": None,
-        "path": None,
-        "spectrogram": None
+        'individual': None,
+        'filename': None,
+        'page': None,
+        'viability': None,
+        'reason': None,
+        'notes': None,
+        'path': None,
+        'spectrogram': None
     }
 
     path = DATA.joinpath(i, 'wav', f)
@@ -38,55 +38,55 @@ def serialize(i, f, p, v, r, n):
     if str(n) == 'nan':
         n = None
 
-    template["individual"] = i
-    template["filename"] = f
-    template["page"] = p
-    template["reason"] = r
-    template["notes"] = n
-    template["path"] = path
+    template['individual'] = i
+    template['filename'] = f
+    template['page'] = p
+    template['reason'] = r
+    template['notes'] = n
+    template['path'] = path
 
     if v is None:
-        location = GOOD.joinpath(path.stem + '.png')
-        template["spectrogram"] = location
-        template["viability"] = 'good'
+        # location = GOOD.joinpath(path.stem + '.png')
+        # template['spectrogram'] = location
+        template['viability'] = 'good'
     elif v == 'P':
-        location = MEDIOCRE.joinpath(path.stem + '.png')
-        template["spectrogram"] = location
-        template["viability"] = 'mediocre'
+        # location = MEDIOCRE.joinpath(path.stem + '.png')
+        # template['spectrogram'] = location
+        template['viability'] = 'mediocre'
     else:
-        location = BAD.joinpath(path.stem + '.png')
-        template["spectrogram"] = location
-        template["viability"] = 'bad'
+        # location = BAD.joinpath(path.stem + '.png')
+        # template['spectrogram'] = location
+        template['viability'] = 'bad'
 
-    plt = create_spectrogram(path, BASELINE)
+    # plt = create_spectrogram(path, BASELINE)
 
-    text = f
+    # text = f
 
-    if r is not None:
-        if n is None:
-            text = text + f": {r}"
-        else:
-            text = text + f" ({n})"
+    # if r is not None:
+    #     if n is None:
+    #         text = text + f": {r}"
+    #     else:
+    #         text = text + f" ({n})"
 
-    plt.figtext(
-        0.03,
-        -0.09,
-        text,
-        color='black',
-        fontsize=12,
-        fontweight=600,
-        fontfamily='monospace'
-    )
+    # plt.figtext(
+    #     0.03,
+    #     -0.09,
+    #     text,
+    #     color='black',
+    #     fontsize=12,
+    #     fontweight=600,
+    #     fontfamily='monospace'
+    # )
 
-    plt.tight_layout()
+    # plt.tight_layout()
 
-    plt.savefig(
-        location,
-        bbox_inches='tight',
-        pad_inches=0.5
-    )
+    # plt.savefig(
+    #     location,
+    #     bbox_inches='tight',
+    #     pad_inches=0.5
+    # )
 
-    plt.close()
+    # plt.close()
 
     return template
 
@@ -94,10 +94,10 @@ def serialize(i, f, p, v, r, n):
 @bootstrap
 def main():
     spreadsheet = DATA.joinpath('2017.xlsx')
-    dataframe = pd.read_excel(spreadsheet, engine="openpyxl")
+    dataframe = pd.read_excel(spreadsheet, engine='openpyxl')
 
     individual = dataframe.get('Individual')
-    filename = dataframe.get('fileName')
+    filename = dataframe.get('updatedFileName')
     page = dataframe.get('pageNumber')
     viability = dataframe.get('Viability')
     reason = dataframe.get('viabilityReason')
@@ -121,10 +121,6 @@ def main():
         for i, f, p, v, r, n in zip(individual, filename, page, viability, reason, notes):
             path = DATA.joinpath(i, 'wav', f)
             print(f"Processing: {path}")
-
-            # TO-DO
-            if path.stem == 'STE01.1_LLbLg2017':
-                continue
 
             tasks.append(
                 pool.apply_async(

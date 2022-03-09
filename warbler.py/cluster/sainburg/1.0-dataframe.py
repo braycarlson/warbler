@@ -36,30 +36,30 @@ def plot_examples(df, random_indices, spec_type):
 NA_DESCRIPTORS = [
     0,
     np.nan,
-    'NA',
-    'na',
-    'not available',
-    'None',
-    'Unknown',
-    'unknown',
+    "NA",
+    "na",
+    "not available",
+    "None",
+    "Unknown",
+    "unknown",
     None,
-    ''
+    ""
 ]
 
 if not NOTES.is_dir():
-    print('No notes directory found')
+    print("No notes directory found")
 
 file = DATA.joinpath('notes.csv')
 notes = [file.name for file in NOTES.glob('*.wav')]
 
 if file.is_file():
-    df = pd.read_csv(file, sep=';')
+    df = pd.read_csv(file, sep=";")
 else:
     if len(notes) > 0:
         df = pd.DataFrame(
             {
                 'filename': [note for note in notes],
-                'label': ['unknown'] * len(notes)
+                'label': ["unknown"] * len(notes)
             }
         )
 
@@ -260,7 +260,7 @@ if 'filtered_spectrograms' in df.columns:
 df['original_label'] = df[dataframe.label_column]
 
 df['label'] = [
-    'unknown' if x in NA_DESCRIPTORS else
+    "unknown" if x in NA_DESCRIPTORS else
     x for x in df[dataframe.label_column]
 ]
 

@@ -19,7 +19,7 @@ from spec_params import FMIN, FMAX, FFT_HOP
 DF_PATH = DATA.joinpath('df_umap.pkl')
 
 LABEL_COL = 'label'
-NA_INDICATOR = 'unknown'
+NA_INDICATOR = "unknown"
 
 distinct_colors_20 = [
     '#e6194b',
@@ -91,15 +91,15 @@ knn = 5
 nn_stats = nn(embedding, np.asarray(labels), k=knn)
 
 # Summary scores
-print('Evaluation score S (unweighted average of same-class probability P for all classes):', round(nn_stats.get_S(), 3))
-print('Evaluation score Snorm (unweighted average of normalized same-class probability Pnorm for all classes):', round(nn_stats.get_Snorm(), 3))
+print("Evaluation score S (unweighted average of same-class probability P for all classes):", round(nn_stats.get_S(), 3))
+print("Evaluation score Snorm (unweighted average of normalized same-class probability Pnorm for all classes)::", round(nn_stats.get_Snorm(), 3))
 
 nn_stats.plot_heat_S(
     vmin=0,
     vmax=100,
     center=50,
     cmap=sns.color_palette(
-        'Greens',
+        "Greens",
         as_cmap=True
     ),
     cbar=None,
@@ -278,7 +278,7 @@ for i, ind in enumerate(example_indices):
         major_tick_interval
     )
 
-    major_xtick_labels = ['' for x in major_xticks]
+    major_xtick_labels = ["" for x in major_xticks]
 
     major_yticks = [10, 20, 30]
     major_ytick_labels = freq_label_list
@@ -322,10 +322,10 @@ for i, ind in enumerate(example_indices):
             major_tick_interval
         )
 
-        major_xtick_labels = ['' for x in major_xticks]
+        major_xtick_labels = ["" for x in major_xticks]
 
         major_yticks = [10, 20, 30]
-        major_ytick_labels = ['' for x in major_yticks]
+        major_ytick_labels = ["" for x in major_yticks]
 
         if k >= (n_examples * (knn + 1) - knn):
             major_xtick_labels = [round(x * f_to_s, 2) for x in major_xticks]

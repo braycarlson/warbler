@@ -55,7 +55,7 @@ with open(DATA.joinpath('image_data.pkl'), 'rb') as handle:
 
 
 if dataframe.call_identifier_column not in df.columns:
-    print('Missing identifier column: ', dataframe.call_identifier_column)
+    print("Missing identifier column: ", dataframe.call_identifier_column)
     raise
 
 
@@ -189,7 +189,7 @@ VBox([
     details,
     HBox(
         [image_widget, fig],
-        layout=Layout(flex='none')
+        layout=Layout(flex="none")
     ),
     audio_widget
 ])

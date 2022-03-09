@@ -1,18 +1,14 @@
 import json
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
-import numpy as np
 import pickle
 import PySimpleGUI as sg
 
+from parameters import Parameters
 from path import PARAMETER, PARAMETERS, PICKLE, SEGMENT
 from pathlib import Path
-from scipy.io import wavfile
-from vocalseg.utils import (
-    butter_bandpass_filter,
-    spectrogram,
-    int16tofloat32,
-    plot_spec
+from spectrogram.plot import (
+    # create_luscinia_spectrogram,
+    create_spectrogram
 )
 
 
@@ -191,48 +187,126 @@ def main():
                 continue
 
             metadata = get_metadata(filename)
-
             path = metadata.get('path')
-            rate, audio = wavfile.read(path)
 
-            if data['bandpass_filter']:
-                audio = butter_bandpass_filter(
-                    int16tofloat32(audio),
-                    int(data['butter_lowcut']),
-                    int(data['butter_highcut']),
-                    rate
-                )
-
-            spec = spectrogram(
-                audio,
-                rate,
-                n_fft=int(data['n_fft']),
-                hop_length_ms=int(data['hop_length_ms']),
-                win_length_ms=int(data['win_length_ms']),
-                ref_level_db=int(data['ref_level_db']),
-                pre=float(data['preemphasis']),
-                min_level_db=int(data['min_level_db']),
+            parameters = Parameters(
+                SEGMENT.joinpath('parameters.json')
             )
 
-            np.shape(spec)
-
-            figsize = (15, 3)
-            fig, ax = plt.subplots(figsize=figsize)
-            plot_spec(spec, fig, ax)
-
-            plt.ylim([0, 1000])
-
-            ticks_y = ticker.FuncFormatter(
-                lambda x, pos: '{0:g}'.format(x / 1e2)
+            parameters.update(
+                'n_fft',
+                int(data['n_fft'])
             )
 
-            ax.yaxis.set_major_formatter(ticks_y)
+            parameters.update(
+                'hop_length_ms',
+                int(data['hop_length_ms'])
+            )
 
-            ax.set_xlabel("Time (ms)")
-            ax.set_ylabel('Frequency (kHz)')
+            parameters.update(
+                'win_length_ms',
+                int(data['win_length_ms'])
+            )
+
+            parameters.update(
+                'ref_level_db',
+                int(data['ref_level_db'])
+            )
+
+            parameters.update(
+                'preemphasis',
+                float(data['preemphasis'])
+            )
+
+            parameters.update(
+                'min_level_db',
+                int(data['min_level_db'])
+            )
+
+            parameters.update(
+                'min_level_db_floor',
+                int(data['min_level_db_floor'])
+            )
+
+            parameters.update(
+                'db_delta',
+                int(data['db_delta'])
+            )
+
+            parameters.update(
+                'silence_threshold',
+                float(data['silence_threshold'])
+            )
+
+            parameters.update(
+                'min_silence_for_spec',
+                float(data['min_silence_for_spec'])
+            )
+
+            parameters.update(
+                'max_vocal_for_spec',
+                float(data['max_vocal_for_spec'])
+            )
+
+            parameters.update(
+                'min_syllable_length_s',
+                float(data['min_syllable_length_s'])
+            )
+
+            parameters.update(
+                'spectral_range',
+                [
+                    int(data['spectral_range_low']),
+                    int(data['spectral_range_high'])
+                ]
+            )
+
+            parameters.update(
+                'num_mel_bins',
+                int(data['num_mel_bins'])
+            )
+
+            parameters.update(
+                'mel_lower_edge_hertz',
+                int(data['mel_lower_edge_hertz'])
+            )
+
+            parameters.update(
+                'mel_upper_edge_hertz',
+                int(data['mel_upper_edge_hertz'])
+            )
+
+            parameters.update(
+                'butter_lowcut',
+                int(data['butter_lowcut'])
+            )
+
+            parameters.update(
+                'butter_highcut',
+                int(data['butter_highcut'])
+            )
+
+            parameters.update(
+                'bandpass_filter',
+                bool(data['bandpass_filter'])
+            )
+
+            parameters.update(
+                'reduce_noise',
+                bool(data['reduce_noise'])
+            )
+
+            parameters.update(
+                'mask_spec',
+                bool(data['mask_spec'])
+            )
+
+            create_spectrogram(path, parameters)
 
             plt.show()
+
             plt.close()
+            parameters.close()
 
         if event == 'save':
             filename = data['file']
@@ -284,12 +358,12 @@ def main():
                     print(exception)
 
             data.update({
-                "power": 1.5,
-                "griffin_lim_iters": 50,
-                "noise_reduce_kwargs": {},
-                "mask_spec_kwargs": {
-                    "spec_thresh": 0.9,
-                    "offset": 1e-10
+                'power': 1.5,
+                'griffin_lim_iters': 50,
+                'noise_reduce_kwargs': {},
+                'mask_spec_kwargs': {
+                    'spec_thresh': 0.9,
+                    'offset': 1e-10
                 }
             })
 

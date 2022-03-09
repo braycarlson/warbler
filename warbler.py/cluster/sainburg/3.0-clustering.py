@@ -108,10 +108,10 @@ cluster_labels = hdb_labels
 true_labels = df[dataframe.label_column]
 embedding_data = embedding
 
-print('RI: ', calc_rand(cluster_labels, true_labels))
-print('ARI: ', adjusted_rand_score(cluster_labels, true_labels))
-print('SIL: ', silhouette_score(embedding_data, cluster_labels))
-print('N_clust: ', len(list(set(cluster_labels))))
+print("RI: ", calc_rand(cluster_labels, true_labels))
+print("ARI: ", adjusted_rand_score(cluster_labels, true_labels))
+print("SIL: ", silhouette_score(embedding_data, cluster_labels))
+print("N_clust: ", len(list(set(cluster_labels))))
 
 
 print('HDBSCAN-no-noise:')
@@ -119,10 +119,10 @@ cluster_labels = hdb_labels_no_noise
 true_labels = df_no_noise[dataframe.label_column]
 embedding_data = embedding_no_noise
 
-print('RI: ', calc_rand(cluster_labels, true_labels))
-print('ARI: ', adjusted_rand_score(cluster_labels, true_labels))
-print('SIL: ', silhouette_score(embedding_data, cluster_labels))
-print('N_clust: ', len(list(set(cluster_labels))))
+print("RI: ", calc_rand(cluster_labels, true_labels))
+print("ARI: ", adjusted_rand_score(cluster_labels, true_labels))
+print("SIL: ", silhouette_score(embedding_data, cluster_labels))
+print("N_clust: ", len(list(set(cluster_labels))))
 
 
 hdb_colors = ['#d9d9d9'] + distinct_colors_22
@@ -236,7 +236,7 @@ ax = sns.heatmap(
 )
 
 ax.set_xlabel(analyze_by, fontsize=16)
-ax.set_ylabel('Cluster label', fontsize=16)
+ax.set_ylabel("Cluster label", fontsize=16)
 ax.tick_params(labelsize=16)
 
 
@@ -272,7 +272,7 @@ ax = sns.heatmap(
 )
 
 ax.set_xlabel(analyze_by, fontsize=16)
-ax.set_ylabel('Cluster label', fontsize=16)
+ax.set_ylabel("Cluster label", fontsize=16)
 ax.tick_params(labelsize=16)
 
 
@@ -308,7 +308,7 @@ ax = sns.heatmap(
 )
 
 ax.set_xlabel(analyze_by, fontsize=16)
-ax.set_ylabel('Cluster label', fontsize=16)
+ax.set_ylabel("Cluster label", fontsize=16)
 ax.tick_params(labelsize=16)
 
 plt.show()

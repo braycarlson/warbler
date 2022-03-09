@@ -21,6 +21,7 @@ class Parameters(SimpleNamespace):
 
     def update(self, key, value):
         if key in self.data:
+            setattr(self, key, value)
             self.data[key] = value
 
     def save(self):

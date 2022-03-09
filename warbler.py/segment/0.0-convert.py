@@ -17,9 +17,10 @@ def main():
     a = len(aif)
     w = len(wav)
 
-    # Is each .aif is converted to .wav?
     if a == w:
-        log.info(f"{a} .aif files, {w} .wav files")
+        log.info(f"{a} .aif files")
+        log.info(f"{w} .wav files")
+
         return
 
     for directory in DIRECTORIES:

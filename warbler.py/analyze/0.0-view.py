@@ -1,14 +1,22 @@
 from parameters import BASELINE
 from path import DATA
-from spectrogram.spectrogram import create_spectrogram
+from pathlib import Path
+from spectrogram.plot import (
+    create_luscinia_spectrogram,
+    create_spectrogram
+)
 
 
 def main():
-    path = DATA.joinpath('LbLgLb_STE2017/wav/STE02_LbLgLb2017.wav')
-    plt = create_spectrogram(path, BASELINE)
+    path = Path(
+        'E:/code/personal/warbler.py/data/DbWY_STE2017/wav/STE06_DbWY2017.wav'
+    )
 
-    plt.show()
-    plt.close()
+    plot = create_luscinia_spectrogram(path, BASELINE)
+    # plot = create_spectrogram(path, BASELINE)
+
+    plot.show()
+    plot.close()
 
 
 if __name__ == '__main__':
