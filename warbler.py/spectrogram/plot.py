@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 
 from dataclass.signal import Signal
@@ -9,63 +8,47 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 
 
-def plot_spectrogram(
-    spectrogram,
-    fig=None,
-    ax=None,
-    signal=None,
-    hop_len_ms=None,
-    cmap=plt.cm.afmhot,
-    show_cbar=False,
-    spectral_range=None,
-    time_range=None,
-    figsize=(20, 6),
-):
-    if ax is None:
-        fig, ax = plt.subplots(figsize=figsize)
+def plot_spectrogram(spectrogram, **kwargs):
+    ax = kwargs.pop('ax')
+    signal = kwargs.pop('signal')
+
+    x_minimum = 0
+    x_maximum = signal.duration
+    y_minimum = 0
+    y_maximum = np.shape(spectrogram)[0]
 
     extent = [
-        0,
-        np.shape(spectrogram)[1],
-        0,
-        np.shape(spectrogram)[0]
+        x_minimum,
+        x_maximum,
+        y_minimum,
+        y_maximum
     ]
 
-    if signal is not None:
-        extent[3] = 10000
-
-    if hop_len_ms is not None:
-        hop_len_ms_int_adj = int(hop_len_ms / 1000 * signal.rate) / (signal.rate / 1000)
-        extent[1] = (np.shape(spectrogram)[1] * hop_len_ms_int_adj) / 1000
-
-    if spectral_range is not None:
-        extent[2] = spectral_range[0]
-        extent[3] = spectral_range[1]
-
-    if time_range is not None:
-        extent[0] = time_range[0]
-        extent[1] = time_range[1]
-
-    spec_ax = ax.matshow(
+    image = ax.matshow(
         spectrogram,
         interpolation=None,
         aspect='auto',
-        cmap=cmap,
         origin='lower',
         extent=extent,
+        **kwargs
     )
 
-    if show_cbar:
-        cbar = fig.colorbar(spec_ax, ax=ax)
-        return spec_ax, cbar
-    else:
-        return spec_ax
+    ax.initialize()
+    ax._x_lim(signal.duration)
+    ax._x_step(signal.duration)
+
+    return image
 
 
-def plot_segmentations(
-    spectrogram, vocal_envelope, onsets, offsets, hop_length_ms, signal, figsize=(30, 5)
-):
-    fig = plt.figure(figsize=figsize)
+def plot_segmentation(signal, dts):
+    spectrogram = dts.get('spec')
+    vocal_envelope = dts.get('vocal_envelope')
+    onsets = dts.get('onsets')
+    offsets = dts.get('offsets')
+
+    plt.figure(
+        figsize=(15, 5)
+    )
 
     gs = gridspec.GridSpec(
         2,
@@ -73,18 +56,15 @@ def plot_segmentations(
         height_ratios=[1, 3]
     )
 
-    # Set the spacing between axes.
     gs.update(hspace=0.0)
     ax0 = plt.subplot(gs[0])
-    ax1 = plt.subplot(gs[1])
+    ax1 = plt.subplot(gs[1], projection='luscinia')
 
-    plot_spectrogram(
+    image = plot_spectrogram(
         spectrogram,
-        fig,
-        ax1,
+        ax=ax1,
         signal=signal,
-        hop_len_ms=hop_length_ms,
-        show_cbar=False
+        cmap=plt.cm.Greys,
     )
 
     ax0.plot(vocal_envelope, color='k')
@@ -99,161 +79,71 @@ def plot_segmentations(
 
     patches = []
 
-    for onset, offset in zip(onsets, offsets):
+    for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
         ax1.axvline(
             onset,
-            color='#FFFFFF',
+            color='dodgerblue',
             ls='dashed',
-            lw=0.75
+            lw=1,
+            alpha=0.75
         )
 
         ax1.axvline(
             offset,
-            color='#FFFFFF',
+            color='dodgerblue',
             ls='dashed',
-            lw=0.75
+            lw=1,
+            alpha=0.75
         )
 
-        patches.append(
-            Rectangle(
-                xy=(onset, ymin),
-                width=offset - onset,
-                height=ysize
-            )
+        rectangle = Rectangle(
+            xy=(onset, ymin),
+            width=offset - onset,
+            height=100,
         )
+
+        rx, ry = rectangle.get_xy()
+        cx = rx + rectangle.get_width() / 2.0
+        cy = ry + rectangle.get_height() / 2.0
+
+        ax1.annotate(
+            index,
+            (cx, cy),
+            color='white',
+            weight=600,
+            fontfamily='Arial',
+            fontsize=8,
+            ha='center',
+            va='center'
+        )
+
+        patches.append(rectangle)
 
     collection = PatchCollection(
         patches,
-        color='white',
-        alpha=0.5
-    )
-
-    ax1.set_xlim([0, signal.duration])
-    ax1.set_ylim([0, 10000])
-
-    # Time
-    ticks_x = ticker.FuncFormatter(
-        lambda x, pos: '{0:,.1f}'.format(x)
-    )
-
-    # Frequency
-    ticks_y = ticker.FuncFormatter(
-        lambda y, pos: '{0:g}'.format(y / 1e3)
-    )
-
-    ax1.xaxis.set_major_formatter(ticks_x)
-    ax1.yaxis.set_major_formatter(ticks_y)
-
-    ax1.set_xlabel(
-        'Time (s)',
-        fontfamily='Arial',
-        fontsize=16,
-        fontweight=600
-    )
-
-    ax1.set_ylabel(
-        'Frequency (kHz)',
-        fontfamily='Arial',
-        fontsize=16,
-        fontweight=600
-    )
-
-    ax1.xaxis.tick_bottom()
-
-    ax1.xaxis.set_minor_locator(
-        ticker.MaxNLocator(30)
-    )
-
-    ax1.yaxis.set_ticks(
-        [0, 5000, 10000]
-    )
-
-    ax1.xaxis.set_ticks(
-        np.arange(0, signal.duration, 0.5)
-    )
-
-    ax1.yaxis.set_minor_locator(
-        ticker.MultipleLocator(1000)
-    )
-
-    plt.xticks(
-        fontfamily='Arial',
-        fontsize=14,
-        fontweight=600
-    )
-
-    plt.yticks(
-        fontfamily='Arial',
-        fontsize=14,
-        fontweight=600
+        color='dodgerblue',
+        alpha=0.75
     )
 
     ax1.add_collection(collection)
     ax0.axis('off')
-    return fig
+    return image
 
 
 def create_luscinia_spectrogram(path, parameters):
     signal = Signal(path)
-    signal.filter(parameters.butter_lowcut, parameters.butter_highcut)
+
+    signal.filter(
+        parameters.butter_lowcut,
+        parameters.butter_highcut
+    )
 
     spectrogram = Spectrogram(signal, parameters)
 
     fig, ax = plt.subplots(
         constrained_layout=True,
-        figsize=(20, 4)
-    )
-
-    plot_spectrogram(
-        spectrogram.data,
-        fig,
-        ax,
-        cmap=plt.cm.Greys,
-        show_cbar=False
-    )
-
-    plt.ylim([0, 1000])
-    plt.xlim([0, signal.duration * 1000])
-
-    # Time
-    ticks_x = ticker.FuncFormatter(
-        lambda x, pos: '{0:,.1f}'.format(x / 1e3)
-    )
-
-    # Frequency
-    ticks_y = ticker.FuncFormatter(
-        lambda y, pos: '{0:g}'.format(y / 1e2)
-    )
-
-    ax.xaxis.set_major_formatter(ticks_x)
-    ax.yaxis.set_major_formatter(ticks_y)
-
-    ax.set_xlabel(
-        'Time (s)',
-        fontfamily='Arial',
-        fontsize=16,
-        fontweight=600
-    )
-
-    ax.set_ylabel(
-        'Frequency (kHz)',
-        fontfamily='Arial',
-        fontsize=16,
-        fontweight=600
-    )
-
-    ax.xaxis.tick_bottom()
-
-    ax.xaxis.set_minor_locator(
-        ticker.AutoMinorLocator()
-    )
-
-    ax.yaxis.set_ticks(
-        [0, 500, 1000]
-    )
-
-    ax.yaxis.set_minor_locator(
-        ticker.MultipleLocator(100)
+        figsize=(20, 4),
+        subplot_kw={'projection': 'luscinia'}
     )
 
     plt.xticks(
@@ -268,59 +158,38 @@ def create_luscinia_spectrogram(path, parameters):
         fontweight=600
     )
 
-    return plt
+    image = plot_spectrogram(
+        spectrogram.data,
+        ax=ax,
+        signal=signal,
+        cmap=plt.cm.Greys,
+    )
+
+    return image
 
 
 def create_spectrogram(path, parameters):
     signal = Signal(path)
-    signal.filter(parameters.butter_lowcut, parameters.butter_highcut)
+
+    signal.filter(
+        parameters.butter_lowcut,
+        parameters.butter_highcut
+    )
 
     spectrogram = Spectrogram(signal, parameters)
 
     fig, ax = plt.subplots(
-        figsize=(20, 3)
+        figsize=(20, 3),
+        subplot_kw={'projection': 'spectrogram'}
     )
 
-    plot_spectrogram(
+    image = plot_spectrogram(
         spectrogram.data,
-        fig,
-        ax,
+        ax=ax,
+        signal=signal,
         cmap=plt.cm.afmhot,
-        show_cbar=False
-    )
-
-    plt.ylim([0, 1000])
-
-    # Time
-    ticks_x = ticker.FuncFormatter(
-        lambda x, pos: '{0:,.1f}'.format(x / 1e3)
-    )
-
-    # Frequency
-    ticks_y = ticker.FuncFormatter(
-        lambda y, pos: '{0:g}'.format(y / 1e2)
-    )
-
-    ax.xaxis.set_major_formatter(ticks_x)
-    ax.yaxis.set_major_formatter(ticks_y)
-
-    ax.set_xlabel('Time (s)')
-    ax.set_ylabel('Frequency (kHz)',)
-
-    ax.xaxis.tick_bottom()
-
-    ax.xaxis.set_minor_locator(
-        ticker.AutoMinorLocator()
-    )
-
-    ax.yaxis.set_ticks(
-        [0, 500, 1000]
-    )
-
-    ax.yaxis.set_minor_locator(
-        ticker.MultipleLocator(100)
     )
 
     plt.tight_layout()
 
-    return plt
+    return image

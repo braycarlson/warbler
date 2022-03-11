@@ -6,6 +6,7 @@ import pandas as pd
 from multiprocessing import cpu_count, Pool
 from parameters import BASELINE
 from path import DATA, INDIVIDUALS, PRINTOUTS
+from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
     create_luscinia_spectrogram,
     # create_spectrogram

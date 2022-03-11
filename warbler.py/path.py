@@ -46,9 +46,6 @@ MEDIOCRE = SPECTROGRAM.joinpath('mediocre')
 # The directory for spectrograms deemed bad
 BAD = SPECTROGRAM.joinpath('bad')
 
-# The directory for the noise package
-NOISE = PACKAGE.joinpath('noise')
-
 # The directory for the segment package
 SEGMENT = PACKAGE.joinpath('segment')
 
@@ -144,13 +141,6 @@ def bootstrap(func):
 
             # Create a folder to save segmented notes
             individual.joinpath('notes').mkdir(parents=True, exist_ok=True)
-
-            # Create a directory for the good/bad waveforms/spectrogram(s)
-            threshold = individual.joinpath('threshold')
-            threshold.mkdir(parents=True, exist_ok=True)
-
-            threshold.joinpath('good').mkdir(parents=True, exist_ok=True)
-            threshold.joinpath('bad').mkdir(parents=True, exist_ok=True)
 
         return func
 

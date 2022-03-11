@@ -12,7 +12,8 @@ from path import (
     MEDIOCRE,
     PICKLE,
 )
-from spectrogram.spectrogram import create_spectrogram
+from spectrogram.axes import SpectrogramAxes
+from spectrogram.plot import create_spectrogram
 
 
 def serialize(i, f, p, v, r, n):
@@ -106,6 +107,7 @@ def main():
     good = []
     mediocre = []
     bad = []
+    everything = []
 
     # https://github.com/matplotlib/matplotlib/issues/21950
     matplotlib.use('Agg')
@@ -137,6 +139,8 @@ def main():
             template = task.get(10)
             viability = template.get('viability')
 
+            everything.append(template)
+
             if viability == 'good':
                 good.append(template)
             elif viability == 'mediocre':
@@ -151,6 +155,7 @@ def main():
     g = PICKLE.joinpath('good.pkl')
     m = PICKLE.joinpath('mediocre.pkl')
     b = PICKLE.joinpath('bad.pkl')
+    e = PICKLE.joinpath('everything.pkl')
 
     if not g.is_file():
         g.touch()
@@ -160,6 +165,9 @@ def main():
 
     if not b.is_file():
         b.touch()
+
+    if not e.is_file():
+        e.touch()
 
     handle = open(g, 'wb')
     pickle.dump(good, handle)
@@ -171,6 +179,10 @@ def main():
 
     handle = open(b, 'wb')
     pickle.dump(bad, handle)
+    handle.close()
+
+    handle = open(e, 'wb')
+    pickle.dump(everything, handle)
     handle.close()
 
 

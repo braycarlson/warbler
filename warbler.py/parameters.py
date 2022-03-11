@@ -20,8 +20,10 @@ class Parameters(SimpleNamespace):
         super().__init__(**self.data)
 
     def update(self, key, value):
-        if key in self.data:
+        if hasattr(self, key):
             setattr(self, key, value)
+
+        if key in self.data:
             self.data[key] = value
 
     def save(self):

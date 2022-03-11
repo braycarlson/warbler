@@ -2,8 +2,10 @@ import matplotlib.pyplot as plt
 
 from dataclass.signal import Signal
 from parameters import BASELINE
+from path import DATA
 from pathlib import Path
-from spectrogram.plot import plot_segmentations
+from spectrogram.axes import SpectrogramAxes
+from spectrogram.plot import plot_segmentation
 from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
@@ -19,12 +21,14 @@ def main():
     parameters.min_level_db_floor = -20
     parameters.db_delta = 5
     parameters.silence_threshold = 0.01
-    parameters.min_silence_for_spec = 0.01
+    parameters.silence_for_spec = 0.01
     parameters.max_vocal_for_spec = 1.0
     parameters.min_syllable_length_s = 0.01
+    parameters.butter_lowcut = 1500
+    parameters.butter_highcut = 10000
 
     path = Path(
-        'E:/code/personal/warbler.py/data/DbWY_STE2017/wav/STE16_DbWY2017.wav'
+        DATA.joinpath('DgLLb_STE2017/wav/STE01a_1_DgLLb2017.wav')
     )
 
     signal = Signal(path)
@@ -34,7 +38,7 @@ def main():
         parameters.butter_highcut
     )
 
-    results = dynamic_threshold_segmentation(
+    dts = dynamic_threshold_segmentation(
         signal.data,
         signal.rate,
         n_fft=parameters.n_fft,
@@ -44,21 +48,14 @@ def main():
         pre=parameters.preemphasis,
         min_level_db=parameters.min_level_db,
         silence_threshold=parameters.silence_threshold,
-        spectral_range=parameters.spectral_range,
-        min_syllable_length_s=parameters.min_syllable_length_s
+        # spectral_range=parameters.spectral_range,
+        min_syllable_length_s=parameters.min_syllable_length_s,
     )
 
-    plot_segmentations(
-        results['spec'],
-        results['vocal_envelope'],
-        results['onsets'],
-        results['offsets'],
-        parameters.hop_length_ms,
-        signal,
-        figsize=(15, 5)
-    )
+    plot_segmentation(signal, dts)
 
     plt.show()
+    plt.close()
 
 
 if __name__ == '__main__':

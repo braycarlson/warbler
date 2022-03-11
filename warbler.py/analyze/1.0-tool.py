@@ -1,18 +1,24 @@
 import json
+import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import pickle
 import PySimpleGUI as sg
 
+from dataclass.signal import Signal
+from dataclass.spectrogram import Spectrogram
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Rectangle
 from parameters import Parameters
 from path import PARAMETER, PARAMETERS, PICKLE, SEGMENT
 from pathlib import Path
+from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
-    # create_luscinia_spectrogram,
-    create_spectrogram
+    plot_spectrogram
 )
+from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
-file = PICKLE.joinpath('mediocre.pkl')
+file = PICKLE.joinpath('everything.pkl')
 
 with open(file, 'rb') as handle:
     files = pickle.load(handle)
@@ -22,6 +28,9 @@ file = SEGMENT.joinpath('parameters.json')
 
 with open(file, 'r') as handle:
     baseline = json.load(handle)
+
+
+sg.theme('SystemDefaultForReal')
 
 
 def load(window, parameters):
@@ -59,7 +68,7 @@ def combobox():
     label_font = 'Arial 10 bold'
     label_size = (20, 0)
 
-    combobox_size = (44, 1)
+    combobox_size = (45, 1)
 
     return [
         sg.T('File', size=label_size, font=label_font),
@@ -68,6 +77,10 @@ def combobox():
             size=combobox_size,
             key='file',
             pad=((4, 0), 0),
+            background_color='white',
+            text_color='black',
+            button_arrow_color='black',
+            button_background_color='white',
             enable_events=True,
             readonly=True,
         )
@@ -131,7 +144,7 @@ def gui():
                 parameter('reduce_noise'),
                 parameter('mask_spec'),
             ])],
-            [sg.Frame('', border_width=0, layout=[
+            [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
                 button('Generate') +
                 button('Save')
             ])]
@@ -301,12 +314,115 @@ def main():
                 bool(data['mask_spec'])
             )
 
-            create_spectrogram(path, parameters)
+            signal = Signal(path)
+
+            signal.filter(
+                parameters.butter_lowcut,
+                parameters.butter_highcut
+            )
+
+            dts = dynamic_threshold_segmentation(
+                signal.data,
+                signal.rate,
+                n_fft=parameters.n_fft,
+                hop_length_ms=parameters.hop_length_ms,
+                win_length_ms=parameters.win_length_ms,
+                ref_level_db=parameters.ref_level_db,
+                pre=parameters.preemphasis,
+                min_level_db=parameters.min_level_db,
+                silence_threshold=parameters.silence_threshold,
+                min_syllable_length_s=parameters.min_syllable_length_s,
+            )
+
+            spectrogram = dts.get('spec')
+            onsets = dts.get('onsets')
+            offsets = dts.get('offsets')
+
+            plt.figure(
+                figsize=(19, 9)
+            )
+
+            gs = gridspec.GridSpec(2, 1)
+
+            spec = Spectrogram(signal, parameters)
+
+            gs.update(hspace=0.75)
+            ax0 = plt.subplot(gs[0], projection='spectrogram')
+            ax1 = plt.subplot(gs[1], projection='spectrogram')
+
+            ax0._title(path.stem + ': Filtered')
+            ax1._title(path.stem + ': Segmented')
+
+            plot_spectrogram(
+                spectrogram,
+                ax=ax0,
+                signal=signal,
+                cmap=plt.cm.Greys,
+            )
+
+            plot_spectrogram(
+                spec.data,
+                ax=ax1,
+                signal=signal,
+                cmap=plt.cm.Greys,
+            )
+
+            ylmin, ylmax = ax1.get_ylim()
+            ysize = (ylmax - ylmin) * 0.1
+            ymin = ylmax - ysize
+
+            patches = []
+
+            for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+                ax1.axvline(
+                    onset,
+                    color='dodgerblue',
+                    ls='dashed',
+                    lw=1,
+                    alpha=0.75
+                )
+
+                ax1.axvline(
+                    offset,
+                    color='dodgerblue',
+                    ls='dashed',
+                    lw=1,
+                    alpha=0.75
+                )
+
+                rectangle = Rectangle(
+                    xy=(onset, ymin),
+                    width=offset - onset,
+                    height=100,
+                )
+
+                rx, ry = rectangle.get_xy()
+                cx = rx + rectangle.get_width() / 2.0
+                cy = ry + rectangle.get_height() / 2.0
+
+                ax1.annotate(
+                    index,
+                    (cx, cy),
+                    color='white',
+                    weight=600,
+                    fontfamily='Arial',
+                    fontsize=8,
+                    ha='center',
+                    va='center'
+                )
+
+                patches.append(rectangle)
+
+            collection = PatchCollection(
+                patches,
+                color='dodgerblue',
+                alpha=0.75
+            )
+
+            ax1.add_collection(collection)
 
             plt.show()
-
             plt.close()
-            parameters.close()
 
         if event == 'save':
             filename = data['file']

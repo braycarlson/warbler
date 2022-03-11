@@ -6,6 +6,7 @@ from parameters import Parameters
 from path import DATA, SEGMENT
 from pathlib import Path
 from scipy.io import wavfile
+from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
     create_luscinia_spectrogram,
     # create_spectrogram
