@@ -16,6 +16,7 @@ from dataframe.dataframe import (
 from avgn.visualization.spectrogram import draw_spec_set
 from joblib import delayed, Parallel
 from path import DATA, INDIVIDUALS, PICKLE
+from pathlib import Path
 from scipy.io import wavfile
 from tqdm import tqdm
 
@@ -27,7 +28,7 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
     syllable_dfs = parallel(
         delayed(create_label_df)(
             dataset.datafiles[key].data,
-            labels_to_retain=['labels', 'filename', 'parameters'],
+            labels_to_retain=['labels', 'filename'],
             unit='notes',
             dict_features_to_retain=[],
             key=key,
@@ -42,7 +43,7 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
         delayed(get_row_audio)(
             syllable_df[syllable_df.key == key],
             dataset.datafiles[key].data['wav_loc'],
-            key
+            dataset.datafiles[key].data['parameters'],
         )
         for key in tqdm(syllable_df.key.unique())
     )
@@ -140,15 +141,15 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
         delayed(make_spec)(
             syllable,
             rate,
-            key,
+            parameters,
             use_mel=True,
             use_tensorflow=False,
         )
-        for syllable, rate, key in tqdm(
+        for syllable, rate, parameters in tqdm(
             zip(
                 syllable_df.audio.values,
                 syllable_df.rate.values,
-                syllable_df.key.values,
+                syllable_df.parameters.values,
             ),
             total=len(syllable_df),
             desc='Getting syllable spectrograms',

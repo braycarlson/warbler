@@ -4,12 +4,13 @@ logs/
 notebook/.ipynb_checkpoints/
 notes/
 warbler.py/analyze/printout
-warbler.py/analyze/spectrogram
+warbler.py/analyze/printout_bw
 warbler.py/cluster/carlson
 warbler.py/cluster/sainburg
 warbler.py/cluster/working
 warbler.py/segment/pickle
-warbler.py/segment/old
+warbler.py/segment/spectrogram
+warbler.py/utility/
 warbler.py/warbler.py.egg-info/
 ui/
 

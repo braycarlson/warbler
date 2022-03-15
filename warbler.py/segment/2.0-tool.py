@@ -3,14 +3,14 @@ import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import pickle
 import PySimpleGUI as sg
+import string
 
 from dataclass.signal import Signal
 from dataclass.spectrogram import Spectrogram
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 from parameters import Parameters
-from path import PARAMETER, PARAMETERS, PICKLE, SEGMENT
-from pathlib import Path
+from path import PICKLE
 from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
     plot_spectrogram
@@ -18,23 +18,38 @@ from spectrogram.plot import (
 from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
-file = PICKLE.joinpath('everything.pkl')
-
-with open(file, 'rb') as handle:
-    files = pickle.load(handle)
-
-# Load baseline parameters
-file = SEGMENT.joinpath('parameters.json')
-
-with open(file, 'r') as handle:
-    baseline = json.load(handle)
-
-
 sg.theme('SystemDefaultForReal')
+
+
+def to_digit(data):
+    exclude = []
+
+    table = str.maketrans(
+        dict.fromkeys(
+            string.ascii_letters + string.punctuation
+        )
+    )
+
+    translation = data.translate(table)
+
+    if translation:
+        digit = [
+            int(character)
+            for character in translation.split(' ')
+        ]
+
+        digit = sorted(
+            set(digit)
+        )
+
+        exclude.extend(digit)
+
+    return exclude
 
 
 def load(window, parameters):
     ignore = [
+        'exclude',
         'power',
         'griffin_lim_iters',
         'noise_reduce_kwargs',
@@ -53,9 +68,22 @@ def load(window, parameters):
         else:
             window[key].update(parameters[key])
 
+    exclude = parameters.get('exclude')
+
+    if exclude:
+        notes = ', '.join([str(note) for note in exclude])
+        window['exclude'].update(notes)
+    else:
+        window['exclude'].update('')
+
 
 def get_metadata(filename):
     metadata = {}
+
+    file = PICKLE.joinpath('mediocre.pkl')
+
+    with open(file, 'rb') as handle:
+        files = pickle.load(handle)
 
     for file in files:
         if file.get('filename') == filename:
@@ -69,6 +97,11 @@ def combobox():
     label_size = (20, 0)
 
     combobox_size = (45, 1)
+
+    file = PICKLE.joinpath('mediocre.pkl')
+
+    with open(file, 'rb') as handle:
+        files = pickle.load(handle)
 
     return [
         sg.T('File', size=label_size, font=label_font),
@@ -87,9 +120,11 @@ def combobox():
     ]
 
 
-def parameter(name, multi=False):
+def parameter(name, **kwargs):
     label_font = 'Arial 10 bold'
     label_size = (20, 0)
+
+    multi = kwargs.get('multi')
 
     if multi:
         input_size = (22, 1)
@@ -104,7 +139,7 @@ def parameter(name, multi=False):
 
         return [
             sg.T(name, size=label_size, font=label_font),
-            sg.I('', key=name, size=input_size)
+            sg.I('', key=name, size=input_size, **kwargs)
         ]
 
 
@@ -143,6 +178,7 @@ def gui():
                 parameter('bandpass_filter'),
                 parameter('reduce_noise'),
                 parameter('mask_spec'),
+                parameter('exclude'),
             ])],
             [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
                 button('Generate') +
@@ -161,8 +197,6 @@ def main():
         finalize=True
     )
 
-    load(window, baseline)
-
     while True:
         event, data = window.read()
 
@@ -170,23 +204,17 @@ def main():
             break
 
         if event == 'file':
-            file = data['file']
-            filename = Path(file).stem
+            element = data['file']
+            metadata = get_metadata(element)
 
-            # Look at the existing .json file(s) to see if
-            # there is an existing parameter object for the
-            # selected file. If not, use the baseline.
+            filename = metadata.get('filename')
+            parameter = metadata.get('parameter')
 
-            if filename not in PARAMETERS:
-                load(window, baseline)
-                continue
+            with open(parameter, 'r') as handle:
+                file = json.load(handle)
+                load(window, file)
 
-            path = PARAMETER.joinpath(filename + '.json')
-
-            with open(path, 'r') as handle:
-                custom = json.load(handle)
-
-            load(window, custom)
+            data['exclude'] = ''
 
         if event == 'generate':
             filename = data['file']
@@ -200,11 +228,10 @@ def main():
                 continue
 
             metadata = get_metadata(filename)
-            path = metadata.get('path')
+            song = metadata.get('song')
+            parameter = metadata.get('parameter')
 
-            parameters = Parameters(
-                SEGMENT.joinpath('parameters.json')
-            )
+            parameters = Parameters(parameter)
 
             parameters.update(
                 'n_fft',
@@ -314,7 +341,7 @@ def main():
                 bool(data['mask_spec'])
             )
 
-            signal = Signal(path)
+            signal = Signal(song)
 
             signal.filter(
                 parameters.butter_lowcut,
@@ -350,8 +377,8 @@ def main():
             ax0 = plt.subplot(gs[0], projection='spectrogram')
             ax1 = plt.subplot(gs[1], projection='spectrogram')
 
-            ax0._title(path.stem + ': Filtered')
-            ax1._title(path.stem + ': Segmented')
+            ax0._title(song.stem + ': Filtered')
+            ax1._title(song.stem + ': Segmented')
 
             plot_spectrogram(
                 spectrogram,
@@ -435,6 +462,9 @@ def main():
 
                 continue
 
+            metadata = get_metadata(filename)
+            parameter = metadata.get('parameter')
+
             low = data.get('spectral_range_low')
             high = data.pop('spectral_range_high')
             spectral_range = [int(low), int(high)]
@@ -448,21 +478,24 @@ def main():
             data['spectral_range'] = spectral_range
 
             ignore = [
+                'exclude',
                 'file',
                 'spectral_range'
             ]
 
-            convert = [
+            to_bool = [
                 'bandpass_filter',
                 'reduce_noise',
                 'mask_spec'
             ]
 
+            exclude = to_digit(data['exclude'])
+
             for key in data:
                 if key in ignore:
                     continue
 
-                if key in convert:
+                if key in to_bool:
                     data[key] = bool(data[key])
                     continue
 
@@ -474,6 +507,7 @@ def main():
                     print(exception)
 
             data.update({
+                'exclude': exclude,
                 'power': 1.5,
                 'griffin_lim_iters': 50,
                 'noise_reduce_kwargs': {},
@@ -483,10 +517,9 @@ def main():
                 }
             })
 
-            name = data.pop('file')
-            filename = Path(name).stem + '.json'
+            data.pop('file')
 
-            with open(PARAMETER.joinpath(filename), 'w+') as handle:
+            with open(parameter, 'w+') as handle:
                 text = json.dumps(data, indent=4)
                 handle.write(text)
 

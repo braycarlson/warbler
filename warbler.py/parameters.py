@@ -1,6 +1,5 @@
 import json
 
-from path import SEGMENT
 from types import SimpleNamespace
 
 
@@ -36,7 +35,3 @@ class Parameters(SimpleNamespace):
 
     def close(self):
         self.file.close()
-
-
-parameters = SEGMENT.joinpath('parameters.json')
-BASELINE = Parameters(parameters)

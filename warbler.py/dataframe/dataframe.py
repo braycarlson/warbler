@@ -11,21 +11,8 @@ from avgn.signalprocessing.filtering import (
 from avgn.signalprocessing.spectrogramming import spectrogram
 from avgn.utils.audio import int16_to_float32, load_wav
 from collections import OrderedDict
-from parameters import BASELINE, Parameters
-from path import PARAMETER, PARAMETERS
+from parameters import Parameters
 from PIL import Image
-
-
-def get_parameters(individual):
-    if individual in PARAMETERS:
-        # Load custom parameters
-        file = PARAMETER.joinpath(individual + '.json')
-        parameters = Parameters(file)
-    else:
-        # Load baseline parameters
-        parameters = BASELINE
-
-    return parameters
 
 
 def norm(x):
@@ -71,8 +58,8 @@ def subset_syllables(datafile, indv, unit='notes', include_labels=True):
     if np.issubdtype(type(data[0]), np.integer):
         data = int16_to_float32(data)
 
-    filename = datafile['indvs'][indv][unit]['filename']
-    parameters = get_parameters(filename)
+    parameters = datafile['parameters']
+    parameters = Parameters(parameters)
 
     data = butter_bandpass_filter(
         data,
@@ -119,6 +106,7 @@ def create_label_df(
         indv_dict = {}
         indv_dict['start_time'] = datafile['indvs'][indv][unit]['start_times']
         indv_dict['end_time'] = datafile['indvs'][indv][unit]['end_times']
+        indv_dict['parameters'] = datafile['parameters']
 
         # get data for individual
         for label in labels_to_retain:
@@ -150,7 +138,7 @@ def create_label_df(
 def make_spec(
     syll_wav,
     fs,
-    key,
+    parameters,
     use_tensorflow=False,
     use_mel=True,
     return_tensor=False,
@@ -164,7 +152,7 @@ def make_spec(
     if type(syll_wav[0]) == int:
         syll_wav = int16_to_float32(syll_wav)
 
-    parameters = get_parameters(key)
+    parameters = Parameters(parameters)
     mel_matrix = prepare_mel_matrix(parameters, fs)
 
     # create spec
@@ -271,12 +259,12 @@ def prepare_wav(wav_loc, parameters=None):
     return rate, data
 
 
-def get_row_audio(syllable_df, wav_loc, key):
+def get_row_audio(syllable_df, wav_loc, parameters):
     """
     load audio and grab individual syllables
     """
 
-    parameters = get_parameters(key)
+    parameters = Parameters(parameters)
 
     # load audio
     rate, data = prepare_wav(wav_loc, parameters)

@@ -2,8 +2,9 @@ import csv
 import json
 import logging
 
+from bootstrap import bootstrap
 from logger import logger
-from path import bootstrap, DATA, INDIVIDUALS
+from path import DATA, INDIVIDUALS
 from pathlib import Path
 
 

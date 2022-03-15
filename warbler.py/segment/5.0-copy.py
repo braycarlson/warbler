@@ -1,8 +1,9 @@
 import logging
 import shutil
 
+from bootstrap import bootstrap
 from logger import logger
-from path import bootstrap, INDIVIDUALS, NOTES
+from path import INDIVIDUALS, NOTES
 
 
 log = logging.getLogger(__name__)

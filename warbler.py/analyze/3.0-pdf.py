@@ -4,6 +4,7 @@ import matplotlib
 import pandas as pd
 
 from multiprocessing import cpu_count, Pool
+from natsort import os_sorted
 from parameters import BASELINE
 from path import DATA, INDIVIDUALS, PRINTOUTS
 from spectrogram.axes import SpectrogramAxes
@@ -78,15 +79,13 @@ def main():
         height
     )
 
-    processes = cpu_count()
-
     processes = int(cpu_count() / 2)
     maxtasksperchild = 200
 
     for individual, printout in zip(INDIVIDUALS, PRINTOUTS):
         row = dataframe[dataframe.Individual == individual.stem]
 
-        pdf = sorted([
+        pdf = os_sorted([
             file for file in printout.glob('*.pdf')
             if 'Clean' in file.stem
         ])

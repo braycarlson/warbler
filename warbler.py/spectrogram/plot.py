@@ -158,14 +158,14 @@ def create_luscinia_spectrogram(path, parameters):
         fontweight=600
     )
 
-    image = plot_spectrogram(
+    plot_spectrogram(
         spectrogram.data,
         ax=ax,
         signal=signal,
         cmap=plt.cm.Greys,
     )
 
-    return image
+    return fig
 
 
 def create_spectrogram(path, parameters):
@@ -183,7 +183,7 @@ def create_spectrogram(path, parameters):
         subplot_kw={'projection': 'spectrogram'}
     )
 
-    image = plot_spectrogram(
+    plot_spectrogram(
         spectrogram.data,
         ax=ax,
         signal=signal,
@@ -192,4 +192,4 @@ def create_spectrogram(path, parameters):
 
     plt.tight_layout()
 
-    return image
+    return fig

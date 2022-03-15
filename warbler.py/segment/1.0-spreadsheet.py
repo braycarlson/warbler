@@ -1,22 +1,21 @@
 import matplotlib
+import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
 
+from bootstrap import bootstrap
 from multiprocessing import cpu_count, Pool
-from parameters import BASELINE
+from parameters import Parameters
 from path import (
-    bootstrap,
-    BAD,
     DATA,
-    GOOD,
-    MEDIOCRE,
     PICKLE,
+    SPECTROGRAM
 )
 from spectrogram.axes import SpectrogramAxes
-from spectrogram.plot import create_spectrogram
+from spectrogram.plot import create_luscinia_spectrogram
 
 
-def serialize(i, f, p, v, r, n):
+def serialize(individual, filename, page, viability, reason, notes):
     template = {
         'individual': None,
         'filename': None,
@@ -24,106 +23,117 @@ def serialize(i, f, p, v, r, n):
         'viability': None,
         'reason': None,
         'notes': None,
-        'path': None,
+        'song': None,
+        'parameter': None,
+        'metadata': None,
         'spectrogram': None
     }
 
-    path = DATA.joinpath(i, 'wav', f)
+    song = DATA.joinpath(individual, 'wav', filename + '.wav')
+    parameter = DATA.joinpath(individual, 'parameter', filename + '.json')
+    metadata = DATA.joinpath(individual, 'json', filename + '.json')
 
-    if str(v) == 'nan':
-        v = None
+    template['individual'] = individual
+    template['filename'] = filename
+    template['page'] = page
+    template['reason'] = reason
+    template['notes'] = notes
+    template['song'] = song
+    template['parameter'] = parameter
+    template['metadata'] = metadata
 
-    if str(r) == 'nan':
-        r = None
-
-    if str(n) == 'nan':
-        n = None
-
-    template['individual'] = i
-    template['filename'] = f
-    template['page'] = p
-    template['reason'] = r
-    template['notes'] = n
-    template['path'] = path
-
-    if v is None:
-        # location = GOOD.joinpath(path.stem + '.png')
-        # template['spectrogram'] = location
+    if viability == 'Y':
+        location = SPECTROGRAM.joinpath('good', filename + '.png')
+        template['spectrogram'] = location
         template['viability'] = 'good'
-    elif v == 'P':
-        # location = MEDIOCRE.joinpath(path.stem + '.png')
-        # template['spectrogram'] = location
+    elif viability == 'P':
+        location = SPECTROGRAM.joinpath('mediocre', filename + '.png')
+        template['spectrogram'] = location
         template['viability'] = 'mediocre'
     else:
-        # location = BAD.joinpath(path.stem + '.png')
-        # template['spectrogram'] = location
+        location = SPECTROGRAM.joinpath('bad', filename + '.png')
+        template['spectrogram'] = location
         template['viability'] = 'bad'
 
-    # plt = create_spectrogram(path, BASELINE)
+    parameters = Parameters(parameter)
+    create_luscinia_spectrogram(song, parameters)
 
-    # text = f
+    plt.title(
+        filename,
+        fontsize=14,
+        weight=600,
+        pad=15,
+    )
 
-    # if r is not None:
-    #     if n is None:
-    #         text = text + f": {r}"
-    #     else:
-    #         text = text + f" ({n})"
+    if reason is not None:
+        figtext = 'Note: ' + reason
 
-    # plt.figtext(
-    #     0.03,
-    #     -0.09,
-    #     text,
-    #     color='black',
-    #     fontsize=12,
-    #     fontweight=600,
-    #     fontfamily='monospace'
-    # )
+        plt.figtext(
+            0.03,
+            -0.09,
+            figtext,
+            color='black',
+            fontfamily='Arial',
+            fontsize=12,
+            fontweight=600,
+        )
 
-    # plt.tight_layout()
+    plt.savefig(
+        location,
+        bbox_inches='tight',
+        pad_inches=0.5
+    )
 
-    # plt.savefig(
-    #     location,
-    #     bbox_inches='tight',
-    #     pad_inches=0.5
-    # )
-
-    # plt.close()
-
+    plt.close('all')
     return template
+
+
+def save(file, data):
+    if not file.is_file():
+        file.touch()
+
+    handle = open(file, 'wb')
+    pickle.dump(data, handle)
+    handle.close()
 
 
 @bootstrap
 def main():
     spreadsheet = DATA.joinpath('2017.xlsx')
-    dataframe = pd.read_excel(spreadsheet, engine='openpyxl')
 
-    individual = dataframe.get('Individual')
-    filename = dataframe.get('updatedFileName')
-    page = dataframe.get('pageNumber')
-    viability = dataframe.get('Viability')
-    reason = dataframe.get('viabilityReason')
-    notes = dataframe.get('otherNotes')
+    dataframe = pd.read_excel(
+        spreadsheet,
+        sheet_name='2017_python_viability',
+        engine='openpyxl'
+    )
 
+    dataframe = dataframe.where(
+        pd.notnull(dataframe),
+        None
+    )
+
+    individual = dataframe.get('individual')
+    filename = dataframe.get('updated_filename')
+    page = dataframe.get('printout_page_number')
+    viability = dataframe.get('python_viability')
+    reason = dataframe.get('python_viability_reason')
+    notes = dataframe.get('python_notes')
+
+    aggregate = []
     good = []
     mediocre = []
     bad = []
-    everything = []
 
     # https://github.com/matplotlib/matplotlib/issues/21950
     matplotlib.use('Agg')
 
-    processes = cpu_count()
-
-    tasks = []
-
     processes = int(cpu_count() / 2)
-    maxtasksperchild = 50
+    maxtasksperchild = 15
 
     with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
-        for i, f, p, v, r, n in zip(individual, filename, page, viability, reason, notes):
-            path = DATA.joinpath(i, 'wav', f)
-            print(f"Processing: {path}")
+        tasks = []
 
+        for i, f, p, v, r, n in zip(individual, filename, page, viability, reason, notes):
             tasks.append(
                 pool.apply_async(
                     serialize,
@@ -139,7 +149,7 @@ def main():
             template = task.get(10)
             viability = template.get('viability')
 
-            everything.append(template)
+            aggregate.append(template)
 
             if viability == 'good':
                 good.append(template)
@@ -152,38 +162,15 @@ def main():
         pool.join()
 
     # Pickle
+    a = PICKLE.joinpath('aggregate.pkl')
     g = PICKLE.joinpath('good.pkl')
     m = PICKLE.joinpath('mediocre.pkl')
     b = PICKLE.joinpath('bad.pkl')
-    e = PICKLE.joinpath('everything.pkl')
 
-    if not g.is_file():
-        g.touch()
-
-    if not m.is_file():
-        m.touch()
-
-    if not b.is_file():
-        b.touch()
-
-    if not e.is_file():
-        e.touch()
-
-    handle = open(g, 'wb')
-    pickle.dump(good, handle)
-    handle.close()
-
-    handle = open(m, 'wb')
-    pickle.dump(mediocre, handle)
-    handle.close()
-
-    handle = open(b, 'wb')
-    pickle.dump(bad, handle)
-    handle.close()
-
-    handle = open(e, 'wb')
-    pickle.dump(everything, handle)
-    handle.close()
+    save(a, aggregate)
+    save(g, good)
+    save(m, mediocre)
+    save(b, bad)
 
 
 if __name__ == '__main__':

@@ -33,20 +33,24 @@ class SpectrogramAxes(Axes):
         self._y_position()
         self._y_padding()
 
-    def _x_label(self):
+    def _x_label(self, **kwargs):
+        kwargs.setdefault('fontfamily', 'Arial')
+        kwargs.setdefault('fontsize', 12)
+        kwargs.setdefault('fontweight', 400)
+
         self.set_xlabel(
             'Time (s)',
-            fontfamily='Arial',
-            fontsize=12,
-            fontweight=400
+            **kwargs
         )
 
-    def _y_label(self):
+    def _y_label(self, **kwargs):
+        kwargs.setdefault('fontfamily', 'Arial')
+        kwargs.setdefault('fontsize', 12)
+        kwargs.setdefault('fontweight', 400)
+
         self.set_ylabel(
             'Frequency (kHz)',
-            fontfamily='Arial',
-            fontsize=12,
-            fontweight=400
+            **kwargs
         )
 
     def _x_major_tick(self):
@@ -101,13 +105,12 @@ class SpectrogramAxes(Axes):
     def _y_padding(self):
         self.yaxis.labelpad = 10
 
-    def _title(self, title=None):
-        super().set_title(
-            title,
-            fontsize=14,
-            weight=600,
-            pad=15,
-        )
+    def _title(self, title='Spectrogram', **kwargs):
+        kwargs.setdefault('fontsize', 14)
+        kwargs.setdefault('weight', 600)
+        kwargs.setdefault('pad', 15)
+
+        super().set_title(title, **kwargs)
 
 
 class LusciniaAxes(SpectrogramAxes):
@@ -120,20 +123,24 @@ class LusciniaAxes(SpectrogramAxes):
         super().initialize_x()
         super().initialize_y()
 
-    def _x_label(self):
+    def _x_label(self, **kwargs):
+        kwargs.setdefault('fontfamily', 'Arial')
+        kwargs.setdefault('fontsize', 16)
+        kwargs.setdefault('fontweight', 600)
+
         self.set_xlabel(
             'Time (s)',
-            fontfamily='Arial',
-            fontsize=16,
-            fontweight=600
+            **kwargs
         )
 
-    def _y_label(self):
+    def _y_label(self, **kwargs):
+        kwargs.setdefault('fontfamily', 'Arial')
+        kwargs.setdefault('fontsize', 16)
+        kwargs.setdefault('fontweight', 600)
+
         self.set_ylabel(
             'Frequency (kHz)',
-            fontfamily='Arial',
-            fontsize=16,
-            fontweight=600
+            **kwargs
         )
 
     def _x_padding(self):

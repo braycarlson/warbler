@@ -23,6 +23,7 @@
     "bandpass_filter": true,
     "reduce_noise": true,
     "mask_spec": true,
+    "exclude": [],
     "power": 1.5,
     "griffin_lim_iters": 50,
     "noise_reduce_kwargs": {},

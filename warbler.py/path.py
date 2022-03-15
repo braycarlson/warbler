@@ -1,6 +1,6 @@
 import pickle
 
-from functools import wraps
+from natsort import os_sorted
 from pathlib import Path
 
 
@@ -34,50 +34,58 @@ ANALYZE = PACKAGE.joinpath('analyze')
 # The directory for the Luscinia printouts
 PRINTOUT = ANALYZE.joinpath('printout')
 
-# The directory for generated spectrograms to be inspected
-SPECTROGRAM = ANALYZE.joinpath('spectrogram')
-
-# The directory for spectrograms deemed good
-GOOD = SPECTROGRAM.joinpath('good')
-
-# The directory for spectrograms deemed mediocre
-MEDIOCRE = SPECTROGRAM.joinpath('mediocre')
-
-# The directory for spectrograms deemed bad
-BAD = SPECTROGRAM.joinpath('bad')
-
 # The directory for the segment package
 SEGMENT = PACKAGE.joinpath('segment')
 
-# The directory for the custom parameters
-PARAMETER = SEGMENT.joinpath('parameter')
+# The file for the baseline parameters
+BASELINE = SEGMENT.joinpath('parameter.json')
 
 # The directory for pickled songs
 PICKLE = SEGMENT.joinpath('pickle')
 
+# The directory for generated spectrograms to be inspected
+SPECTROGRAM = SEGMENT.joinpath('spectrogram')
+
 # Get each individual's directory from the original dataset
-DIRECTORIES = sorted([
+DIRECTORIES = os_sorted([
     directory
     for directory in DATASET.glob('*/')
     if directory.is_dir()
 ])
 
 # Get each individual's directory from the processed dataset
-INDIVIDUALS = sorted([
+INDIVIDUALS = os_sorted([
     individual
     for individual in DATA.glob('*/')
     if individual.is_dir()
 ])
 
-# Get each individual's custom parameters
-PARAMETERS = sorted([
-    parameter.stem
-    for parameter in PARAMETER.glob('*.json')
-    if parameter.is_file()
+# Get each individual's songs from the processed dataset
+SONGS = os_sorted([
+    file.as_posix()
+    for individual in INDIVIDUALS
+    for file in individual.glob('wav/*.wav')
+    if file.is_file()
+])
+
+# Get each individual's parameters from the processed dataset
+PARAMETERS = os_sorted([
+    file.as_posix()
+    for individual in INDIVIDUALS
+    for file in individual.glob('parameter/*.json')
+    if file.is_file()
+])
+
+# Get each individual's metadata from the processed dataset
+METADATA = os_sorted([
+    file.as_posix()
+    for individual in INDIVIDUALS
+    for file in individual.glob('json/*.json')
+    if file.is_file()
 ])
 
 # Get each individual's directory from the printouts
-PRINTOUTS = sorted([
+PRINTOUTS = os_sorted([
     individual
     for individual in PRINTOUT.glob('*/')
     if individual.is_dir()
@@ -87,61 +95,19 @@ IGNORE = set()
 
 bad = PICKLE.joinpath('bad.pkl')
 
-if bad.is_file():
+if bad.exists():
     with open(bad, 'rb') as handle:
         ignore = pickle.load(handle)
 
         for file in ignore:
-            IGNORE.add(
-                Path(file['filename']).stem
-            )
+            file = file.get('filename')
+            IGNORE.add(file)
 
 error = PICKLE.joinpath('error.pkl')
 
-if error.is_file():
+if error.exists():
     with open(error, 'rb') as handle:
         ignore = pickle.load(handle)
 
         for file in ignore:
             IGNORE.add(file)
-
-
-def bootstrap(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        # Data
-        LOGS.mkdir(parents=True, exist_ok=True)
-        DATA.mkdir(parents=True, exist_ok=True)
-        NOTES.mkdir(parents=True, exist_ok=True)
-
-        # Analyze
-        PRINTOUT.mkdir(parents=True, exist_ok=True)
-        SPECTROGRAM.mkdir(parents=True, exist_ok=True)
-        GOOD.mkdir(parents=True, exist_ok=True)
-        MEDIOCRE.mkdir(parents=True, exist_ok=True)
-        BAD.mkdir(parents=True, exist_ok=True)
-
-        # Segment
-        PARAMETER.mkdir(parents=True, exist_ok=True)
-        PICKLE.mkdir(parents=True, exist_ok=True)
-
-        for directory in DIRECTORIES:
-            (
-                DATA
-                .joinpath(directory.stem)
-                .mkdir(parents=True, exist_ok=True)
-            )
-
-        for individual in INDIVIDUALS:
-            # Create a folder to save converted .wav files
-            individual.joinpath('wav').mkdir(parents=True, exist_ok=True)
-
-            # Create a folder to save metadata
-            individual.joinpath('json').mkdir(parents=True, exist_ok=True)
-
-            # Create a folder to save segmented notes
-            individual.joinpath('notes').mkdir(parents=True, exist_ok=True)
-
-        return func
-
-    return wrapper()

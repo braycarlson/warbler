@@ -32,18 +32,22 @@ def remove():
 
     for individual in INDIVIDUALS:
         try:
+            wav = individual.joinpath('wav')
+            # parameter = individual.joinpath('parameter')
             json = individual.joinpath('json')
             notes = individual.joinpath('notes')
-            threshold = individual.joinpath('threshold')
+
+            if wav.exists():
+                shutil.rmtree(wav)
+
+            # if parameter.exists():
+            #     shutil.rmtree(parameter)
 
             if json.exists():
                 shutil.rmtree(json)
 
             if notes.exists():
                 shutil.rmtree(notes)
-
-            if threshold.exists():
-                shutil.rmtree(threshold)
         except OSError as e:
             print(f"Error: {e}")
 
@@ -57,6 +61,7 @@ def execute():
     warbler = CWD.joinpath('warbler.py')
     segment = warbler.joinpath('segment')
 
+    setup = segment.joinpath('0.0-setup.py')
     spreadsheet = segment.joinpath('1.0-spreadsheet.py')
     metadata = segment.joinpath('2.0-metadata.py')
     segment = segment.joinpath('3.0-segment.py')
