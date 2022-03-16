@@ -4,6 +4,7 @@ import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import pickle
 import PySimpleGUI as sg
 import string
@@ -237,6 +238,7 @@ def gui():
             ])],
             [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
                 button('Generate') +
+                button('Launch') +
                 button('Reset') +
                 button('Save')
             ])]
@@ -547,8 +549,8 @@ def main():
 
         if event == 'reset':
             data['exclude'] = ''
-            element = data['file']
-            metadata = get_metadata(element)
+            item = data['file']
+            metadata = get_metadata(item)
 
             filename = metadata.get('filename')
             parameter = metadata.get('parameter')
@@ -556,6 +558,15 @@ def main():
             with open(parameter, 'r') as handle:
                 file = json.load(handle)
                 load(window, file)
+
+        if event == 'launch':
+            item = data['file']
+            metadata = get_metadata(item)
+
+            filename = metadata.get('filename')
+            parameter = metadata.get('parameter')
+
+            os.startfile(parameter)
 
         if event == 'save':
             filename = data['file']
