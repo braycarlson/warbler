@@ -1,5 +1,4 @@
 import json
-import matplotlib
 import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
