@@ -7,8 +7,8 @@ from dataclass.signal import Signal
 from dataclass.spectrogram import Spectrogram
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
-from parameters import BASELINE, Parameters
-from path import DATA, SEGMENT
+from parameters import Parameters
+from path import BASELINE, DATA, SEGMENT
 from pathlib import Path
 from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
@@ -46,14 +46,17 @@ def main():
 
 
     path = Path(
-        DATA.joinpath('DbWY_STE2017/wav/STE16_DbWY2017.wav')
+        DATA.joinpath('DbWY_STE2017/wav/STE03_DbWY2017.wav')
     )
 
-    create_luscinia_spectrogram(path, BASELINE)
-    # create_spectrogram(path, BASELINE)
+    parameters = Parameters(BASELINE)
+    create_luscinia_spectrogram(path, parameters)
+    # create_spectrogram(path, parameters)
 
     plt.show()
     plt.close()
+
+    parameters.close()
 
     # path = Path(
     #     DATA.joinpath('DgLLb_STE2017/wav/STE01_2_DgLLb2017.wav')

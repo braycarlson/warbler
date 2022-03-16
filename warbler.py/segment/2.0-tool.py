@@ -1,12 +1,16 @@
 import json
+import matplotlib
+import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
+import numpy as np
 import pickle
 import PySimpleGUI as sg
 import string
 
 from dataclass.signal import Signal
 from dataclass.spectrogram import Spectrogram
+from matplotlib.backend_bases import MouseButton
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 from parameters import Parameters
@@ -19,6 +23,54 @@ from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
 sg.theme('SystemDefaultForReal')
+
+
+EXCLUDE = set()
+
+
+def on_click(event, image, patches):
+    if event.inaxes is None:
+        return
+
+    if event.button is MouseButton.LEFT:
+        position = event.xdata
+
+        for patch in patches:
+            start = patch.get_x()
+            end = start + patch.get_width()
+
+            if start <= position <= end:
+                label = patch.get_label()
+                label = int(label)
+
+                blue = mcolors.to_rgba('dodgerblue', alpha=0.75)
+                red = mcolors.to_rgba('red', alpha=0.75)
+
+                for collection in event.inaxes.collections:
+                    paths = collection.get_paths()
+                    colors = collection.get_facecolors()
+                    length = len(paths)
+
+                    if len(colors) == 1 and length != 1:
+                        colors = np.array([colors[0]] * length)
+
+                    index = label * 2
+
+                    if all(colors[label] == red):
+                        color = blue
+                        EXCLUDE.remove(label)
+                    else:
+                        color = red
+                        EXCLUDE.add(label)
+
+                    colors[label] = color
+                    collection.set_facecolor(colors)
+                    collection.set_edgecolor(colors)
+
+                    event.inaxes.lines[index].set_color(color)
+                    event.inaxes.lines[index + 1].set_color(color)
+
+                event.canvas.draw()
 
 
 def to_digit(data):
@@ -69,6 +121,9 @@ def load(window, parameters):
             window[key].update(parameters[key])
 
     exclude = parameters.get('exclude')
+
+    EXCLUDE.clear()
+    EXCLUDE.update(exclude)
 
     if exclude:
         notes = ', '.join([str(note) for note in exclude])
@@ -182,6 +237,7 @@ def gui():
             ])],
             [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
                 button('Generate') +
+                button('Reset') +
                 button('Save')
             ])]
         ])
@@ -204,6 +260,7 @@ def main():
             break
 
         if event == 'file':
+            data['exclude'] = ''
             element = data['file']
             metadata = get_metadata(element)
 
@@ -213,8 +270,6 @@ def main():
             with open(parameter, 'r') as handle:
                 file = json.load(handle)
                 load(window, file)
-
-            data['exclude'] = ''
 
         if event == 'generate':
             filename = data['file']
@@ -361,9 +416,18 @@ def main():
                 min_syllable_length_s=parameters.min_syllable_length_s,
             )
 
-            spectrogram = dts.get('spec')
-            onsets = dts.get('onsets')
-            offsets = dts.get('offsets')
+            try:
+                spectrogram = dts.get('spec')
+                onsets = dts.get('onsets')
+                offsets = dts.get('offsets')
+            except AttributeError:
+                sg.Popup(
+                    'Please adjust the parameter(s)',
+                    title='Error',
+                    keep_on_top=True
+                )
+
+                continue
 
             plt.figure(
                 figsize=(19, 9)
@@ -387,7 +451,7 @@ def main():
                 cmap=plt.cm.Greys,
             )
 
-            plot_spectrogram(
+            image = plot_spectrogram(
                 spec.data,
                 ax=ax1,
                 signal=signal,
@@ -400,10 +464,18 @@ def main():
 
             patches = []
 
+            blue = mcolors.to_rgba('dodgerblue', alpha=0.75)
+            red = mcolors.to_rgba('red', alpha=0.75)
+
             for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+                if index in EXCLUDE:
+                    color = red
+                else:
+                    color = blue
+
                 ax1.axvline(
                     onset,
-                    color='dodgerblue',
+                    color=color,
                     ls='dashed',
                     lw=1,
                     alpha=0.75
@@ -411,7 +483,7 @@ def main():
 
                 ax1.axvline(
                     offset,
-                    color='dodgerblue',
+                    color=color,
                     ls='dashed',
                     lw=1,
                     alpha=0.75
@@ -421,6 +493,9 @@ def main():
                     xy=(onset, ymin),
                     width=offset - onset,
                     height=100,
+                    alpha=0.75,
+                    color=color,
+                    label=str(index)
                 )
 
                 rx, ry = rectangle.get_xy()
@@ -442,14 +517,45 @@ def main():
 
             collection = PatchCollection(
                 patches,
-                color='dodgerblue',
-                alpha=0.75
+                match_original=True
             )
 
             ax1.add_collection(collection)
 
+            EXCLUDE.update(to_digit(
+                    data['exclude']
+                )
+            )
+
+            plt.connect(
+                'button_press_event',
+                lambda event: on_click(
+                    event,
+                    image,
+                    patches
+                )
+            )
+
             plt.show()
             plt.close()
+
+            notes = ', '.join(
+                [str(note) for note in sorted(EXCLUDE)]
+            )
+
+            window['exclude'].update(notes)
+
+        if event == 'reset':
+            data['exclude'] = ''
+            element = data['file']
+            metadata = get_metadata(element)
+
+            filename = metadata.get('filename')
+            parameter = metadata.get('parameter')
+
+            with open(parameter, 'r') as handle:
+                file = json.load(handle)
+                load(window, file)
 
         if event == 'save':
             filename = data['file']
@@ -523,7 +629,11 @@ def main():
                 text = json.dumps(data, indent=4)
                 handle.write(text)
 
-            # sg.Popup('Saved', keep_on_top=True)
+            # sg.Popup(
+            #     'Saved',
+            #     title='Success',
+            #     keep_on_top=True
+            # )
 
     window.close()
 

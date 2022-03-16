@@ -16,12 +16,11 @@ from dataframe.dataframe import (
 from avgn.visualization.spectrogram import draw_spec_set
 from joblib import delayed, Parallel
 from path import DATA, INDIVIDUALS, PICKLE
-from pathlib import Path
 from scipy.io import wavfile
 from tqdm import tqdm
 
 
-dataset = Dataset(INDIVIDUALS[:1])
+dataset = Dataset(INDIVIDUALS)
 
 
 with Parallel(n_jobs=-1, verbose=1) as parallel:

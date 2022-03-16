@@ -14,6 +14,7 @@ class SpectrogramAxes(Axes):
     def initialize(self):
         self.initialize_x()
         self.initialize_y()
+        self.format()
 
     def initialize_x(self):
         self._x_label()
@@ -32,6 +33,11 @@ class SpectrogramAxes(Axes):
         self._y_minor_tick()
         self._y_position()
         self._y_padding()
+
+    def format(self):
+        self.format_coord = (
+            lambda x, y: "Time={:1.17f}, Frequency={:1.2f}".format(x, y * 10)
+        )
 
     def _x_label(self, **kwargs):
         kwargs.setdefault('fontfamily', 'Arial')
@@ -69,7 +75,7 @@ class SpectrogramAxes(Axes):
 
     def _x_minor_tick(self):
         self.xaxis.set_minor_locator(
-            ticker.MaxNLocator(30)
+            ticker.MultipleLocator(0.1)
         )
 
     def _y_minor_tick(self):

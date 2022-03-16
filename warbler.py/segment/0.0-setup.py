@@ -1,9 +1,7 @@
-import json
 import logging
 import shutil
 
 from bootstrap import bootstrap
-from collections import OrderedDict
 from logger import logger
 from path import DATA, DATASET, DIRECTORIES, INDIVIDUALS
 from pydub import AudioSegment
@@ -51,11 +49,7 @@ def main():
 
                 if not p.is_file():
                     p.touch()
-
-                    shutil.copy(
-                        'parameter.json',
-                        p
-                    )
+                    shutil.copy('parameter.json', p)
 
                 # Metadata
                 m = metadata.joinpath(filename + '.json')
