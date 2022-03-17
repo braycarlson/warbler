@@ -239,7 +239,7 @@ def gui():
                 button('Generate') +
                 button('Reset') +
                 button('Parameters') +
-                button('Audio') +
+                button('Play') +
                 button('Save')
             ])]
         ])
@@ -579,7 +579,7 @@ def main():
 
             os.startfile(parameter)
 
-        if event == 'audio':
+        if event == 'play':
             item = data['file']
 
             if item == '':
