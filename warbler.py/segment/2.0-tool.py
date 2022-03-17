@@ -237,8 +237,9 @@ def gui():
             ])],
             [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
                 button('Generate') +
-                button('Launch') +
                 button('Reset') +
+                button('Parameters') +
+                button('Audio') +
                 button('Save')
             ])]
         ])
@@ -560,14 +561,41 @@ def main():
                 file = json.load(handle)
                 load(window, file)
 
-        if event == 'launch':
+        if event == 'parameters':
             item = data['file']
+
+            if item == '':
+                sg.Popup(
+                    'Please select a file',
+                    keep_on_top=True
+                )
+
+                continue
+
             metadata = get_metadata(item)
 
             filename = metadata.get('filename')
             parameter = metadata.get('parameter')
 
             os.startfile(parameter)
+
+        if event == 'audio':
+            item = data['file']
+
+            if item == '':
+                sg.Popup(
+                    'Please select a file',
+                    keep_on_top=True
+                )
+
+                continue
+
+            metadata = get_metadata(item)
+
+            filename = metadata.get('filename')
+            song = metadata.get('song')
+
+            os.startfile(song)
 
         if event == 'save':
             filename = data['file']
