@@ -28,7 +28,7 @@ sg.theme('SystemDefaultForReal')
 EXCLUDE = set()
 
 
-def on_click(event, image, patches):
+def on_click(event, patches):
     if event.inaxes is None:
         return
 
@@ -430,6 +430,14 @@ def main():
 
                 continue
 
+            if not data['exclude']:
+                EXCLUDE.clear()
+            else:
+                EXCLUDE.update(to_digit(
+                        data['exclude']
+                    )
+                )
+
             plt.figure(
                 figsize=(19, 9)
             )
@@ -452,7 +460,7 @@ def main():
                 cmap=plt.cm.Greys,
             )
 
-            image = plot_spectrogram(
+            plot_spectrogram(
                 spec.data,
                 ax=ax1,
                 signal=signal,
@@ -523,16 +531,10 @@ def main():
 
             ax1.add_collection(collection)
 
-            EXCLUDE.update(to_digit(
-                    data['exclude']
-                )
-            )
-
             plt.connect(
                 'button_press_event',
                 lambda event: on_click(
                     event,
-                    image,
                     patches
                 )
             )
