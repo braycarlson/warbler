@@ -62,7 +62,7 @@ INDIVIDUALS = os_sorted([
 
 # Get each individual's songs from the processed dataset
 SONGS = os_sorted([
-    file.as_posix()
+    file
     for individual in INDIVIDUALS
     for file in individual.glob('wav/*.wav')
     if file.is_file()
@@ -70,7 +70,7 @@ SONGS = os_sorted([
 
 # Get each individual's parameters from the processed dataset
 PARAMETERS = os_sorted([
-    file.as_posix()
+    file
     for individual in INDIVIDUALS
     for file in individual.glob('parameter/*.json')
     if file.is_file()
@@ -78,10 +78,24 @@ PARAMETERS = os_sorted([
 
 # Get each individual's metadata from the processed dataset
 METADATA = os_sorted([
-    file.as_posix()
+    file
     for individual in INDIVIDUALS
     for file in individual.glob('json/*.json')
     if file.is_file()
+])
+
+# Get each individual's .pdf
+PDFS = os_sorted([
+    individual
+    for individual in ANALYZE.glob('pdf/*.pdf')
+    if individual.is_file()
+])
+
+# Get each individual's Luscinia spectrograms
+IMAGES = os_sorted([
+    individual
+    for individual in ANALYZE.glob('luscinia/*/*.jpg')
+    if individual.is_file()
 ])
 
 # Get each individual's directory from the printouts

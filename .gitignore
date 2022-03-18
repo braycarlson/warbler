@@ -3,6 +3,7 @@ data/
 logs/
 notebook/.ipynb_checkpoints/
 notes/
+warbler.py/analyze/luscinia
 warbler.py/analyze/pdf
 warbler.py/analyze/printout
 warbler.py/analyze/printout_bw

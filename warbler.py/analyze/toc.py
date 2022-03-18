@@ -1,61 +1,23 @@
 import fitz
 import io
-import matplotlib
+import matplotlib.pyplot as plt
 import pandas as pd
 
-from natsort import os_sorted
-from path import ANALYZE, BASELINE, DATA, INDIVIDUALS, PRINTOUTS
+from dataclass.signal import Signal
+from parameters import Parameters
+from path import (
+    ANALYZE,
+    BASELINE,
+    DATA,
+    IMAGES,
+    SONGS
+)
 from spectrogram.axes import SpectrogramAxes
-from spectrogram.plot import create_luscinia_spectrogram
-
-
-def get():
-    pdf = [
-        file for file in ANALYZE.glob('pdf/*.pdf')
-        if file.is_file()
-    ]
-
-    for document in pdf[:1]:
-        handle = fitz.open(document)
-
-        for metadata in handle.get_toc():
-            level, filename, page = metadata
-            print(filename, page)
-
-
-def set():
-    spreadsheet = DATA.joinpath('2017.xlsx')
-
-    dataframe = pd.read_excel(
-        spreadsheet,
-        engine='openpyxl'
-    )
-
-    for index, (individual, printout) in enumerate(zip(INDIVIDUALS, PRINTOUTS), 0):
-        row = dataframe[dataframe.individual == individual.stem]
-
-        pdf = [
-            file for file in printout.glob('*.pdf')
-            if file.is_file() and 'Clean' in file.stem
-        ]
-
-        for document in pdf:
-            handle = fitz.open(document)
-            total = len(handle)
-
-            toc = []
-
-            for _, filename, page in zip(
-                range(0, total),
-                row.updated_filename.values,
-                row.printout_page_number.values
-            ):
-                item = [1, filename, int(page)]
-                toc.append(item)
-
-            handle.set_toc(toc)
-
-        handle.save(individual.stem + '.pdf')
+from spectrogram.plot import (
+    create_luscinia_spectrogram,
+    plot_segmentation
+)
+from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
 def main():
@@ -67,76 +29,198 @@ def main():
         engine='openpyxl'
     )
 
+    keys = dataframe.individual.unique()
+
+    individuals = dataframe.individual.values
     filenames = dataframe.updated_filename.values
     pages = dataframe.printout_page_number.values
 
-    images = [
-        file for file in ANALYZE.glob('printout/*/*/*.jpg')
-        if file.is_file()
-    ]
+    # Image box
+    width = 325
+    height = 100
+    offset = 40
+    expand = 325
 
-    images = os_sorted(images)
+    for key in keys:
+        document = fitz.open()
 
-    for index, (filename, page, image) in enumerate(zip(filenames, pages, images), 1):
-        if filename == image.stem:
-            continue
-        else:
-            print(filename)
+        toc = []
 
-    # for index, individual in enumerate(INDIVIDUALS, 0):
-    #     # row = dataframe[dataframe.individual == individual.stem]
+        for index, (individual, song, image, filename, page) in enumerate(zip(individuals, SONGS, IMAGES, filenames, pages), 1):
+            if key == individual and filename == song.stem == image.stem:
+                current = document.new_page(
+                    width=700,
+                    height=700
+                )
 
-    #     print(individual)
+                # Set mediabox
+                current.set_mediabox(
+                    fitz.Rect(
+                        0.0,
+                        0.0,
+                        700,
+                        750
+                    )
+                )
 
-        # for index, (filename, image) in enumerate(zip(dataframe.updated_filename.values, images), 0):
-        #     print(filename, image.stem)
-
-            # if filename == image.stem:
-            #     continue
-            #     # print(filename)
-            # else:
-            #     print('NOT THE SAME: ', filename)
-
-    # for document in pdf[:1]:
-    #     handle = fitz.open(document)
-
-    #     for metadata in handle.get_toc():
-    #         level, filename, page = metadata
-    #         print(filename, page)
+                # Title
+                current.insert_textbox(
+                    fitz.Rect(
+                        0.0,
+                        offset,
+                        700,
+                        100
+                    ),
+                    filename,
+                    fontname='Times-Roman',
+                    fontsize=24,
+                    align=1
+                )
 
 
+                # Luscinia
+                current.insert_textbox(
+                    fitz.Rect(
+                        10,
+                        210,
+                        680,
+                        750
+                    ) * current.rotation_matrix,
+                    'Luscinia',
+                    fontsize=10,
+                    align=0,
+                    rotate=270
+                )
+
+                current.insert_image(
+                    fitz.Rect(
+                        0,
+                        offset / 2,
+                        width + expand,
+                        height + expand
+                    ).normalize(),
+                    filename=image,
+                    keep_proportion=True
+                )
 
 
+                # Python: Filtered
+                parameters = Parameters(BASELINE)
+                create_luscinia_spectrogram(song, parameters)
+
+                stream = io.BytesIO()
+                plt.savefig(stream, format='png')
+
+                stream.seek(0)
+                plt.close()
+
+                current.insert_textbox(
+                    fitz.Rect(
+                        15,
+                        325,
+                        680,
+                        750
+                    ) * current.rotation_matrix,
+                    'Python: Filtered',
+                    fontsize=10,
+                    align=0,
+                    rotate=270
+                )
+
+                current.insert_image(
+                    fitz.Rect(
+                        11,
+                        height + offset,
+                        (width + expand) - 3.5,
+                        (height + offset) * 2 + expand
+                    ),
+                    stream=stream,
+                    keep_proportion=True
+                )
 
 
+                # Python: Segmented
+                signal = Signal(song)
 
+                signal.filter(
+                    parameters.butter_lowcut,
+                    parameters.butter_highcut
+                )
 
-    # width = 321.900390625
-    # height = 98.97236633300781
+                dts = dynamic_threshold_segmentation(
+                    signal.data,
+                    signal.rate,
+                    n_fft=parameters.n_fft,
+                    hop_length_ms=parameters.hop_length_ms,
+                    win_length_ms=parameters.win_length_ms,
+                    ref_level_db=parameters.ref_level_db,
+                    pre=parameters.preemphasis,
+                    min_level_db=parameters.min_level_db,
+                    silence_threshold=parameters.silence_threshold,
+                    min_syllable_length_s=parameters.min_syllable_length_s,
+                )
 
-    # # Set page size
-    # page_size = fitz.Rect(
-    #     0.0,
-    #     0.0,
-    #     375,
-    #     165
-    # )
+                try:
+                    dts.get('spec')
+                    dts.get('onsets')
+                    dts.get('offsets')
+                except Exception:
+                    print(filename)
+                    continue
 
-    # # Add text
-    # text_box = fitz.Rect(
-    #     0.0,
-    #     5.0,
-    #     375,
-    #     80
-    # )
+                plot_segmentation(signal, dts)
 
-    # # Add image
-    # image_box = fitz.Rect(
-    #     9.5,
-    #     8.0,
-    #     width - 2,
-    #     height
-    # )
+                plt.xticks(
+                    fontfamily='Arial',
+                    fontsize=14,
+                    fontweight=600
+                )
+
+                plt.yticks(
+                    fontfamily='Arial',
+                    fontsize=14,
+                    fontweight=600
+                )
+
+                stream = io.BytesIO()
+                plt.savefig(stream, format='png')
+
+                stream.seek(0)
+                plt.close()
+
+                current.insert_textbox(
+                    fitz.Rect(
+                        15,
+                        458,
+                        680,
+                        750
+                    ) * current.rotation_matrix,
+                    'Python: Segmented',
+                    fontsize=10,
+                    align=0,
+                    rotate=270
+                )
+
+                current.insert_image(
+                    fitz.Rect(
+                        11,
+                        (height + offset) * 2,
+                        (width + expand) - 3.5,
+                        (height + offset) * 3 + expand
+                    ),
+                    stream=stream,
+                    keep_proportion=True
+                )
+
+                # Table of Contents
+                item = [1, filename, int(page)]
+                toc.append(item)
+
+            document.set_toc(toc)
+
+        path = ANALYZE.joinpath('pdf', key + '.pdf')
+        document.save(path)
+        document.close()
 
 
 if __name__ == '__main__':

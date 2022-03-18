@@ -35,3 +35,23 @@ class Parameters(SimpleNamespace):
 
     def close(self):
         self.file.close()
+
+
+# class Parameters(SimpleNamespace):
+#     def __init__(self, file):
+#         self.file = file
+#         super().__init__(**self.file)
+
+#     def __reduce__(self):
+#         return (
+#             self.__class__,
+#             (self.file, )
+#         )
+
+#     def to_json(self):
+#         return json.dumps(
+#             self,
+#             default=lambda x: x.__dict__,
+#             sort_keys=False,
+#             indent=4
+#         )

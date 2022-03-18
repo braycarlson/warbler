@@ -1,15 +1,15 @@
 import json
 import matplotlib.colors as mcolors
-import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
 import pickle
 import PySimpleGUI as sg
 import string
 
 from dataclass.signal import Signal
-from dataclass.spectrogram import Spectrogram
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import MouseButton
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
@@ -22,13 +22,26 @@ from spectrogram.plot import (
 from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
-sg.theme('SystemDefaultForReal')
+sg.theme('LightGrey1')
 
 
 EXCLUDE = set()
 
 
-def on_click(event, patches):
+def draw(canvas, figure):
+    figcan = FigureCanvasTkAgg(figure, canvas)
+    figcan.draw()
+
+    figcan.get_tk_widget().pack(
+        side='top',
+        fill='x',
+        expand=0
+    )
+
+    return figcan
+
+
+def on_click(event, window, patches):
     if event.inaxes is None:
         return
 
@@ -43,8 +56,8 @@ def on_click(event, patches):
                 label = patch.get_label()
                 label = int(label)
 
-                blue = mcolors.to_rgba('dodgerblue', alpha=0.75)
-                red = mcolors.to_rgba('red', alpha=0.75)
+                blue = mcolors.to_rgba('#0079d3', alpha=0.75)
+                red = mcolors.to_rgba('#d1193e', alpha=0.75)
 
                 for collection in event.inaxes.collections:
                     paths = collection.get_paths()
@@ -70,6 +83,13 @@ def on_click(event, patches):
                     event.inaxes.lines[index].set_color(color)
                     event.inaxes.lines[index + 1].set_color(color)
 
+                    notes = ', '.join(
+                        [str(note) for note in sorted(EXCLUDE)]
+                    )
+
+                    window['exclude'].update(notes)
+                    window.refresh()
+
                 event.canvas.draw()
 
 
@@ -87,7 +107,7 @@ def to_digit(data):
     if translation:
         digit = [
             int(character)
-            for character in translation.split(' ')
+            for character in translation.strip().split(' ')
         ]
 
         digit = sorted(
@@ -149,9 +169,9 @@ def get_metadata(filename):
 
 def combobox():
     label_font = 'Arial 10 bold'
-    label_size = (20, 0)
+    label_size = (0, 0)
 
-    combobox_size = (45, 1)
+    combobox_size = (46, 1)
 
     file = PICKLE.joinpath('mediocre.pkl')
 
@@ -208,42 +228,66 @@ def button(name):
 
 
 def gui():
+    left = [
+        parameter('n_fft'),
+        parameter('hop_length_ms'),
+        parameter('win_length_ms'),
+        parameter('ref_level_db'),
+        parameter('preemphasis'),
+        parameter('min_level_db'),
+        parameter('min_level_db_floor'),
+        parameter('db_delta'),
+        parameter('silence_threshold'),
+        parameter('min_silence_for_spec'),
+        parameter('max_vocal_for_spec'),
+    ]
+
+    right = [
+        parameter('min_syllable_length_s'),
+        parameter('spectral_range', multi=True),
+        parameter('num_mel_bins'),
+        parameter('mel_lower_edge_hertz'),
+        parameter('mel_upper_edge_hertz'),
+        parameter('butter_lowcut'),
+        parameter('butter_highcut'),
+        parameter('bandpass_filter'),
+        parameter('reduce_noise'),
+        parameter('mask_spec'),
+        parameter('exclude')
+    ]
+
     return [
-        [sg.Frame('', border_width=0, layout=[
-            [sg.Frame('', border_width=0, layout=[
-                combobox(),
-                parameter('n_fft'),
-                parameter('hop_length_ms'),
-                parameter('win_length_ms'),
-                parameter('ref_level_db'),
-                parameter('preemphasis'),
-                parameter('min_level_db'),
-                parameter('min_level_db_floor'),
-                parameter('db_delta'),
-                parameter('silence_threshold'),
-                parameter('min_silence_for_spec'),
-                parameter('max_vocal_for_spec'),
-                parameter('min_syllable_length_s'),
-                parameter('spectral_range', multi=True),
-                parameter('num_mel_bins'),
-                parameter('mel_lower_edge_hertz'),
-                parameter('mel_upper_edge_hertz'),
-                parameter('butter_lowcut'),
-                parameter('butter_highcut'),
-                parameter('bandpass_filter'),
-                parameter('reduce_noise'),
-                parameter('mask_spec'),
-                parameter('exclude'),
-            ])],
-            [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
-                button('Generate') +
-                button('Reset') +
-                button('Parameters') +
-                button('Play') +
-                button('Save')
-            ])]
-        ])
-        ]]
+        combobox(),
+        [
+            sg.Canvas(
+                key='canvas',
+                size=(1600, 300),
+                pad=(0, (10, 30))
+            )
+        ],
+        [
+            sg.Column(
+                left,
+                justification='center',
+                element_justification='center',
+                vertical_alignment='center',
+            ),
+            sg.Column(
+                right,
+                justification='center',
+                element_justification='center',
+                vertical_alignment='center',
+            )
+        ],
+        [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
+            button('Generate') +
+            button('Reset') +
+            button('Parameters') +
+            button('Play') +
+            button('Copy') +
+            button('Save')
+        ])]
+    ]
 
 
 def main():
@@ -252,8 +296,15 @@ def main():
     window = sg.Window(
         'warbler.py',
         layout,
+        size=(1600, 750),
+        location=(100, 100),
+        element_justification='center',
+        keep_on_top=True,
         finalize=True
     )
+
+    widget = None
+    previous = None
 
     while True:
         event, data = window.read()
@@ -262,9 +313,17 @@ def main():
             break
 
         if event == 'file':
+            item = data['file']
             data['exclude'] = ''
-            element = data['file']
-            metadata = get_metadata(element)
+
+            if previous == item:
+                continue
+
+            if widget is not None:
+                widget.get_tk_widget().forget()
+                plt.clf()
+
+            metadata = get_metadata(item)
 
             filename = metadata.get('filename')
             parameter = metadata.get('parameter')
@@ -275,6 +334,7 @@ def main():
 
         if event == 'generate':
             filename = data['file']
+            previous = filename
 
             if filename == '':
                 sg.Popup(
@@ -429,61 +489,41 @@ def main():
                     keep_on_top=True
                 )
 
-                continue
+                return None
 
-            if not data['exclude']:
-                EXCLUDE.clear()
-            else:
-                EXCLUDE.update(to_digit(
-                        data['exclude']
-                    )
-                )
-
-            plt.figure(
-                figsize=(19, 9)
+            fig, ax = plt.subplots(
+                figsize=(18, 3),
+                subplot_kw={'projection': 'spectrogram'}
             )
 
-            gs = gridspec.GridSpec(2, 1)
-
-            spec = Spectrogram(signal, parameters)
-
-            gs.update(hspace=0.75)
-            ax0 = plt.subplot(gs[0], projection='spectrogram')
-            ax1 = plt.subplot(gs[1], projection='spectrogram')
-
-            ax0._title(song.stem + ': Filtered')
-            ax1._title(song.stem + ': Segmented')
+            fig.patch.set_facecolor('#ffffff')
+            ax.patch.set_facecolor('#ffffff')
 
             plot_spectrogram(
                 spectrogram,
-                ax=ax0,
+                ax=ax,
                 signal=signal,
                 cmap=plt.cm.Greys,
             )
 
-            plot_spectrogram(
-                spec.data,
-                ax=ax1,
-                signal=signal,
-                cmap=plt.cm.Greys,
-            )
-
-            ylmin, ylmax = ax1.get_ylim()
+            ylmin, ylmax = ax.get_ylim()
             ysize = (ylmax - ylmin) * 0.1
             ymin = ylmax - ysize
 
             patches = []
 
-            blue = mcolors.to_rgba('dodgerblue', alpha=0.75)
-            red = mcolors.to_rgba('red', alpha=0.75)
+            blue = mcolors.to_rgba('#0079d3', alpha=0.75)
+            red = mcolors.to_rgba('#d1193e', alpha=0.75)
+
+            exclude = to_digit(data['exclude'])
 
             for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
-                if index in EXCLUDE:
+                if index in exclude:
                     color = red
                 else:
                     color = blue
 
-                ax1.axvline(
+                ax.axvline(
                     onset,
                     color=color,
                     ls='dashed',
@@ -491,7 +531,7 @@ def main():
                     alpha=0.75
                 )
 
-                ax1.axvline(
+                ax.axvline(
                     offset,
                     color=color,
                     ls='dashed',
@@ -512,7 +552,7 @@ def main():
                 cx = rx + rectangle.get_width() / 2.0
                 cy = ry + rectangle.get_height() / 2.0
 
-                ax1.annotate(
+                ax.annotate(
                     index,
                     (cx, cy),
                     color='white',
@@ -530,24 +570,24 @@ def main():
                 match_original=True
             )
 
-            ax1.add_collection(collection)
+            ax.add_collection(collection)
 
-            plt.connect(
+            plt.tight_layout()
+
+            if widget is not None:
+                widget.get_tk_widget().forget()
+                plt.close('all')
+
+            widget = draw(window['canvas'].TKCanvas, fig)
+
+            fig.canvas.mpl_connect(
                 'button_press_event',
                 lambda event: on_click(
                     event,
+                    window,
                     patches
                 )
             )
-
-            plt.show()
-            plt.close()
-
-            notes = ', '.join(
-                [str(note) for note in sorted(EXCLUDE)]
-            )
-
-            window['exclude'].update(notes)
 
         if event == 'reset':
             data['exclude'] = ''
@@ -597,6 +637,12 @@ def main():
 
             os.startfile(song)
 
+        if event == 'copy':
+            filename = data['file']
+
+            df = pd.DataFrame([filename])
+            df.to_clipboard(index=False, header=False)
+
         if event == 'save':
             filename = data['file']
 
@@ -624,6 +670,7 @@ def main():
             data['spectral_range'] = spectral_range
 
             ignore = [
+                'canvas',
                 'exclude',
                 'file',
                 'spectral_range'
@@ -664,16 +711,11 @@ def main():
             })
 
             data.pop('file')
+            data.pop('canvas')
 
             with open(parameter, 'w+') as handle:
                 text = json.dumps(data, indent=4)
                 handle.write(text)
-
-            # sg.Popup(
-            #     'Saved',
-            #     title='Success',
-            #     keep_on_top=True
-            # )
 
     window.close()
 

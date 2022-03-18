@@ -42,6 +42,92 @@ def plot_spectrogram(spectrogram, **kwargs):
 
 def plot_segmentation(signal, dts):
     spectrogram = dts.get('spec')
+    onsets = dts.get('onsets')
+    offsets = dts.get('offsets')
+
+    fig, ax = plt.subplots(
+        constrained_layout=True,
+        figsize=(20, 4),
+        subplot_kw={'projection': 'luscinia'}
+    )
+
+    plt.xticks(
+        fontfamily='Arial',
+        fontsize=14,
+        fontweight=600
+    )
+
+    plt.yticks(
+        fontfamily='Arial',
+        fontsize=14,
+        fontweight=600
+    )
+
+    image = plot_spectrogram(
+        spectrogram,
+        ax=ax,
+        signal=signal,
+        cmap=plt.cm.Greys,
+    )
+
+    ylmin, ylmax = ax.get_ylim()
+    ysize = (ylmax - ylmin) * 0.1
+    ymin = ylmax - ysize
+
+    patches = []
+
+    for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+        ax.axvline(
+            onset,
+            color='dodgerblue',
+            ls='dashed',
+            lw=1,
+            alpha=0.75
+        )
+
+        ax.axvline(
+            offset,
+            color='dodgerblue',
+            ls='dashed',
+            lw=1,
+            alpha=0.75
+        )
+
+        rectangle = Rectangle(
+            xy=(onset, ymin),
+            width=offset - onset,
+            height=100,
+        )
+
+        rx, ry = rectangle.get_xy()
+        cx = rx + rectangle.get_width() / 2.0
+        cy = ry + rectangle.get_height() / 2.0
+
+        ax.annotate(
+            index,
+            (cx, cy),
+            color='white',
+            weight=600,
+            fontfamily='Arial',
+            fontsize=8,
+            ha='center',
+            va='center'
+        )
+
+        patches.append(rectangle)
+
+    collection = PatchCollection(
+        patches,
+        color='dodgerblue',
+        alpha=0.75
+    )
+
+    ax.add_collection(collection)
+    return image
+
+
+def plot_segmentation_with_vocal_envelope(signal, dts):
+    spectrogram = dts.get('spec')
     vocal_envelope = dts.get('vocal_envelope')
     onsets = dts.get('onsets')
     offsets = dts.get('offsets')
