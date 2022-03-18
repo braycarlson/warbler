@@ -1,4 +1,3 @@
-import json
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,36 +43,18 @@ def main():
     #         print(f, v, r)
     #         continue
 
-
-
     path = Path(
         DATA.joinpath('DbWY_STE2017/wav/STE03_DbWY2017.wav')
     )
 
-    with open(BASELINE, 'r') as handle:
-        file = json.load(handle)
-        parameters = Parameters(file)
-
-    print(parameters.n_fft)
-
-    parameters.n_fft = 1024
-    print(parameters)
-
-    print(parameters.n_fft)
-
-    print(parameters.to_json())
-
-    # parameters = Parameters(BASELINE)
-
-
-
-    # create_luscinia_spectrogram(path, parameters)
+    parameters = Parameters(BASELINE)
+    create_luscinia_spectrogram(path, parameters)
     # create_spectrogram(path, parameters)
 
-    # plt.show()
-    # plt.close()
+    plt.show()
+    plt.close()
 
-    # parameters.close()
+    parameters.close()
 
     # path = Path(
     #     DATA.joinpath('DgLLb_STE2017/wav/STE01_2_DgLLb2017.wav')

@@ -113,6 +113,14 @@ def create_metadata(individual):
             start = start.tolist()
             end = end.tolist()
 
+            if parameters.exclude:
+                # Remove the notes at the largest indices to preserve order
+                parameters.exclude.sort(reverse=True)
+
+                for index in parameters.exclude:
+                    del start[index]
+                    del end[index]
+
             bird['indvs'][name]['notes']['start_times'] = start
             bird['indvs'][name]['notes']['end_times'] = end
 

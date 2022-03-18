@@ -14,7 +14,7 @@ from matplotlib.backend_bases import MouseButton
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 from parameters import Parameters
-from path import PICKLE
+from path import BASELINE, PICKLE
 from spectrogram.axes import SpectrogramAxes
 from spectrogram.plot import (
     plot_spectrogram
@@ -218,12 +218,14 @@ def parameter(name, **kwargs):
         ]
 
 
-def button(name):
+def button(name, **kwargs):
     font = 'Arial 10'
-    size = (12, 0)
+    size = (14, 0)
+
+    key = kwargs.get('key')
 
     return [
-        sg.B(name, key=name.lower(), size=size, font=font),
+        sg.B(name, key=key, size=size, font=font),
     ]
 
 
@@ -280,12 +282,13 @@ def gui():
             )
         ],
         [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
-            button('Generate') +
-            button('Reset') +
-            button('Parameters') +
-            button('Play') +
-            button('Copy') +
-            button('Save')
+            button('Generate', key='generate') +
+            button('Reset to Custom', key='reset_custom') +
+            button('Reset to Baseline', key='reset_baseline') +
+            button('Parameters', key='parameters') +
+            button('Play', key='play') +
+            button('Copy', key='copy') +
+            button('Save', key='save')
         ])]
     ]
 
@@ -589,7 +592,7 @@ def main():
                 )
             )
 
-        if event == 'reset':
+        if event == 'reset_custom':
             data['exclude'] = ''
             item = data['file']
             metadata = get_metadata(item)
@@ -598,6 +601,13 @@ def main():
             parameter = metadata.get('parameter')
 
             with open(parameter, 'r') as handle:
+                file = json.load(handle)
+                load(window, file)
+
+        if event == 'reset_baseline':
+            data['exclude'] = ''
+
+            with open(BASELINE, 'r') as handle:
                 file = json.load(handle)
                 load(window, file)
 

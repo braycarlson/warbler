@@ -77,7 +77,6 @@ def main():
                     align=1
                 )
 
-
                 # Luscinia
                 current.insert_textbox(
                     fitz.Rect(
@@ -102,7 +101,6 @@ def main():
                     filename=image,
                     keep_proportion=True
                 )
-
 
                 # Python: Filtered
                 parameters = Parameters(BASELINE)
@@ -137,7 +135,6 @@ def main():
                     stream=stream,
                     keep_proportion=True
                 )
-
 
                 # Python: Segmented
                 signal = Signal(song)
