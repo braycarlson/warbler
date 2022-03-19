@@ -221,7 +221,7 @@ def combobox():
     label_font = 'Arial 10 bold'
     label_size = (0, 0)
 
-    combobox_size = (46, 1)
+    combobox_size = (60, 1)
 
     filenames = get_filenames()
 
@@ -314,7 +314,7 @@ def gui():
             sg.Canvas(
                 key='canvas',
                 size=(1600, 300),
-                pad=(0, (10, 30))
+                pad=(0, (10, 15))
             )
         ],
         [
@@ -323,17 +323,17 @@ def gui():
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
-                pad=(0, (0, 30))
+                pad=(0, (0, 25))
             ),
             sg.Column(
                 right,
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
-                pad=(0, (0, 30))
+                pad=(0, (0, 25))
             )
         ],
-        [sg.Frame('', border_width=0, pad=(None, (20, 30)), layout=[
+        [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
             button('Previous', key='previous') +
             button('Generate', key='generate', button_color='#d22245') +
             button('Next', key='next')
@@ -357,8 +357,8 @@ def main():
     window = sg.Window(
         'warbler.py',
         layout,
-        size=(1600, 900),
-        location=(100, 50),
+        size=(1600, 850),
+        location=(100, 75),
         element_justification='center',
         keep_on_top=False,
         finalize=True
