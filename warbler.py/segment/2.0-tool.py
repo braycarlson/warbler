@@ -152,13 +152,63 @@ def load(window, parameters):
         window['exclude'].update('')
 
 
-def get_metadata(filename):
-    metadata = {}
-
+def get_files():
     file = PICKLE.joinpath('mediocre.pkl')
 
     with open(file, 'rb') as handle:
         files = pickle.load(handle)
+
+    return files
+
+
+def get_filenames():
+    files = get_files()
+    return [file.get('filename') for file in files]
+
+
+def get_index(filename):
+    files = get_filenames()
+
+    try:
+        index = files.index(filename)
+    except ValueError:
+        return None
+    else:
+        return index
+
+
+def forward(filename):
+    filenames = get_filenames()
+    length = len(filenames)
+
+    index = get_index(filename)
+
+    if index == length - 1:
+        index = 0
+    else:
+        index = index + 1
+
+    return index
+
+
+def backward(filename):
+    filenames = get_filenames()
+    length = len(filenames)
+
+    index = get_index(filename)
+
+    if index == 0:
+        index = length - 1
+    else:
+        index = index - 1
+
+    return index
+
+
+def get_metadata(filename):
+    metadata = {}
+
+    files = get_files()
 
     for file in files:
         if file.get('filename') == filename:
@@ -173,15 +223,12 @@ def combobox():
 
     combobox_size = (46, 1)
 
-    file = PICKLE.joinpath('mediocre.pkl')
-
-    with open(file, 'rb') as handle:
-        files = pickle.load(handle)
+    filenames = get_filenames()
 
     return [
         sg.T('File', size=label_size, font=label_font),
         sg.Combo(
-            [file.get('filename') for file in files],
+            filenames,
             size=combobox_size,
             key='file',
             pad=((4, 0), 0),
@@ -220,12 +267,15 @@ def parameter(name, **kwargs):
 
 def button(name, **kwargs):
     font = 'Arial 10'
-    size = (14, 0)
-
-    key = kwargs.get('key')
+    size = (18, 1)
 
     return [
-        sg.B(name, key=key, size=size, font=font),
+        sg.B(
+            name,
+            size=size,
+            font=font,
+            **kwargs
+        )
     ]
 
 
@@ -273,19 +323,27 @@ def gui():
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
+                pad=(0, (0, 30))
             ),
             sg.Column(
                 right,
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
+                pad=(0, (0, 30))
             )
         ],
+        [sg.Frame('', border_width=0, pad=(None, (20, 30)), layout=[
+            button('Previous', key='previous') +
+            button('Generate', key='generate', button_color='#d22245') +
+            button('Next', key='next')
+        ])],
         [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
-            button('Generate', key='generate') +
-            button('Reset to Custom', key='reset_custom') +
-            button('Reset to Baseline', key='reset_baseline') +
             button('Parameters', key='parameters') +
+            button('Reset to Custom', key='reset_custom') +
+            button('Reset to Baseline', key='reset_baseline')
+        ])],
+        [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
             button('Play', key='play') +
             button('Copy', key='copy') +
             button('Save', key='save')
@@ -299,15 +357,14 @@ def main():
     window = sg.Window(
         'warbler.py',
         layout,
-        size=(1600, 750),
-        location=(100, 100),
+        size=(1600, 900),
+        location=(100, 50),
         element_justification='center',
-        keep_on_top=True,
+        keep_on_top=False,
         finalize=True
     )
 
     widget = None
-    previous = None
 
     while True:
         event, data = window.read()
@@ -316,16 +373,13 @@ def main():
             break
 
         if event == 'file':
-            item = data['file']
             data['exclude'] = ''
-
-            if previous == item:
-                continue
 
             if widget is not None:
                 widget.get_tk_widget().forget()
-                plt.clf()
+                plt.close('all')
 
+            item = data['file']
             metadata = get_metadata(item)
 
             filename = metadata.get('filename')
@@ -336,10 +390,9 @@ def main():
                 load(window, file)
 
         if event == 'generate':
-            filename = data['file']
-            previous = filename
+            item = data['file']
 
-            if filename == '':
+            if item == '':
                 sg.Popup(
                     'Please select a file',
                     keep_on_top=True
@@ -347,7 +400,7 @@ def main():
 
                 continue
 
-            metadata = get_metadata(filename)
+            metadata = get_metadata(item)
             song = metadata.get('song')
             parameter = metadata.get('parameter')
 
@@ -593,8 +646,17 @@ def main():
             )
 
         if event == 'reset_custom':
-            data['exclude'] = ''
             item = data['file']
+
+            if item == '':
+                sg.Popup(
+                    'Please select a file',
+                    keep_on_top=True
+                )
+
+                continue
+
+            data['exclude'] = ''
             metadata = get_metadata(item)
 
             filename = metadata.get('filename')
@@ -605,6 +667,16 @@ def main():
                 load(window, file)
 
         if event == 'reset_baseline':
+            item = data['file']
+
+            if item == '':
+                sg.Popup(
+                    'Please select a file',
+                    keep_on_top=True
+                )
+
+                continue
+
             data['exclude'] = ''
 
             with open(BASELINE, 'r') as handle:
@@ -629,6 +701,54 @@ def main():
 
             os.startfile(parameter)
 
+        if event == 'next':
+            item = data['file']
+
+            if item == '':
+                index = 0
+            else:
+                index = forward(item)
+
+            window['file'].update(
+                set_to_index=index,
+            )
+
+            filenames = get_filenames()
+
+            item = filenames[index]
+            metadata = get_metadata(item)
+
+            filename = metadata.get('filename')
+            parameter = metadata.get('parameter')
+
+            with open(parameter, 'r') as handle:
+                file = json.load(handle)
+                load(window, file)
+
+        if event == 'previous':
+            item = data['file']
+
+            if item == '':
+                index = 0
+            else:
+                index = backward(item)
+
+            window['file'].update(
+                set_to_index=index,
+            )
+
+            filenames = get_filenames()
+
+            item = filenames[index]
+            metadata = get_metadata(item)
+
+            filename = metadata.get('filename')
+            parameter = metadata.get('parameter')
+
+            with open(parameter, 'r') as handle:
+                file = json.load(handle)
+                load(window, file)
+
         if event == 'play':
             item = data['file']
 
@@ -648,15 +768,9 @@ def main():
             os.startfile(song)
 
         if event == 'copy':
-            filename = data['file']
+            item = data['file']
 
-            df = pd.DataFrame([filename])
-            df.to_clipboard(index=False, header=False)
-
-        if event == 'save':
-            filename = data['file']
-
-            if filename == '':
+            if item == '':
                 sg.Popup(
                     'Please select a file',
                     keep_on_top=True
@@ -664,7 +778,21 @@ def main():
 
                 continue
 
-            metadata = get_metadata(filename)
+            df = pd.DataFrame([item])
+            df.to_clipboard(index=False, header=False)
+
+        if event == 'save':
+            item = data['file']
+
+            if item == '':
+                sg.Popup(
+                    'Please select a file',
+                    keep_on_top=True
+                )
+
+                continue
+
+            metadata = get_metadata(item)
             parameter = metadata.get('parameter')
 
             low = data.get('spectral_range_low')
