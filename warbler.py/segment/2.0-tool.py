@@ -217,6 +217,168 @@ def get_metadata(filename):
     return metadata
 
 
+def plot(window, data):
+    metadata = get_metadata(data['file'])
+    song = metadata.get('song')
+    parameter = metadata.get('parameter')
+
+    parameters = Parameters(parameter)
+
+    parameters.n_fft = int(data['n_fft'])
+    parameters.hop_length_ms = int(data['hop_length_ms'])
+    parameters.win_length_ms = int(data['win_length_ms'])
+    parameters.ref_level_db = int(data['ref_level_db'])
+    parameters.preemphasis = float(data['preemphasis'])
+    parameters.min_level_db = int(data['min_level_db'])
+    parameters.min_level_db = int(data['min_level_db'])
+    parameters.min_level_db_floor = int(data['min_level_db_floor'])
+    parameters.db_delta = int(data['db_delta'])
+    parameters.silence_threshold = float(data['silence_threshold'])
+    parameters.min_silence_for_spec = float(data['min_silence_for_spec'])
+    parameters.max_vocal_for_spec = float(data['max_vocal_for_spec'])
+    parameters.min_syllable_length_s = float(data['min_syllable_length_s'])
+    parameters.spectral_range = [
+        int(data['spectral_range_low']),
+        int(data['spectral_range_high'])
+    ]
+    parameters.num_mel_bins = int(data['num_mel_bins'])
+    parameters.mel_lower_edge_hertz = int(data['mel_lower_edge_hertz'])
+    parameters.mel_upper_edge_hertz = int(data['mel_upper_edge_hertz'])
+    parameters.butter_lowcut = int(data['butter_lowcut'])
+    parameters.butter_highcut = int(data['butter_highcut'])
+    parameters.bandpass_filter = bool(data['bandpass_filter'])
+    parameters.reduce_noise = bool(data['reduce_noise'])
+    parameters.mask_spec = bool(data['mask_spec'])
+
+    signal = Signal(song)
+
+    signal.filter(
+        parameters.butter_lowcut,
+        parameters.butter_highcut
+    )
+
+    dts = dynamic_threshold_segmentation(
+        signal.data,
+        signal.rate,
+        n_fft=parameters.n_fft,
+        hop_length_ms=parameters.hop_length_ms,
+        win_length_ms=parameters.win_length_ms,
+        ref_level_db=parameters.ref_level_db,
+        pre=parameters.preemphasis,
+        min_level_db=parameters.min_level_db,
+        silence_threshold=parameters.silence_threshold,
+        # spectral_range=parameters.spectral_range,
+        min_syllable_length_s=parameters.min_syllable_length_s,
+    )
+
+    try:
+        spectrogram = dts.get('spec')
+        onsets = dts.get('onsets')
+        offsets = dts.get('offsets')
+    except AttributeError:
+        sg.Popup(
+            'Please adjust the parameter(s)',
+            title='Error',
+            keep_on_top=True
+        )
+
+        return None
+
+    fig, ax = plt.subplots(
+        figsize=(18, 3),
+        subplot_kw={'projection': 'spectrogram'}
+    )
+
+    fig.patch.set_facecolor('#ffffff')
+    ax.patch.set_facecolor('#ffffff')
+
+    plot_spectrogram(
+        spectrogram,
+        ax=ax,
+        signal=signal,
+        cmap=plt.cm.Greys,
+    )
+
+    ylmin, ylmax = ax.get_ylim()
+    ysize = (ylmax - ylmin) * 0.1
+    ymin = ylmax - ysize
+
+    patches = []
+
+    blue = mcolors.to_rgba('#0079d3', alpha=0.75)
+    red = mcolors.to_rgba('#d1193e', alpha=0.75)
+
+    exclude = to_digit(data['exclude'])
+
+    for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+        if index in exclude:
+            color = red
+        else:
+            color = blue
+
+        ax.axvline(
+            onset,
+            color=color,
+            ls='dashed',
+            lw=1,
+            alpha=0.75
+        )
+
+        ax.axvline(
+            offset,
+            color=color,
+            ls='dashed',
+            lw=1,
+            alpha=0.75
+        )
+
+        rectangle = Rectangle(
+            xy=(onset, ymin),
+            width=offset - onset,
+            height=1000,
+            alpha=0.75,
+            color=color,
+            label=str(index)
+        )
+
+        rx, ry = rectangle.get_xy()
+        cx = rx + rectangle.get_width() / 2.0
+        cy = ry + rectangle.get_height() / 2.0
+
+        ax.annotate(
+            index,
+            (cx, cy),
+            color='white',
+            weight=600,
+            fontfamily='Arial',
+            fontsize=8,
+            ha='center',
+            va='center'
+        )
+
+        patches.append(rectangle)
+
+    collection = PatchCollection(
+        patches,
+        match_original=True
+    )
+
+    ax.add_collection(collection)
+
+    plt.tight_layout()
+
+    fig.canvas.mpl_connect(
+        'button_press_event',
+        lambda event: on_click(
+            event,
+            window,
+            patches
+        )
+    )
+
+    return fig
+
+
 def combobox():
     label_font = 'Arial 10 bold'
     label_size = (0, 0)
@@ -400,251 +562,16 @@ def main():
 
                 continue
 
-            metadata = get_metadata(item)
-            song = metadata.get('song')
-            parameter = metadata.get('parameter')
+            fig = plot(window, data)
 
-            parameters = Parameters(parameter)
-
-            parameters.update(
-                'n_fft',
-                int(data['n_fft'])
-            )
-
-            parameters.update(
-                'hop_length_ms',
-                int(data['hop_length_ms'])
-            )
-
-            parameters.update(
-                'win_length_ms',
-                int(data['win_length_ms'])
-            )
-
-            parameters.update(
-                'ref_level_db',
-                int(data['ref_level_db'])
-            )
-
-            parameters.update(
-                'preemphasis',
-                float(data['preemphasis'])
-            )
-
-            parameters.update(
-                'min_level_db',
-                int(data['min_level_db'])
-            )
-
-            parameters.update(
-                'min_level_db_floor',
-                int(data['min_level_db_floor'])
-            )
-
-            parameters.update(
-                'db_delta',
-                int(data['db_delta'])
-            )
-
-            parameters.update(
-                'silence_threshold',
-                float(data['silence_threshold'])
-            )
-
-            parameters.update(
-                'min_silence_for_spec',
-                float(data['min_silence_for_spec'])
-            )
-
-            parameters.update(
-                'max_vocal_for_spec',
-                float(data['max_vocal_for_spec'])
-            )
-
-            parameters.update(
-                'min_syllable_length_s',
-                float(data['min_syllable_length_s'])
-            )
-
-            parameters.update(
-                'spectral_range',
-                [
-                    int(data['spectral_range_low']),
-                    int(data['spectral_range_high'])
-                ]
-            )
-
-            parameters.update(
-                'num_mel_bins',
-                int(data['num_mel_bins'])
-            )
-
-            parameters.update(
-                'mel_lower_edge_hertz',
-                int(data['mel_lower_edge_hertz'])
-            )
-
-            parameters.update(
-                'mel_upper_edge_hertz',
-                int(data['mel_upper_edge_hertz'])
-            )
-
-            parameters.update(
-                'butter_lowcut',
-                int(data['butter_lowcut'])
-            )
-
-            parameters.update(
-                'butter_highcut',
-                int(data['butter_highcut'])
-            )
-
-            parameters.update(
-                'bandpass_filter',
-                bool(data['bandpass_filter'])
-            )
-
-            parameters.update(
-                'reduce_noise',
-                bool(data['reduce_noise'])
-            )
-
-            parameters.update(
-                'mask_spec',
-                bool(data['mask_spec'])
-            )
-
-            signal = Signal(song)
-
-            signal.filter(
-                parameters.butter_lowcut,
-                parameters.butter_highcut
-            )
-
-            dts = dynamic_threshold_segmentation(
-                signal.data,
-                signal.rate,
-                n_fft=parameters.n_fft,
-                hop_length_ms=parameters.hop_length_ms,
-                win_length_ms=parameters.win_length_ms,
-                ref_level_db=parameters.ref_level_db,
-                pre=parameters.preemphasis,
-                min_level_db=parameters.min_level_db,
-                silence_threshold=parameters.silence_threshold,
-                # spectral_range=parameters.spectral_range,
-                min_syllable_length_s=parameters.min_syllable_length_s,
-            )
-
-            try:
-                spectrogram = dts.get('spec')
-                onsets = dts.get('onsets')
-                offsets = dts.get('offsets')
-            except AttributeError:
-                sg.Popup(
-                    'Please adjust the parameter(s)',
-                    title='Error',
-                    keep_on_top=True
-                )
-
+            if fig is None:
                 continue
-
-            fig, ax = plt.subplots(
-                figsize=(18, 3),
-                subplot_kw={'projection': 'spectrogram'}
-            )
-
-            fig.patch.set_facecolor('#ffffff')
-            ax.patch.set_facecolor('#ffffff')
-
-            plot_spectrogram(
-                spectrogram,
-                ax=ax,
-                signal=signal,
-                cmap=plt.cm.Greys,
-            )
-
-            ylmin, ylmax = ax.get_ylim()
-            ysize = (ylmax - ylmin) * 0.1
-            ymin = ylmax - ysize
-
-            patches = []
-
-            blue = mcolors.to_rgba('#0079d3', alpha=0.75)
-            red = mcolors.to_rgba('#d1193e', alpha=0.75)
-
-            exclude = to_digit(data['exclude'])
-
-            for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
-                if index in exclude:
-                    color = red
-                else:
-                    color = blue
-
-                ax.axvline(
-                    onset,
-                    color=color,
-                    ls='dashed',
-                    lw=1,
-                    alpha=0.75
-                )
-
-                ax.axvline(
-                    offset,
-                    color=color,
-                    ls='dashed',
-                    lw=1,
-                    alpha=0.75
-                )
-
-                rectangle = Rectangle(
-                    xy=(onset, ymin),
-                    width=offset - onset,
-                    height=1000,
-                    alpha=0.75,
-                    color=color,
-                    label=str(index)
-                )
-
-                rx, ry = rectangle.get_xy()
-                cx = rx + rectangle.get_width() / 2.0
-                cy = ry + rectangle.get_height() / 2.0
-
-                ax.annotate(
-                    index,
-                    (cx, cy),
-                    color='white',
-                    weight=600,
-                    fontfamily='Arial',
-                    fontsize=8,
-                    ha='center',
-                    va='center'
-                )
-
-                patches.append(rectangle)
-
-            collection = PatchCollection(
-                patches,
-                match_original=True
-            )
-
-            ax.add_collection(collection)
-
-            plt.tight_layout()
 
             if widget is not None:
                 widget.get_tk_widget().forget()
                 plt.close('all')
 
             widget = draw(window['canvas'].TKCanvas, fig)
-
-            fig.canvas.mpl_connect(
-                'button_press_event',
-                lambda event: on_click(
-                    event,
-                    window,
-                    patches
-                )
-            )
 
         if event == 'reset_custom':
             item = data['file']
