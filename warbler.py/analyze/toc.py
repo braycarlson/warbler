@@ -48,6 +48,8 @@ def main():
 
         for index, (individual, song, image, filename, page) in enumerate(zip(individuals, SONGS, IMAGES, filenames, pages), 1):
             if key == individual and filename == song.stem == image.stem:
+                print(f"Processing: {filename}")
+
                 current = document.new_page(
                     width=700,
                     height=700
@@ -162,7 +164,7 @@ def main():
                     dts.get('onsets')
                     dts.get('offsets')
                 except Exception:
-                    print(filename)
+                    print(f"Unable to process: {filename}")
                     continue
 
                 plot_segmentation(signal, dts)

@@ -69,7 +69,7 @@ class SpectrogramAxes(Axes):
     def _y_major_tick(self):
         self.yaxis.set_major_formatter(
             ticker.FuncFormatter(
-                lambda y, pos: '{0:g}'.format(y / 1e2)
+                lambda y, pos: '{0:g}'.format(y / 1e3)
             )
         )
 
@@ -86,8 +86,8 @@ class SpectrogramAxes(Axes):
     def _x_lim(self, maximum=5):
         self.set_xlim(0, maximum)
 
-    def _y_lim(self):
-        self.set_ylim(0, 1000)
+    def _y_lim(self, maximum=10000):
+        self.set_ylim(0, maximum)
 
     def _x_step(self, maximum=5):
         self.xaxis.set_ticks(
@@ -96,7 +96,7 @@ class SpectrogramAxes(Axes):
 
     def _y_step(self):
         self.yaxis.set_ticks(
-            [0, 500, 1000]
+            [0, 5000, 10000]
         )
 
     def _x_position(self):

@@ -46,6 +46,28 @@ PICKLE = SEGMENT.joinpath('pickle')
 # The directory for generated spectrograms to be inspected
 SPECTROGRAM = SEGMENT.joinpath('spectrogram')
 
+# A set of filenames to ignore in further processing
+IGNORE = set()
+
+bad = PICKLE.joinpath('bad.pkl')
+
+if bad.exists():
+    with open(bad, 'rb') as handle:
+        ignore = pickle.load(handle)
+
+        for file in ignore:
+            file = file.get('filename')
+            IGNORE.add(file)
+
+error = PICKLE.joinpath('error.pkl')
+
+if error.exists():
+    with open(error, 'rb') as handle:
+        ignore = pickle.load(handle)
+
+        for file in ignore:
+            IGNORE.add(file)
+
 # Get each individual's directory from the original dataset
 DIRECTORIES = os_sorted([
     directory
@@ -104,24 +126,3 @@ PRINTOUTS = os_sorted([
     for individual in PRINTOUT.glob('*/')
     if individual.is_dir()
 ])
-
-IGNORE = set()
-
-bad = PICKLE.joinpath('bad.pkl')
-
-if bad.exists():
-    with open(bad, 'rb') as handle:
-        ignore = pickle.load(handle)
-
-        for file in ignore:
-            file = file.get('filename')
-            IGNORE.add(file)
-
-error = PICKLE.joinpath('error.pkl')
-
-if error.exists():
-    with open(error, 'rb') as handle:
-        ignore = pickle.load(handle)
-
-        for file in ignore:
-            IGNORE.add(file)

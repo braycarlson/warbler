@@ -5,8 +5,6 @@ notebook/.ipynb_checkpoints/
 notes/
 warbler.py/analyze/luscinia
 warbler.py/analyze/pdf
-warbler.py/analyze/printout
-warbler.py/analyze/printout_bw
 warbler.py/cluster/carlson
 warbler.py/cluster/sainburg
 warbler.py/cluster/working
@@ -22,6 +20,7 @@ ui/
 *.xlsx
 *.zip
 notes.txt
+test.py
 
 
 # Byte-compiled / optimized / DLL files

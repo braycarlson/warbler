@@ -137,14 +137,14 @@ spectrograms = df.apply(
     axis=1
 )
 
-df['spectrograms'] = spectrograms
+df['spectrogram'] = spectrograms
 
 # Removing NA rows
 
 nrows = df.shape[0]
 
 df.dropna(
-    subset=['spectrograms'],
+    subset=['spectrogram'],
     inplace=True
 )
 
@@ -160,14 +160,14 @@ random_indices = [
 ]
 
 if parameters.plot_examples:
-    plot_examples(df, random_indices, 'spectrograms')
+    plot_examples(df, random_indices, 'spectrogram')
 
 if parameters.median_subtracted:
     df['denoised_spectrograms'] = [
         spectrogram - np.median(
             spectrogram,
             axis=0)
-        for spectrogram in df['spectrograms']
+        for spectrogram in df['spectrogram']
     ]
 
 if parameters.median_subtracted and parameters.plot_examples:
@@ -194,7 +194,7 @@ if parameters.bandpass_filter:
     )
 
     # create spectrograms from filtered audio
-    df['filtered_spectrograms'] = df.apply(
+    df['filtered_spectrogram'] = df.apply(
         lambda row:
         generate_mel_spectrogram(
             data=row['filtered_audio'],
@@ -213,7 +213,7 @@ if parameters.bandpass_filter and parameters.plot_examples:
     plot_examples(
         df,
         random_indices,
-        'filtered_spectrograms'
+        'filtered_spectrogram'
     )
 
 if parameters.stretch:
@@ -243,17 +243,17 @@ if parameters.stretch and parameters.plot_examples:
         'stretched_spectrograms'
     )
 
-if 'filtered_spectrograms' in df.columns:
-    df['denoised_filtered_spectrograms'] = [
+if 'filtered_spectrogram' in df.columns:
+    df['denoised_filtered_spectrogram'] = [
         spectrogram - np.median(spectrogram, axis=0)
-        for spectrogram in df['filtered_spectrograms']
+        for spectrogram in df['filtered_spectrogram']
     ]
 
     if parameters.plot_examples:
         plot_examples(
             df,
             random_indices,
-            'denoised_filtered_spectrograms'
+            'denoised_filtered_spectrogram'
         )
 
 

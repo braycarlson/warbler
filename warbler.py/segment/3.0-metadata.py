@@ -33,7 +33,7 @@ def get_notes(signal, parameters):
         pre=parameters.preemphasis,
         min_level_db=parameters.min_level_db,
         silence_threshold=parameters.silence_threshold,
-        spectral_range=parameters.spectral_range,
+        # spectral_range=parameters.spectral_range,
         min_syllable_length_s=parameters.min_syllable_length_s
     )
 
@@ -71,6 +71,8 @@ def create_metadata(individual):
 
     for i, (w, p, m) in enumerate(zip(wav, parameter, metadata), 1):
         if w.stem == p.stem == m.stem:
+            print(f"Processing: {w.stem}")
+
             signal = Signal(w)
             parameters = Parameters(p)
 
@@ -118,8 +120,11 @@ def create_metadata(individual):
                 parameters.exclude.sort(reverse=True)
 
                 for index in parameters.exclude:
-                    del start[index]
-                    del end[index]
+                    try:
+                        del start[index]
+                        del end[index]
+                    except Exception:
+                        print('Unable to remove note.')
 
             bird['indvs'][name]['notes']['start_times'] = start
             bird['indvs'][name]['notes']['end_times'] = end
@@ -153,9 +158,9 @@ def main():
         pool.close()
         pool.join()
 
-    errors = []
-
     with Pool(processes=processes, maxtasksperchild=maxtasksperchild) as pool:
+        errors = []
+
         for task in tasks:
             error = task.get(10)
             errors.extend(error)
@@ -163,9 +168,9 @@ def main():
         pool.close()
         pool.join()
 
-    handle = open(PICKLE.joinpath('error.pkl'), 'wb')
-    pickle.dump(errors, handle)
-    handle.close()
+        handle = open(PICKLE.joinpath('error.pkl'), 'wb')
+        pickle.dump(errors, handle)
+        handle.close()
 
 
 if __name__ == '__main__':

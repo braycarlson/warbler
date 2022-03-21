@@ -18,6 +18,10 @@ df = pd.read_pickle(
     PICKLE.joinpath('aw.pkl')
 )
 
+# df = pd.read_pickle(
+#     DATA.joinpath('df.pkl')
+# )
+
 specs = df[dataframe.input_column]
 specs = [calc_zscore(s) for s in specs]
 

@@ -15,7 +15,7 @@ def plot_spectrogram(spectrogram, **kwargs):
     x_minimum = 0
     x_maximum = signal.duration
     y_minimum = 0
-    y_maximum = np.shape(spectrogram)[0]
+    y_maximum = signal.rate / 2
 
     extent = [
         x_minimum,
@@ -34,8 +34,8 @@ def plot_spectrogram(spectrogram, **kwargs):
     )
 
     ax.initialize()
-    ax._x_lim(signal.duration)
-    ax._x_step(signal.duration)
+    ax._x_lim(x_maximum)
+    ax._x_step(x_maximum)
 
     return image
 
@@ -96,7 +96,7 @@ def plot_segmentation(signal, dts):
         rectangle = Rectangle(
             xy=(onset, ymin),
             width=offset - onset,
-            height=100,
+            height=1000,
         )
 
         rx, ry = rectangle.get_xy()
@@ -185,7 +185,7 @@ def plot_segmentation_with_vocal_envelope(signal, dts):
         rectangle = Rectangle(
             xy=(onset, ymin),
             width=offset - onset,
-            height=100,
+            height=1000,
         )
 
         rx, ry = rectangle.get_xy()

@@ -323,14 +323,14 @@ def gui():
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
-                pad=(0, (0, 25))
+                pad=(20, (0, 20))
             ),
             sg.Column(
                 right,
                 justification='center',
                 element_justification='center',
                 vertical_alignment='center',
-                pad=(0, (0, 25))
+                pad=(20, (0, 20))
             )
         ],
         [sg.Frame('', border_width=0, pad=(None, (20, 0)), layout=[
@@ -531,6 +531,7 @@ def main():
                 pre=parameters.preemphasis,
                 min_level_db=parameters.min_level_db,
                 silence_threshold=parameters.silence_threshold,
+                # spectral_range=parameters.spectral_range,
                 min_syllable_length_s=parameters.min_syllable_length_s,
             )
 
@@ -545,7 +546,7 @@ def main():
                     keep_on_top=True
                 )
 
-                return None
+                continue
 
             fig, ax = plt.subplots(
                 figsize=(18, 3),
@@ -598,7 +599,7 @@ def main():
                 rectangle = Rectangle(
                     xy=(onset, ymin),
                     width=offset - onset,
-                    height=100,
+                    height=1000,
                     alpha=0.75,
                     color=color,
                     label=str(index)

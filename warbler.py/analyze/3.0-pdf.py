@@ -20,8 +20,7 @@ def process(data):
     path = individual.joinpath('wav', filename)
 
     if not path.is_file():
-        print(path)
-        raise
+        raise Exception(path)
 
     template = {
         'filename': filename,

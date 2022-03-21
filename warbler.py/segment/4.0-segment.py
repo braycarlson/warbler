@@ -27,7 +27,7 @@ with Parallel(n_jobs=-1, verbose=1) as parallel:
     syllable_dfs = parallel(
         delayed(create_label_df)(
             dataset.datafiles[key].data,
-            labels_to_retain=['labels', 'filename'],
+            labels_to_retain=['labels'],
             unit='notes',
             dict_features_to_retain=[],
             key=key,
@@ -62,56 +62,56 @@ syllable_df['audio'] = [
     librosa.util.normalize(i) for i in syllable_df.audio.values
 ]
 
-region = {
-    k: v for k, v in syllable_df.groupby('filename')
-}
+# region = {
+#     k: v for k, v in syllable_df.groupby('filename')
+# }
 
-for filename in region.keys():
-    ic = region[filename].index
-    bc = region[filename].get('indv')
-    ac = region[filename].get('audio').tolist()
-    rc = region[filename].get('rate')
+# for filename in region.keys():
+#     ic = region[filename].index
+#     bc = region[filename].get('indv')
+#     ac = region[filename].get('audio').tolist()
+#     rc = region[filename].get('rate')
 
-    notes = []
-    sequences = []
-    positions = []
+#     notes = []
+#     sequences = []
+#     positions = []
 
-    for index, bird, audio, rate in zip(ic, bc, ac, rc):
-        rate = int(rate)
+#     for index, bird, audio, rate in zip(ic, bc, ac, rc):
+#         rate = int(rate)
 
-        directory = DATA.joinpath(bird, 'notes')
+#         directory = DATA.joinpath(bird, 'notes')
 
-        path = directory.joinpath(
-            filename + '_' + str(index).zfill(2) + '.wav'
-        )
+#         path = directory.joinpath(
+#             filename + '_' + str(index).zfill(2) + '.wav'
+#         )
 
-        wavfile.write(
-            path,
-            rate,
-            audio
-        )
+#         wavfile.write(
+#             path,
+#             rate,
+#             audio
+#         )
 
-        path = path.as_posix()
-        notes.append(path)
+#         path = path.as_posix()
+#         notes.append(path)
 
-    directory = DATA.joinpath(bc[0], 'json')
-    path = directory.joinpath(filename + '.json')
+#     directory = DATA.joinpath(bc[0], 'json')
+#     path = directory.joinpath(filename + '.json')
 
-    with open(path, 'r') as file:
-        try:
-            data = json.load(file)
-        except json.decoder.JSONDecodeError:
-            print(f"Unable to open: {path}")
-            continue
+#     with open(path, 'r') as file:
+#         try:
+#             data = json.load(file)
+#         except json.decoder.JSONDecodeError:
+#             print(f"Unable to open: {path}")
+#             continue
 
-        template = data.get('indvs').get(bc[0]).get('notes')
-        template['files'] = notes
-        template['sequence'] = sequences
-        template['position'] = positions
+#         template = data.get('indvs').get(bc[0]).get('notes')
+#         template['files'] = notes
+#         template['sequence'] = sequences
+#         template['position'] = positions
 
-    with open(path, 'w+') as file:
-        text = json.dumps(data, indent=2)
-        file.write(text)
+#     with open(path, 'w+') as file:
+#         text = json.dumps(data, indent=2)
+#         file.write(text)
 
 
 # Plot some example audio
@@ -214,6 +214,29 @@ syllables_spec = [
 ]
 
 syllable_df['spectrogram'] = syllables_spec
+
+
+# # Show individual's syllable spectrograms
+# for indv in np.sort(syllable_df.indv.unique()):
+#     print(indv, np.sum(syllable_df.indv == indv))
+
+#     specs = np.array(
+#         [
+#             i/np.max(i)
+#             for i in syllable_df[syllable_df.indv == indv].spectrogram.values
+#         ]
+#     )
+
+#     specs[specs < 0] = 0
+
+#     draw_spec_set(
+#         specs,
+#         zoom=2,
+#         maxrows=16,
+#         colsize=25
+#     )
+
+#     plt.show()
 
 syllable_df.to_pickle(
     PICKLE.joinpath('aw.pkl')
