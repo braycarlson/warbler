@@ -2,7 +2,7 @@
 input/
 logs/
 notebook/.ipynb_checkpoints/
-output/
+output/pdf
 warbler.py/script/
 warbler.py/warbler.py.egg-info/
 
