@@ -1,54 +1,37 @@
-from functools import wraps
-from path import (
+from constant import (
+    DATASET,
     DIRECTORIES,
     LOGS,
-    DATA,
-    INDIVIDUALS,
-    NOTES,
-    PICKLE,
-    PRINTOUT,
-    SPECTROGRAM,
+    INPUT,
+    OUTPUT,
+    PDF,
+    PICKLE
 )
+from functools import wraps
 
 
 def bootstrap(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # Data
+        INPUT.mkdir(parents=True, exist_ok=True)
+        OUTPUT.mkdir(parents=True, exist_ok=True)
+
+        DATASET.mkdir(parents=True, exist_ok=True)
         LOGS.mkdir(parents=True, exist_ok=True)
-        DATA.mkdir(parents=True, exist_ok=True)
-        NOTES.mkdir(parents=True, exist_ok=True)
-
-        # Analyze
-        PRINTOUT.mkdir(parents=True, exist_ok=True)
-
-        # Segment
+        PDF.mkdir(parents=True, exist_ok=True)
         PICKLE.mkdir(parents=True, exist_ok=True)
 
-        SPECTROGRAM.mkdir(parents=True, exist_ok=True)
-        SPECTROGRAM.joinpath('good').mkdir(parents=True, exist_ok=True)
-        SPECTROGRAM.joinpath('mediocre').mkdir(parents=True, exist_ok=True)
-        SPECTROGRAM.joinpath('bad').mkdir(parents=True, exist_ok=True)
-
         for directory in DIRECTORIES:
-            (
-                DATA
-                .joinpath(directory.stem)
-                .mkdir(parents=True, exist_ok=True)
-            )
+            individual = DATASET.joinpath(directory.stem)
+            individual.mkdir(parents=True, exist_ok=True)
 
-        for individual in INDIVIDUALS:
-            # Create a folder to save converted .wav files
-            individual.joinpath('wav').mkdir(parents=True, exist_ok=True)
+            metadata = individual.joinpath('metadata')
+            recordings = individual.joinpath('recordings')
+            segmentation = individual.joinpath('segmentation')
 
-            # Create a folder to save metadata
-            individual.joinpath('json').mkdir(parents=True, exist_ok=True)
-
-            # Create a folder to save baseline/custom parameters
-            individual.joinpath('parameter').mkdir(parents=True, exist_ok=True)
-
-            # Create a folder to save segmented notes
-            individual.joinpath('notes').mkdir(parents=True, exist_ok=True)
+            metadata.mkdir(parents=True, exist_ok=True)
+            recordings.mkdir(parents=True, exist_ok=True)
+            segmentation.mkdir(parents=True, exist_ok=True)
 
         return func
 

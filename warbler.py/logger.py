@@ -1,7 +1,7 @@
 import logging
 
+from constant import LOGS
 from contextlib import contextmanager
-from path import LOGS
 
 
 @contextmanager

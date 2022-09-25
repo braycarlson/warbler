@@ -1,0 +1,10 @@
+{
+    "size": 512,
+    "shift": 128,
+    "channels": 2,
+    "sampling_rate": 44100,
+    "delay": 1,
+    "iterations": 50,
+    "taps": 10,
+    "alpha": 0.9999
+}

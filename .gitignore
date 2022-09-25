@@ -1,26 +1,15 @@
 # warbler.py
-data/
+input/
 logs/
 notebook/.ipynb_checkpoints/
-notes/
-warbler.py/analyze/luscinia
-warbler.py/analyze/pdf
-warbler.py/cluster/carlson
-warbler.py/cluster/sainburg
-warbler.py/cluster/working
-warbler.py/segment/pickle
-warbler.py/segment/spectrogram
-warbler.py/utility/
+output/
+warbler.py/script/
 warbler.py/warbler.py.egg-info/
-ui/
 
 *.7z
 *.bat
-*.pkl
 *.xlsx
 *.zip
-notes.txt
-test.py
 
 
 # Byte-compiled / optimized / DLL files

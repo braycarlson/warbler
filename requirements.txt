@@ -1,41 +1,36 @@
 -e warbler.py
 
-awscli
-coverage
-click
 graphviz
 h5py
 hdbscan
-ipywidgets
 joblib
-keyboard
+jupyterlab
 librosa
+nara_wpe
 natsort
-networkx
 noisereduce
-notebook
-numba==0.53.*
-numpy==1.22.0
+numba
+numpy
 openpyxl
 pandas
 pillow
 plotly
-pydub
 pygraphviz; sys_platform == 'linux'
 pymupdf
-PySide2
-pysimplegui
-PySimpleGUIDesigner
-pysoundfile
-pytest
-python-dotenv
 tqdm
 seaborn
 scikit-learn
 scipy
+SoundFile
 tensorflow_gpu
 tensorflow
-umap-learn
+umap-learn[plot]
 voila
 
+# Experimental
+fuzzy-c-means
 
+# Temporary
+ipywidgets==7.7.1
+# ipywidgets
+jupyterlab-widgets==1.1.1
