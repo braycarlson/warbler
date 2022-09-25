@@ -3,7 +3,6 @@
 graphviz
 h5py
 hdbscan
-joblib
 jupyterlab
 librosa
 nara_wpe
@@ -31,6 +30,12 @@ voila
 fuzzy-c-means
 
 # Temporary
+
+# https://github.com/scikit-learn-contrib/hdbscan/issues/565
+joblib==1.1.0
+# joblib
+
 ipywidgets==7.7.1
 # ipywidgets
+
 jupyterlab-widgets==1.1.1

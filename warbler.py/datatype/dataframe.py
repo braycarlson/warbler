@@ -59,7 +59,7 @@ class Uncompressed(PicklingStrategy):
 
 class Dataframe():
     def __init__(self):
-        self._strategy = Uncompressed()
+        self._strategy = Compressed()
 
     @property
     def path(self):
