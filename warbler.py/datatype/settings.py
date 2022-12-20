@@ -1,6 +1,12 @@
 import json
 
+from constant import CWD
 from types import SimpleNamespace
+
+
+def resolve(relative):
+    path = CWD.joinpath(relative)
+    return Settings.from_file(path)
 
 
 class Settings(SimpleNamespace):

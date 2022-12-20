@@ -4,7 +4,7 @@ from constant import DATASET, SETTINGS
 from datatype.axes import SpectrogramAxes
 from datatype.settings import Settings
 from datatype.signal import Signal
-from datatype.spectrogram import Spectrogram
+from datatype.spectrogram import Linear, Mel, Spectrogram
 from plot import (
     SegmentationSpectrogram,
     VocalEnvelopeSpectrogram
@@ -13,23 +13,26 @@ from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
 def main():
-    path = DATASET.joinpath('DbWY_STE2017/segmentation/STE01_DbWY2017.json')
+    # path = DATASET.joinpath('DbWY_STE2017/segmentation/STE01_DbWY2017.json')
+    # settings = Settings.from_file(path)
+
+    path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 
     path = SETTINGS.joinpath('dereverberate.json')
     dereverberate = Settings.from_file(path)
 
-    path = DATASET.joinpath('DbWY_STE2017/recordings/STE01_DbWY2017.wav')
+    path = DATASET.joinpath('DbWY_STE2017/recordings/STE03_DbWY2017.wav')
     signal = Signal(path)
 
-    if settings.bandpass_filter:
-        signal.filter(
-            settings.butter_lowcut,
-            settings.butter_highcut
-        )
+    # if settings.bandpass_filter:
+    #     signal.filter(
+    #         settings.butter_lowcut,
+    #         settings.butter_highcut
+    #     )
 
-    if settings.reduce_noise:
-        signal.reduce()
+    # if settings.reduce_noise:
+    #     signal.reduce()
 
     signal.dereverberate(dereverberate)
 
@@ -51,7 +54,10 @@ def main():
         min_syllable_length_s=settings.min_syllable_length_s
     )
 
-    spectrogram = Spectrogram(signal, settings)
+    spectrogram = Spectrogram()
+    strategy = Linear(signal, settings)
+    spectrogram.strategy = strategy
+
     spectrogram = spectrogram.generate()
 
     plot = VocalEnvelopeSpectrogram(signal, dts)

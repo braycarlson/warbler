@@ -1,43 +1,55 @@
 import matplotlib.pyplot as plt
 
-from constant import CWD
+from constant import SETTINGS
 from datatype.axes import SpectrogramAxes
-from datatype.file import File
+from datatype.dataset import Dataset
 from datatype.settings import Settings
-from datatype.spectrogram import Spectrogram
+from datatype.spectrogram import Linear, Spectrogram
 from plot import LusciniaSpectrogram
 
 
+def plot(signal, settings):
+    spectrogram = Spectrogram()
+    strategy = Linear(signal, settings)
+    spectrogram.strategy = strategy
+
+    spectrogram = spectrogram.generate()
+
+    plot = LusciniaSpectrogram(signal, spectrogram)
+    plot.create()
+
+    plt.show()
+    plt.close()
+
+
 def main():
-    file = File('good.xz')
-    collection = file.load()
+    dataset = Dataset('signal')
+    dataframe = dataset.load()
 
-    for recording in collection[:5]:
-        signal = recording.get('signal')
+    subset = dataframe.iloc[0:5]
 
-        path = CWD.joinpath(
-            recording.get('segmentation')
-        )
+    path = SETTINGS.joinpath('spectrogram.json')
+    settings = Settings.from_file(path)
 
-        settings = Settings.from_file(path)
+    # Bandpass filter
+    column = ['signal', 'settings']
 
-        if settings.bandpass_filter:
-            signal.filter(
-                settings.butter_lowcut,
-                settings.butter_highcut
-            )
+    subset[column].apply(
+        lambda x: x.signal.filter(
+            x.settings.butter_lowcut,
+            x.settings.butter_highcut
+        ),
+        axis=1
+    )
 
-        if settings.reduce_noise:
-            signal.reduce()
+    # Reduce noise
+    subset['signal'].apply(
+        lambda x: x.reduce()
+    )
 
-        spectrogram = Spectrogram(signal, settings)
-        spectrogram = spectrogram.generate()
-
-        plot = LusciniaSpectrogram(signal, spectrogram)
-        plot.create()
-
-        plt.show()
-        plt.close()
+    subset['signal'].apply(
+        lambda x: plot(x, settings)
+    )
 
 
 if __name__ == '__main__':

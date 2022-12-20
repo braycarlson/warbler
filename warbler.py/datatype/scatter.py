@@ -1,117 +1,14 @@
-import seaborn as sns
-
 from abc import ABC, abstractmethod
 from IPython.display import Audio, display
 from ipywidgets import (
     HBox,
     HTML,
     Image,
-    interactive,
     Layout,
     Output,
     VBox
 )
 from plotly import graph_objs as go
-
-
-class Visitor(ABC):
-    @abstractmethod
-    def two(self, dataframe):
-        pass
-
-    @abstractmethod
-    def three(self, dataframe):
-        pass
-
-
-class SingleTrace(Visitor):
-    def two(self, dataframe):
-        return go.Scattergl(
-            x=dataframe.umap_x_2d,
-            y=dataframe.umap_y_2d,
-            marker=dict(size=3),
-            mode='markers',
-            name=str(dataframe.index),
-            showlegend=False
-        )
-
-    def three(self, dataframe):
-        return go.Scatter3d(
-            x=dataframe.umap_x_3d,
-            y=dataframe.umap_y_3d,
-            z=dataframe.umap_z_3d,
-            marker=dict(size=3),
-            mode='markers',
-            name=str(dataframe.index),
-            showlegend=False
-        )
-
-
-class MultipleTrace(Visitor):
-    def two(self, dataframe):
-        labels = dataframe.hdbscan_label_2d.unique()
-        length = len(labels)
-
-        palette = sns.color_palette('Paired', length).as_hex()
-
-        iterable = zip(labels, palette)
-        legend = dict(iterable)
-
-        traces = []
-
-        for label in labels:
-            cluster = dataframe[dataframe.hdbscan_label_2d == label]
-            color = legend[label]
-
-            trace = go.Scattergl(
-                x=cluster.umap_x_2d,
-                y=cluster.umap_y_2d,
-                mode='markers',
-                marker=dict(
-                    color=color,
-                    size=3,
-                ),
-                name=str(label),
-                showlegend=True
-            )
-
-            traces.append(trace)
-
-        return traces
-
-    def three(self, dataframe):
-        labels = dataframe.hdbscan_label_3d.unique()
-        labels.sort()
-
-        length = len(labels)
-
-        palette = sns.color_palette('Paired', length).as_hex()
-
-        iterable = zip(labels, palette)
-        legend = dict(iterable)
-
-        traces = []
-
-        for label in labels:
-            cluster = dataframe[dataframe.hdbscan_label_3d == label]
-            color = legend[label]
-
-            trace = go.Scatter3d(
-                x=cluster.umap_x_3d,
-                y=cluster.umap_y_3d,
-                z=cluster.umap_z_3d,
-                mode='markers',
-                marker=dict(
-                    color=color,
-                    size=3,
-                ),
-                name=str(label),
-                showlegend=True
-            )
-
-            traces.append(trace)
-
-        return traces
 
 
 class DimensionalStrategy(ABC):
@@ -283,25 +180,6 @@ class Scatter:
             )
         )
 
-    # def create_slider(self):
-    #     self.slider = interactive(
-    #         self.on_slide,
-    #         opacity=(0.0, 1.0, 0.01),
-    #         size=(1, 10, 0.25)
-    #     )
-
-    #     # Opacity
-    #     self.slider.children[0].default_value = 0.75
-    #     self.slider.children[0].value = 0.75
-    #     self.slider.children[0].layout.width = str(self.width / 2) + 'px'
-    #     self.slider.children[0].description = 'Opacity'
-
-    #     # Size
-    #     self.slider.children[1].default_value = 2.50
-    #     self.slider.children[1].value = 2.50
-    #     self.slider.children[1].layout.width = str(self.width / 2) + 'px'
-    #     self.slider.children[1].description = 'Size'
-
     def create_widget(self):
         self.widget = go.FigureWidget(self.figure)
 
@@ -347,48 +225,57 @@ class Scatter:
     def on_click(self, trace, points, selector):
         index = points.point_inds
 
-        if index:
-            index = index[0]
-            self.play(index)
+        if not index:
+            return
+
+        zero = 0
+        index = index[zero]
+        indices = trace.customdata[zero]
+        i = indices[index]
+
+        self.play(i)
 
     def on_hover(self, trace, points, state):
         index = points.point_inds
 
-        if index:
-            column = [
-                'folder',
-                'filename',
-                'sequence',
-                'onset',
-                'offset',
-                'duration'
+        if not index:
+            return
+
+        column = [
+            'folder',
+            'filename',
+            'sequence',
+            'onset',
+            'offset',
+            'duration'
+        ]
+
+        zero = 0
+        index = index[zero]
+        indices = trace.customdata[zero]
+        i = indices[index]
+
+        self.html.value = (
+            self.dataframe
+            .loc[self.dataframe.index[[i]], column]
+            .transpose()
+            .to_html(
+                classes='description',
+                index=True,
+                justify='center'
+            )
+        )
+
+        spectrogram = (
+            self.dataframe
+            .loc[
+                self.dataframe.index[[i]],
+                ['resize']
             ]
+            .values[zero]
+        )
 
-            self.html.value = (
-                self.dataframe
-                .loc[self.dataframe.index[index], column]
-                .transpose()
-                .to_html(
-                    classes='description',
-                    index=True,
-                    justify='center'
-                )
-            )
-
-            spectrogram = (
-                self.dataframe
-                .loc[
-                    self.dataframe.index[index],
-                    ['resize']
-                ]
-                .values[0]
-            )
-
-            self.description.value = spectrogram[0]
-
-    # def on_slide(self, opacity, size):
-    #     self.widget.data[0].marker.opacity = opacity
-    #     self.widget.data[0].marker.size = size
+        self.description.value = spectrogram[zero]
 
     def play(self, index):
         segment = self.dataframe.loc[

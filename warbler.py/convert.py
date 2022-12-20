@@ -18,8 +18,17 @@ log = logging.getLogger(__name__)
 
 @bootstrap
 def main():
-    aif = [file for file in ORIGINAL.glob('*/*.aif')]
-    wav = [file for file in DATASET.glob('*/recordings/*.wav')]
+    aif = [
+        file
+        for file in ORIGINAL.glob('*/*.aif')
+        if file.is_file()
+    ]
+
+    wav = [
+        file
+        for file in DATASET.glob('*/recordings/*.wav')
+        if file.is_file()
+    ]
 
     if len(aif) == len(wav):
         return
@@ -33,9 +42,9 @@ def main():
             for file in tqdm(files, total=total):
                 filename = file.stem
 
-                r = individual.joinpath('recordings')
                 m = individual.joinpath('metadata')
-                p = individual.joinpath('parameters')
+                r = individual.joinpath('recordings')
+                s = individual.joinpath('segmentation')
 
                 # Recording(s)
                 recording = r.joinpath(filename + '.wav')
@@ -44,11 +53,11 @@ def main():
                 song.export(recording, format='wav')
 
                 # Parameter(s)
-                parameter = p.joinpath(filename + '.json')
+                settings = s.joinpath(filename + '.json')
 
-                if not parameter.is_file():
-                    parameter.touch()
-                    shutil.copy('parameters.json', parameter)
+                if not settings.is_file():
+                    settings.touch()
+                    shutil.copy('segmentation.json', settings)
 
                 # Metadata
                 metadata = m.joinpath(filename + '.json')

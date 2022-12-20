@@ -1,7 +1,12 @@
 import pickle
 
 from natsort import os_sorted
-from pathlib import Path
+from pathlib import Path, PurePath
+
+
+def relative(path):
+    pure = PurePath(path)
+    return pure.relative_to(CWD)
 
 
 # The current-working directory of the project
@@ -117,7 +122,7 @@ RECORDINGS = os_sorted([
 ])
 
 # Get each individual's segmentation parameters from the processed dataset
-SEGMENTATION = os_sorted([
+SEGMENTATIONS = os_sorted([
     file
     for individual in INDIVIDUALS
     for file in individual.glob('segmentation/*.json')

@@ -24,8 +24,8 @@ class PicklingStrategy(ABC):
 
 
 class Compressed(PicklingStrategy):
-    def __init__(self):
-        self.filename = 'dataframe'
+    def __init__(self, filename):
+        self.filename = filename
         self.extension = '.xz'
 
     def load(self):
@@ -41,8 +41,8 @@ class Compressed(PicklingStrategy):
 
 
 class Uncompressed(PicklingStrategy):
-    def __init__(self):
-        self.filename = 'dataframe'
+    def __init__(self, filename):
+        self.filename = filename
         self.extension = '.pkl'
 
     def load(self):
@@ -57,9 +57,9 @@ class Uncompressed(PicklingStrategy):
             pickle.dump(dataframe, handle)
 
 
-class Dataframe():
-    def __init__(self):
-        self._strategy = Compressed()
+class Dataset():
+    def __init__(self, filename):
+        self._strategy = Uncompressed(filename)
 
     @property
     def path(self):

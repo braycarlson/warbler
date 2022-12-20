@@ -4,7 +4,7 @@ from constant import DATASET, SETTINGS
 from datatype.axes import SpectrogramAxes
 from datatype.settings import Settings
 from datatype.signal import Signal
-from datatype.spectrogram import Spectrogram
+from datatype.spectrogram import Linear, Mel, Spectrogram
 from plot import (
     CutoffSpectrogram,
     GenericSpectrogram,
@@ -13,8 +13,11 @@ from plot import (
 
 
 def main():
-    path = DATASET.joinpath('DbWY_STE2017/segmentation/STE05_DbWY2017.json')
+    path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
+
+    # path = DATASET.joinpath('DbWY_STE2017/segmentation/STE05_DbWY2017.json')
+    # settings = Settings.from_file(path)
 
     path = SETTINGS.joinpath('dereverberate.json')
     dereverberate = Settings.from_file(path)
@@ -33,7 +36,10 @@ def main():
 
     signal.dereverberate(dereverberate)
 
-    spectrogram = Spectrogram(signal, settings)
+    spectrogram = Spectrogram()
+    strategy = Linear(signal, settings)
+    spectrogram.strategy = strategy
+
     spectrogram = spectrogram.generate()
 
     plot = LusciniaSpectrogram(signal, spectrogram)

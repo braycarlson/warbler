@@ -2,6 +2,8 @@
 
 warbler.py is a pipeline for segmenting, clustering and visualizing Adelaide's warbler songs based on the repositories of Dr. Tim Sainburg ([AVGN](https://github.com/timsainb/avgn_paper) and [vocalization segmentation](https://github.com/timsainb/vocalization-segmentation)) and Dr. Mara Thomas ([UMAP Tutorial](https://github.com/marathomas/tutorial_repo)) using a dataset from Dr. David Logue of [The Birdsong Lab](http://david-logue.squarespace.com/).
 
+![A screenshot of an Adelaide's warbler projection](images/aw.png?raw=true "Adelaide's warbler")
+
 ## Prerequisites
 
 * [pyenv](https://github.com/pyenv/pyenv) or [Python 3.9.5](https://www.python.org/downloads/)

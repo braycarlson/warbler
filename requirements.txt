@@ -1,16 +1,25 @@
 -e warbler.py
 
+clusteval
+fuzzy-c-means
 graphviz
 h5py
 hdbscan
+ipywidgets==7.7.1
+# ipywidgets
+# https://github.com/scikit-learn-contrib/hdbscan/issues/565
+joblib==1.1.0
+# joblib
 jupyterlab
+jupyterlab-widgets==1.1.1
+# jupyterlab-widgets
 librosa
 nara_wpe
 natsort
 noisereduce
-numba
 numpy
 openpyxl
+opencv-python
 pandas
 pillow
 plotly
@@ -18,24 +27,11 @@ pygraphviz; sys_platform == 'linux'
 pymupdf
 tqdm
 seaborn
+scikit-image[optional]
 scikit-learn
 scipy
 SoundFile
-tensorflow_gpu
-tensorflow
-umap-learn[plot]
+swifter
+umap-learn
+# umap-learn[plot]
 voila
-
-# Experimental
-fuzzy-c-means
-
-# Temporary
-
-# https://github.com/scikit-learn-contrib/hdbscan/issues/565
-joblib==1.1.0
-# joblib
-
-ipywidgets==7.7.1
-# ipywidgets
-
-jupyterlab-widgets==1.1.1

@@ -1,7 +1,7 @@
 import librosa
 import numpy as np
 
-from PIL import Image
+from abc import ABC, abstractmethod
 from scipy.signal import lfilter
 
 
@@ -35,100 +35,185 @@ def pad(spectrogram, padding):
     )
 
 
-class Spectrogram:
+class Strategy(ABC):
     def __init__(self, signal, settings):
         self._data = None
-        self._signal = signal
-        self._settings = settings
+        self.signal = signal
+        self.settings = settings
 
-    @property
-    def data(self):
-        return self._data
+    def decibel_to_amplitude(self):
+        self.data = np.power(
+            10.0,
+            self.data * 0.05
+        )
 
-    @data.setter
-    def data(self, data):
-        self._data = data
-
-    def generate(self):
-        self._spectrogram_nn()
-        self._normalize()
-        # self.resize()
-
-        if self._settings.mask_spec:
-            self.mask()
-
-        self.normalize()
-        return self.data
-
-    def mask(self, threshold=0.9, offset=1e-10):
-        mask = self.data >= (self.data.max(axis=0, keepdims=1) * threshold + offset)
-        self.data = self.data * mask
+    def denormalize(self):
+        self.data = (
+            np.clip(self.data, 0, 1) * -self.settings.min_level_db
+        ) + self.settings.min_level_db
 
     def normalize(self):
+        self.data = np.clip(
+            (self.data - self.settings.min_level_db) / -self.settings.min_level_db,
+            0,
+            1
+        )
+
+    def reduce(self):
         minimum = np.min(self.data)
         maximum = np.max(self.data)
 
         data = (self.data - minimum) / (maximum - minimum)
         self.data = (data * 255).astype('uint8')
 
-    def resize(self, scaling=10):
-        x, y = np.shape(self.data)
-
-        shape = [
-            int(np.log(y) * scaling),
-            x
-        ]
-
-        self.data = np.array(
-            Image.fromarray(self.data).resize(
-                    shape,
-                    Image.ANTIALIAS
-                )
-            )
-
-    def _spectrogram_nn(self):
-        y = self._preemphasis()
-
-        matrix = self._stft(y)
-        magnitude = np.abs(matrix)
-
-        self.data = (
-            self._amplitude_to_decibel(magnitude) -
-            self._settings.ref_level_db
+    def preemphasis(self):
+        self.data = lfilter(
+            [1, -self.settings.preemphasis], [1], self.signal.data
         )
 
-    def _preemphasis(self):
-        return lfilter(
-            [1, -self._settings.preemphasis],
+    def inverse_preemphasis(self):
+        self.data = lfilter(
             [1],
-            self._signal.data
+            [1, -self.settings.preemphasis],
+            self.signal.data
         )
 
-    def _stft(self, y):
-        hop_length = int(
-            self._settings.hop_length_ms / 1000 * self._signal.rate
-        )
+    def stft(self):
+        y = self.data
+        n_fft = self.settings.n_fft
+        hop_length = int(self.settings.hop_length_ms / 1000 * self.signal.rate)
+        win_length = int(self.settings.win_length_ms / 1000 * self.signal.rate)
 
-        win_length = int(
-            self._settings.win_length_ms / 1000 * self._signal.rate
-        )
-
-        return librosa.stft(
+        self.data = librosa.stft(
             y=y,
-            n_fft=self._settings.n_fft,
+            n_fft=n_fft,
             hop_length=hop_length,
             win_length=win_length,
         )
 
-    def _normalize(self):
-        self.data = np.clip(
-            (self.data - self._settings.min_level_db) / -self._settings.min_level_db,
-            0,
-            1
+    def _istft(self):
+        y = self.data
+        hop_length = int(self.settings.hop_length_ms / 1000 * self.signal.rate)
+        win_length = int(self.settings.win_length_ms / 1000 * self.signal.rate)
+
+        self.data = librosa.istft(
+            y,
+            hop_length=hop_length,
+            win_length=win_length
         )
 
-    @staticmethod
-    def _amplitude_to_decibel(magnitude):
-        return 20 * np.log10(
-            np.maximum(1e-5, magnitude)
+    @abstractmethod
+    def amplitude_to_decibel(self):
+        pass
+
+    @abstractmethod
+    def generate(self, normalize=True):
+        pass
+
+
+class Linear(Strategy):
+    def __init__(self, signal, settings):
+        self.data = None
+        self.signal = signal
+        self.settings = settings
+
+    def amplitude_to_decibel(self):
+        data = np.abs(self.data)
+
+        self.data = 20 * np.log10(
+            np.maximum(1e-5, data)
+        ) - self.settings.ref_level_db
+
+    def generate(self, normalize=True):
+        self.preemphasis()
+        self.stft()
+        self.amplitude_to_decibel()
+
+        if normalize is True:
+            self.normalize()
+            self.reduce()
+
+        return self.data
+
+
+class Mel(Strategy):
+    def __init__(self, signal, settings):
+        self.data = None
+        self.signal = signal
+        self.settings = settings
+
+    def amplitude_to_decibel(self):
+        self.data = np.abs(self.data)
+        self.data = self._linear_to_mel(self.data)
+
+        self.data = 20 * np.log10(
+            np.maximum(1e-5, self.data)
+        ) - self.settings.ref_level_db
+
+    def create_basis(self):
+        basis = librosa.filters.mel(
+            sr=self.signal.rate,
+            n_fft=self.settings.n_fft,
+            n_mels=self.settings.num_mel_bins,
+            fmin=self.settings.mel_lower_edge_hertz,
+            fmax=self.settings.mel_upper_edge_hertz,
         )
+
+        basis = basis.T / np.sum(basis, axis=1)
+        return np.nan_to_num(basis).T
+
+    def _linear_to_mel(self, basis):
+        basis = self.create_basis()
+        return np.dot(basis, self.data)
+
+    def generate(self, normalize=True):
+        self.preemphasis()
+        self.stft()
+        self.amplitude_to_decibel()
+
+        if normalize is True:
+            self.normalize()
+            self.reduce()
+
+        return self.data
+
+
+class Segment(Strategy):
+    def __init__(self, signal, settings):
+        self.data = None
+        self.signal = signal
+        self.settings = settings
+
+    def amplitude_to_decibel(self):
+        data = np.abs(self.data)
+
+        self.data = 20 * np.log10(
+            np.maximum(1e-5, data)
+        ) - self.settings.ref_level_db
+
+    def generate(self, normalize=True):
+        self.preemphasis()
+        self.stft()
+        self.amplitude_to_decibel()
+
+        if normalize is True:
+            self.normalize()
+            self.reduce()
+
+        return self.data
+
+
+class Spectrogram:
+    def __init__(self):
+        self._strategy = None
+
+    @property
+    def strategy(self):
+        return self._strategy
+
+    @strategy.setter
+    def strategy(self, strategy):
+        self._strategy = strategy
+
+    def generate(self, normalize=True):
+        return self.strategy.generate(normalize=normalize)

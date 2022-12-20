@@ -62,7 +62,7 @@ class File():
         self.data = []
         self.filename = filename
         self._path = None
-        self._strategy = Compressed()
+        self._strategy = Uncompressed()
 
     @property
     def path(self):
