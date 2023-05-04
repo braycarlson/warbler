@@ -5,17 +5,20 @@ fuzzy-c-means
 graphviz
 h5py
 hdbscan
+ipython
 ipywidgets==7.7.1
 # ipywidgets
 # https://github.com/scikit-learn-contrib/hdbscan/issues/565
-joblib==1.1.0
-# joblib
+# joblib==1.1.0
+joblib
 jupyterlab
 jupyterlab-widgets==1.1.1
 # jupyterlab-widgets
 librosa
+matplotlib==3.6.0
 nara_wpe
 natsort
+nltk
 noisereduce
 numpy
 openpyxl
@@ -23,6 +26,7 @@ opencv-python
 pandas
 pillow
 plotly
+pydub
 pygraphviz; sys_platform == 'linux'
 pymupdf
 tqdm
@@ -31,7 +35,7 @@ scikit-image[optional]
 scikit-learn
 scipy
 SoundFile
-swifter
-umap-learn
-# umap-learn[plot]
+tensorflow
+# umap-learn
+umap-learn[plot]
 voila

@@ -3,7 +3,7 @@ input/
 logs/
 notebook/.ipynb_checkpoints/
 output/
-warbler.py/script/
+warbler.py/avgn/data/
 warbler.py/warbler.py.egg-info/
 
 *.7z

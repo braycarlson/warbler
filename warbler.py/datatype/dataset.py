@@ -1,5 +1,6 @@
 import lzma
 import pickle
+import shutil
 
 from abc import ABC, abstractmethod
 from constant import PICKLE
@@ -30,7 +31,7 @@ class Compressed(PicklingStrategy):
 
     def load(self):
         if not self.path.is_file():
-            self.path.touch()
+            return self.path.touch()
 
         with lzma.open(self.path, 'rb') as handle:
             return pickle.load(handle)
@@ -47,7 +48,7 @@ class Uncompressed(PicklingStrategy):
 
     def load(self):
         if not self.path.is_file():
-            self.path.touch()
+            return self.path.touch()
 
         with open(self.path, 'rb') as handle:
             return pickle.load(handle)
@@ -72,6 +73,10 @@ class Dataset():
     @strategy.setter
     def strategy(self, strategy):
         self._strategy = strategy
+
+    def duplicate(self, filename):
+        path = self.path.parent.joinpath(filename)
+        shutil.copyfile(self.path, path)
 
     def load(self):
         return self.strategy.load()

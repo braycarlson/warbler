@@ -1,329 +1,176 @@
-from abc import ABC, abstractmethod
-from IPython.display import Audio, display
-from ipywidgets import (
-    HBox,
-    HTML,
-    Image,
-    Layout,
-    Output,
-    VBox
-)
-from plotly import graph_objs as go
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+
+from collections import defaultdict
+from datatype.builder import Base, Plot
+from datatype.settings import Settings
+from matplotlib.lines import Line2D
 
 
-class DimensionalStrategy(ABC):
-    @abstractmethod
-    def create_scatter(self):
-        pass
+class Builder(Base):
+    def ax(self):
+        figsize = self.settings.figure.get('figsize')
+        fig, ax = plt.subplots(figsize=figsize)
 
-    @abstractmethod
-    def create_scene(self, data):
-        pass
+        ax.xaxis.set_visible(self.settings.is_axis)
+        ax.yaxis.set_visible(self.settings.is_axis)
 
+        self.component.collection['ax'] = ax
 
-class ThreeDimensional(DimensionalStrategy):
-    def __init__(self, dataframe):
-        self.dataframe = dataframe
-        self._trace = None
+        return self
 
-    @property
-    def trace(self):
-        return self._trace
+    def decorate(self):
+        default = {
+            'figure': {
+                'figsize': (9, 8)
+            },
+            'legend': {
+                'borderaxespad': 0,
+                'bbox_to_anchor': (1.15, 1.00),
+            },
+            'line': {
+                'marker': 'o',
+                'rasterized': False
+            },
+            'scatter': {
+                'alpha': 0.50,
+                'color': 'black',
+                'label': None,
+                'rasterized': False,
+                's': 10
+            },
+            'cluster': 'HDBSCAN',
+            'is_axis': False,
+            'is_cluster': True,
+            'is_color': True,
+            'is_legend': True,
+            'is_title': True,
+            'name': 'Adelaide\'s warbler',
+            'palette': 'tab20',
+        }
 
-    @trace.setter
-    def trace(self, trace):
-        self._trace = trace
+        if self.settings is not None:
+            merge = defaultdict(dict)
+            merge.update(default)
 
-    def create_scatter(self):
-        return self.trace.three(self.dataframe)
+            for key, value in self.settings.items():
+                if isinstance(value, dict):
+                    merge[key].update(value)
+                else:
+                    merge[key] = value
 
-    def create_scene(self):
-        return go.layout.Scene(
-            xaxis=go.layout.scene.XAxis(title='x'),
-            yaxis=go.layout.scene.YAxis(title='y'),
-            zaxis=go.layout.scene.ZAxis(title='z')
+            default = dict(merge)
+
+        self.settings = Settings.from_dict(default)
+
+        return self
+
+    def legend(self):
+        condition = (
+            not self.settings.is_legend or
+            not self.settings.is_color
         )
 
+        if condition:
+            return self
 
-class TwoDimensional(DimensionalStrategy):
-    def __init__(self, dataframe):
-        self.dataframe = dataframe
-        self._trace = None
+        ax = self.component.collection.get('ax')
+        handles = self.component.collection.get('handles')
 
-    @property
-    def trace(self):
-        return self._trace
-
-    @trace.setter
-    def trace(self, trace):
-        self._trace = trace
-
-    def create_scatter(self):
-        return self.trace.two(self.dataframe)
-
-    def create_scene(self):
-        return go.layout.Scene(
-            xaxis=go.layout.scene.XAxis(title='x'),
-            yaxis=go.layout.scene.YAxis(title='y')
+        ax.legend(
+            handles=handles,
+            **self.settings.legend
         )
 
+        return self
 
-class Scatter:
-    def __init__(self, dataframe):
-        self.dataframe = dataframe
-
-        self.audio = None
-        self.description = None
-        self.figure = None
-        self.html = None
-        self.layout = None
-        self.player = None
-        self.scatter = None
-        self.scene = None
-        self.widget = None
-
-        self.height = 800
-        self.width = 1000
-
-        self._strategy = None
-
-    @property
-    def strategy(self):
-        return self._strategy
-
-    @strategy.setter
-    def strategy(self, strategy):
-        self._strategy = strategy
-
-    def create(self):
-        self.create_scatter()
-        self.create_scene()
-        self.create_layout()
-        self.create_figure()
-        self.create_widget()
-        self.create_description()
-        self.create_html()
-        self.create_audio()
-
-        self.set_css()
-        self.set_event_listener()
-
-    def create_scatter(self):
-        self.scatter = self.strategy.create_scatter()
-
-    def create_scene(self):
-        self.scene = self.strategy.create_scene()
-
-    def create_audio(self):
-        self.player = Output()
-        self.player.layout.visibility = 'hidden'
-
-        with self.player:
-            self.audio = Audio(url='')
-            display(self.audio)
-
-    def create_description(self):
-        value = (
-            self.dataframe
-            .loc[
-                self.dataframe.index[0],
-                ['resize']
-            ]
-            .values[0]
+    def line(self):
+        condition = (
+            not self.settings.is_legend or
+            not self.settings.is_color
         )
 
-        self.description = Image(value=value)
+        if condition:
+            return self
 
-    def create_figure(self):
-        self.figure = go.Figure(
-            data=self.scatter,
-            layout=self.layout
-        )
+        label = self.component.collection.get('label')
 
-    def create_html(self):
-        column = [
-            'folder',
-            'filename',
-            'sequence',
-            'onset',
-            'offset',
-            'duration'
+        handles = [
+            Line2D(
+                [0],
+                [0],
+                color=color,
+                label=label,
+                **self.settings.line
+            )
+            for label, color in label.items()
         ]
 
-        value = (
-            self.dataframe
-            .loc[self.dataframe.index[0], column]
-            .transpose()
-            .to_frame()
-            .to_html(
-                classes='description',
-                index=True,
-                justify='center'
-            )
+        self.component.collection['handles'] = handles
+
+        return self
+
+    def scatter(self):
+        ax = self.component.collection.get('ax')
+
+        if self.settings.is_color:
+            color = self.component.collection.get('color')
+            self.settings.scatter['color'] = color
+
+        if self.settings.is_legend:
+            label = self.component.collection.get('label')
+            self.settings.scatter['label'] = label
+
+        ax.scatter(
+            self.embedding[:, 0],
+            self.embedding[:, 1],
+            **self.settings.scatter
         )
 
-        self.html = HTML(value=value)
+        return self
 
-    def create_layout(self):
-        self.layout = go.Layout(
-            scene=self.scene,
-            height=self.height,
-            width=self.width,
-            template='plotly_white',
-            showlegend=True,
-            legend=dict(
-                itemsizing='constant',
-                x=0.01,
-                xanchor='right',
-                y=0.99,
-                yanchor='top'
-            )
+    def title(self):
+        ax = self.component.collection.get('ax')
+
+        name = self.settings.name
+        cluster = self.settings.cluster
+
+        title = f"{cluster} Clustering of {name}"
+        ax.set_title(title)
+
+        return self
+
+
+class ScatterHDBSCAN(Plot):
+    def construct(self):
+        self.builder.settings['cluster'] = 'HDBSCAN'
+
+        return (
+            self.builder
+            .decorate()
+            .ax()
+            .title()
+            .palette()
+            .line()
+            .scatter()
+            .legend()
+            .get()
         )
 
-    def create_widget(self):
-        self.widget = go.FigureWidget(self.figure)
 
-    def get_plot(self):
-        left = VBox(
-            [self.description, self.html],
-            layout=Layout(
-                align_items='center',
-                display='flex',
-                flex_flow='column',
-                align_content='stretch',
-                justify_content='center'
-            )
+class ScatterFCM(Plot):
+    def construct(self):
+        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+
+        return (
+            self.builder
+            .decorate()
+            .ax()
+            .title()
+            .palette()
+            .line()
+            .scatter()
+            .legend()
+            .get()
         )
-
-        left.add_class('image')
-
-        right = VBox(
-            [self.widget],
-            layout=Layout(
-                align_items='center',
-                display='flex',
-                width='100%'
-            )
-        )
-
-        box = VBox(
-            [
-                HBox(
-                    [left, right]
-                ),
-                self.player
-            ],
-            layout=Layout(
-                align_items='center',
-                flex='none',
-                width='100%'
-            )
-        )
-
-        return box
-
-    def on_click(self, trace, points, selector):
-        index = points.point_inds
-
-        if not index:
-            return
-
-        zero = 0
-        index = index[zero]
-        indices = trace.customdata[zero]
-        i = indices[index]
-
-        self.play(i)
-
-    def on_hover(self, trace, points, state):
-        index = points.point_inds
-
-        if not index:
-            return
-
-        column = [
-            'folder',
-            'filename',
-            'sequence',
-            'onset',
-            'offset',
-            'duration'
-        ]
-
-        zero = 0
-        index = index[zero]
-        indices = trace.customdata[zero]
-        i = indices[index]
-
-        self.html.value = (
-            self.dataframe
-            .loc[self.dataframe.index[[i]], column]
-            .transpose()
-            .to_html(
-                classes='description',
-                index=True,
-                justify='center'
-            )
-        )
-
-        spectrogram = (
-            self.dataframe
-            .loc[
-                self.dataframe.index[[i]],
-                ['resize']
-            ]
-            .values[zero]
-        )
-
-        self.description.value = spectrogram[zero]
-
-    def play(self, index):
-        segment = self.dataframe.loc[
-            self.dataframe.index[index],
-            'segment'
-        ]
-
-        with self.player:
-            self.player.clear_output(True)
-
-            self.audio = Audio(
-                data=segment.data,
-                rate=segment.rate,
-                autoplay=True
-            )
-
-            display(self.audio)
-
-    def set_css(self):
-        css = '''
-            <style>
-                .image > .widget-image {
-                    width: 99%; !important;
-                }
-
-                .description {
-                    background-color: transparent !important;
-                    border: 1px solid black; !important;
-                    width: 100% !important;
-                }
-
-                .description td, .description th {
-                    border: none; !important;
-                    padding: 5px 10px; !important;
-                    text-align: center !important;
-                }
-
-                .js-plotly-plot .plotly .cursor-crosshair,
-                .js-plotly-plot .plotly .cursor-move {
-                    cursor: default !important;
-                }
-            </style>
-        '''
-
-        html = HTML(css)
-        display(html)
-
-    def set_event_listener(self):
-        for trace in self.widget.data:
-            trace.on_hover(self.on_hover)
-            trace.on_click(self.on_click)

@@ -3,6 +3,7 @@ import librosa
 import noisereduce as nr
 import numpy as np
 import pathlib
+import scipy
 import soundfile as sf
 
 from abc import abstractmethod, ABC
@@ -23,7 +24,7 @@ class Librosa(Strategy):
         if isinstance(path, pathlib.Path):
             path = str(path)
 
-        data, rate = librosa.core.load(path)
+        data, rate = librosa.core.load(path, sr=None)
         return rate, data
 
 
@@ -43,7 +44,7 @@ class Soundfile(Strategy):
 
 
 class Signal:
-    def __init__(self, path):
+    def __init__(self, path=None):
         self._strategy = Scipy()
         self._path = path
         self._rate, self._data = self._load()
@@ -54,7 +55,7 @@ class Signal:
 
         rate, data = self.strategy.load(self.path)
 
-        if np.issubdtype(data.dtype, np.int16):
+        if np.issubdtype(data.dtype, np.integer):
             data = np.array(data / 32768.0).astype('float32')
 
         return rate, data
@@ -79,6 +80,10 @@ class Signal:
     def path(self):
         return self._path
 
+    @path.setter
+    def path(self, path):
+        self._path = path
+
     @property
     def rate(self):
         return self._rate
@@ -89,10 +94,6 @@ class Signal:
         return self._duration
 
     def filter(self, lowcut, highcut, order=5):
-        '''
-        https://scipy-cookbook.readthedocs.io/items/ButterworthBandpass.html
-        '''
-
         if highcut > int(self.rate / 2):
             highcut = int(self.rate / 2)
 
@@ -112,6 +113,51 @@ class Signal:
             self.data
         )
 
+    def frequencies(self):
+        # Calculate the time step between each sample
+        timestep = 1.0 / self.rate
+
+        # Create an array of times for each sample
+        time = np.arange(
+            0,
+            self.duration,
+            timestep
+        )
+
+        # The Fast Fourier Transform (FFT) of the input signal
+        fft = abs(
+            scipy.fft.fft(self.data)
+        )
+
+        # Get the first half of the FFT coefficients
+        bisection = fft[
+            range(self.data.size // 2)
+        ]
+
+        bisection = abs(bisection)
+
+        # The frequencies corresponding to the FFT coefficients
+        frequencies = scipy.fftpack.fftfreq(
+            self.data.size,
+            time[1] - time[0]
+        )
+
+        # Get the first half of the frequencies
+        halved = frequencies[
+            range(self.data.size // 2)
+        ]
+
+        amplitude = np.array(bisection)
+        threshold = np.where(amplitude > 5)
+
+        if halved[threshold].size == 0:
+            return (np.nan, np.nan)
+
+        minimum = min(halved[threshold])
+        maximum = max(halved[threshold])
+
+        return (minimum, maximum)
+
     def normalize(self):
         self.data = librosa.util.normalize(
             self.data
@@ -125,10 +171,6 @@ class Signal:
         )
 
     def dereverberate(self, settings):
-        '''
-        https://github.com/fgnt/nara_wpe/blob/master/examples/WPE_Numpy_offline.ipynb
-        '''
-
         data = [self.data]
         y = np.stack(data)
 
@@ -166,6 +208,8 @@ class Signal:
         data = self.data[
             int(onset * self.rate): int(offset * self.rate)
         ]
+
+        data = data.astype('float32')
 
         buffer = io.BytesIO()
 

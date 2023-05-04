@@ -1,7 +1,8 @@
 from IPython.display import display
 from ipywidgets import (
     Button,
-    GridspecLayout,
+    HBox,
+    Layout,
     Output
 )
 
@@ -21,15 +22,25 @@ class Gallery:
             self.output.clear_output(True)
 
             widget = self.collection[self.index]
-            widget.create()
+            plot = widget.create()
 
-            grid = GridspecLayout(2, 2)
-            grid[0, :] = widget.get_plot()
-            grid[1, 0] = self.previous
-            grid[1, 1] = self.next
+            button = HBox(
+                [self.previous, self.next],
+                layout=Layout(
+                    align_items='center',
+                    display='flex',
+                    flex_flow='row',
+                    align_content='stretch',
+                    justify_content='center'
+                )
+            )
+
+            button.add_class('button')
 
             self.set_event_listener()
-            display(grid)
+
+            display(plot)
+            display(button)
 
         return self.output
 

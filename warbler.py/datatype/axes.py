@@ -11,33 +11,23 @@ class SpectrogramAxes(Axes):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def initialize_x(self):
+        self._x_label()
+        self._x_lim()
+        self._x_position()
+        self._x_step()
+        self._x_ticks()
+
+    def initialize_y(self):
+        self._y_label()
+        self._y_position()
+        self._y_padding()
+        self._y_ticks()
+
     def initialize(self):
         self.initialize_x()
         self.initialize_y()
         self.format()
-
-    def initialize_x(self):
-        self._x_label()
-        self._x_major_tick()
-        self._x_lim()
-        self._x_step()
-        self._x_minor_tick()
-        self._x_position()
-        self._x_padding()
-
-    def initialize_y(self):
-        self._y_label()
-        self._y_major_tick()
-        self._y_lim()
-        self._y_step()
-        self._y_minor_tick()
-        self._y_position()
-        self._y_padding()
-
-    def format(self):
-        self.format_coord = (
-            lambda x, y: "Time={:1.17f}, Frequency={:1.2f}".format(x, y * 10)
-        )
 
     def _x_label(self, **kwargs):
         kwargs.setdefault('fontfamily', 'Arial')
@@ -59,44 +49,12 @@ class SpectrogramAxes(Axes):
             **kwargs
         )
 
-    def _x_major_tick(self):
-        self.xaxis.set_major_formatter(
-            ticker.FuncFormatter(
-                lambda x, pos: '{0:,.1f}'.format(x)
-            )
-        )
-
-    def _y_major_tick(self):
-        self.yaxis.set_major_formatter(
-            ticker.FuncFormatter(
-                lambda y, pos: '{0:g}'.format(y / 1e3)
-            )
-        )
-
-    def _x_minor_tick(self):
-        self.xaxis.set_minor_locator(
-            ticker.MultipleLocator(0.1)
-        )
-
-    def _y_minor_tick(self):
-        self.yaxis.set_minor_locator(
-            ticker.MaxNLocator(10)
-        )
-
     def _x_lim(self, maximum=5):
         self.set_xlim(0, maximum)
-
-    def _y_lim(self, maximum=10000):
-        self.set_ylim(0, maximum)
 
     def _x_step(self, maximum=5):
         self.xaxis.set_ticks(
             np.arange(0, maximum, 0.5)
-        )
-
-    def _y_step(self):
-        self.yaxis.set_ticks(
-            [0, 5000, 10000]
         )
 
     def _x_position(self):
@@ -111,6 +69,22 @@ class SpectrogramAxes(Axes):
     def _y_padding(self):
         self.yaxis.labelpad = 10
 
+    def _x_ticks(self):
+        self.set_xticklabels(
+            self.get_xticks(),
+            fontfamily='Arial',
+            fontsize=12,
+            fontweight=400
+        )
+
+    def _y_ticks(self):
+        self.set_yticklabels(
+            self.get_yticks(),
+            fontfamily='Arial',
+            fontsize=12,
+            fontweight=400
+        )
+
     def _title(self, title='Spectrogram', **kwargs):
         kwargs.setdefault('fontsize', 14)
         kwargs.setdefault('weight', 600)
@@ -118,16 +92,168 @@ class SpectrogramAxes(Axes):
 
         super().set_title(title, **kwargs)
 
+    def format(self):
+        self.format_coord = (
+            lambda x, y: "Time={:1.17f}, Frequency={:1.2f}".format(x, y)
+        )
 
-class LusciniaAxes(SpectrogramAxes):
+
+class LinearAxes(SpectrogramAxes):
+    name = 'linear'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _as_mpl_axes(self):
+        return LinearAxes, {}
+
+    def initialize(self):
+        super().initialize()
+        self.initialize_x()
+        self.initialize_y()
+
+    def initialize_x(self):
+        self._x_label()
+        self._x_major_tick()
+        self._x_lim()
+        self._x_step()
+        self._x_minor_tick()
+        self._x_position()
+        self._x_padding()
+
+    def initialize_y(self):
+        self._y_scale()
+        self._y_label()
+        self._y_major_tick()
+        self._y_lim()
+        self._y_step()
+        self._y_minor_tick()
+        self._y_position()
+        self._y_padding()
+
+    def _x_major_tick(self):
+        self.xaxis.set_major_formatter(
+            ticker.FuncFormatter(
+                lambda x, _: '{0:,.1f}'.format(x)
+            )
+        )
+
+    def _y_major_tick(self):
+        self.yaxis.set_major_formatter(
+            ticker.FuncFormatter(
+                lambda y, _: '{0:g}'.format(
+                    int(y / 1e3)
+                )
+            )
+        )
+
+    def _x_minor_tick(self):
+        self.xaxis.set_minor_locator(
+            ticker.MultipleLocator(0.1)
+        )
+
+    def _y_minor_tick(self):
+        self.yaxis.set_minor_locator(
+            ticker.MaxNLocator(10)
+        )
+
+    def _y_lim(self, maximum=22050):
+        self.set_ylim(0, maximum)
+
+    def _y_scale(self, scale='linear'):
+        self.set_yscale(scale)
+
+    def _y_step(self):
+        ticks = np.arange(
+            start=0,
+            stop=22050,
+            step=5000
+        )
+
+        self.yaxis.set_ticks(ticks)
+
+
+class LogarithmicAxes(SpectrogramAxes):
+    name = 'logarithmic'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def _as_mpl_axes(self):
+        return LogarithmicAxes, {}
+
+    def initialize(self):
+        super().initialize()
+        self.initialize_x()
+        self.initialize_y()
+
+    def initialize_x(self):
+        self._x_label()
+        self._x_major_tick()
+        self._x_lim()
+        self._x_step()
+        self._x_minor_tick()
+        self._x_position()
+        self._x_padding()
+
+    def initialize_y(self):
+        self._y_scale()
+        self._y_label()
+        self._y_major_tick()
+        self._y_lim()
+        self._y_step()
+        self._y_minor_tick()
+        self._y_position()
+        self._y_padding()
+
+    def _x_major_tick(self):
+        self.xaxis.set_major_formatter(
+            ticker.FuncFormatter(
+                lambda x, _: '{0:,.1f}'.format(x)
+            )
+        )
+
+    def _y_major_tick(self):
+        self.yaxis.set_major_formatter(
+            ticker.ScalarFormatter()
+        )
+
+    def _x_minor_tick(self):
+        self.xaxis.set_minor_locator(
+            ticker.MultipleLocator(0.1)
+        )
+
+    def _y_minor_tick(self):
+        self.minorticks_off()
+
+    def _y_lim(self, maximum=22050):
+        self.set_ylim(20, maximum)
+
+    def _y_scale(self, scale='log'):
+        self.set_yscale(scale)
+
+    def _y_step(self):
+        ticks = self.get_yticks()
+        self.yaxis.set_ticks(ticks)
+
+
+class LusciniaAxes(LinearAxes):
     name = 'luscinia'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def _as_mpl_axes(self):
+        return LusciniaAxes, {}
+
     def initialize(self):
-        super().initialize_x()
-        super().initialize_y()
+        super().initialize()
+        self._x_label()
+        self._x_padding()
+        self._x_ticks()
+        self._y_label()
+        self._y_padding()
+        self._y_ticks()
 
     def _x_label(self, **kwargs):
         kwargs.setdefault('fontfamily', 'Arial')
@@ -155,6 +281,23 @@ class LusciniaAxes(SpectrogramAxes):
     def _y_padding(self):
         self.yaxis.labelpad = 20
 
+    def _x_ticks(self):
+        self.set_xticklabels(
+            self.get_xticks(),
+            fontfamily='Arial',
+            fontsize=14,
+            fontweight=600
+        )
 
-register_projection(SpectrogramAxes)
+    def _y_ticks(self):
+        self.set_yticklabels(
+            self.get_yticks(),
+            fontfamily='Arial',
+            fontsize=14,
+            fontweight=600
+        )
+
+
+register_projection(LinearAxes)
+register_projection(LogarithmicAxes)
 register_projection(LusciniaAxes)

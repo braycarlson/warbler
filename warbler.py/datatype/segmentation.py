@@ -1,13 +1,19 @@
 import numpy as np
 
-from datatype.spectrogram import Segment
+from datatype.spectrogram import Linear, Segment, Spectrogram
 from scipy import ndimage
 
 
-def dynamic_threshold_segmentation(signal, settings):
+def dynamic_threshold_segmentation(signal, settings, full=False):
     # Make a copy of the original spectrogram
     segment = Segment(signal, settings)
-    original = segment.generate()
+
+    spectrogram = Spectrogram()
+    spectrogram.strategy = segment
+    original = spectrogram.generate()
+
+    # segment = Segment(signal, settings)
+    # original = segment.generate()
 
     fft_rate = signal.rate / int(
         settings.hop_length_ms / 1000 * signal.rate
@@ -31,18 +37,18 @@ def dynamic_threshold_segmentation(signal, settings):
         )
     ):
         segment.settings.min_level_db = min_level_db
-        spectrogram = segment.generate()
+        test = spectrogram.generate()
 
         # Subtract the median
-        spectrogram = spectrogram - np.median(spectrogram, axis=1).reshape(
-            (len(spectrogram), 1)
+        test = test - np.median(test, axis=1).reshape(
+            (len(test), 1)
         )
 
-        spectrogram[spectrogram < 0] = 0
+        test[test < 0] = 0
 
         # Get the vocal envelope
-        vocal_envelope = np.max(spectrogram, axis=0) * np.sqrt(
-            np.mean(spectrogram, axis=0)
+        vocal_envelope = np.max(test, axis=0) * np.sqrt(
+            np.mean(test, axis=0)
         )
 
         # Normalize envelope
@@ -60,10 +66,18 @@ def dynamic_threshold_segmentation(signal, settings):
     # Threshold out short syllables
     mask = (offsets - onsets) >= settings.min_syllable_length_s
 
-    return {
+    template = {
         'onset': onset[mask],
-        'offset': offset[mask],
+        'offset': offset[mask]
     }
+
+    if full:
+        vocal_envelope = vocal_envelope.astype('float32')
+
+        template['spectrogram'] = test
+        template['vocal_envelope'] = vocal_envelope
+
+    return template
 
 
 def onsets_offsets(signal):
@@ -79,7 +93,8 @@ def onsets_offsets(signal):
 
     onset, offset = np.array(
         [
-            np.where(elements == element)[0][np.array([0, -1])] + np.array([0, 1])
+            np.where(elements == element)[0][np.array([0, -1])] +
+            np.array([0, 1])
             for element in np.unique(elements)
             if element != 0
         ]

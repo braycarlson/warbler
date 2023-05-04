@@ -1,5 +1,4 @@
 # git+https://github.com/braycarlson/avgn_paper
 # git+https://github.com/timsainb/vocalization-segmentation
-# git+https://github.com/marathomas/tutorial_repo
 
 pygraphviz; sys_platform == 'win32' --global-option=build_ext --global-option="-IC:\Program Files\Graphviz\include" --global-option="-LC:\Program Files\Graphviz\lib"

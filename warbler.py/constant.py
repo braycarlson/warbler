@@ -9,16 +9,24 @@ def relative(path):
     return pure.relative_to(CWD)
 
 
-# The current-working directory of the project
-condition = (
-    Path.cwd().joinpath('setup.py').is_file() or
-    Path.cwd().parent.joinpath('notebook').is_dir()
-)
+# Find the "venv" folder relative to file
+def walk(file):
+    for path in file.parents:
+        if path.is_dir():
+            venv = list(
+                path.glob('venv')
+            )
 
-if condition:
-    CWD = Path.cwd().parent
-else:
-    CWD = Path.cwd().parent.parent
+            for environment in venv:
+                return environment.parent
+
+            walk(path.parent)
+
+    return None
+
+
+file = Path.cwd()
+CWD = walk(file)
 
 # The drive of the project
 ROOT = Path(CWD.anchor)
@@ -50,20 +58,26 @@ PDF = OUTPUT.joinpath('pdf')
 # The directory for pickled and compressed output
 PICKLE = OUTPUT.joinpath('pickle')
 
+# The directory for projection(s)
+PROJECTION = OUTPUT.joinpath('projection')
+
 # The directory for generated spectrograms to be inspected
 SPECTROGRAM = OUTPUT.joinpath('spectrogram')
+
+# The directory for hyperparameter tuning
+TUNING = OUTPUT.joinpath('tuning')
 
 # The root directory for the package
 PACKAGE = CWD.joinpath('warbler.py')
 
-# The directory for the cluster package
-CLUSTER = PACKAGE.joinpath('cluster')
+# The directory for the analysis package
+ANALYSIS = PACKAGE.joinpath('analysis')
 
-# The directory for the analyze package
-ANALYZE = PACKAGE.joinpath('analyze')
+# The directory for the AVGN package
+AVGN = PACKAGE.joinpath('avgn')
 
-# The directory for the segment package
-SEGMENT = PACKAGE.joinpath('segment')
+# The directory for the pipeline package
+PIPELINE = PACKAGE.joinpath('pipeline')
 
 # The directory for the settings file(s)
 SETTINGS = PACKAGE.joinpath('settings')
@@ -103,14 +117,6 @@ INDIVIDUALS = os_sorted([
     individual
     for individual in DATASET.glob('*/')
     if individual.is_dir()
-])
-
-# Get each individual's metadata from the processed dataset
-METADATA = os_sorted([
-    file
-    for individual in INDIVIDUALS
-    for file in individual.glob('metadata/*.json')
-    if file.is_file()
 ])
 
 # Get each individual's songs from the processed dataset

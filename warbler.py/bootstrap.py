@@ -25,11 +25,9 @@ def bootstrap(func):
             individual = DATASET.joinpath(directory.stem)
             individual.mkdir(parents=True, exist_ok=True)
 
-            metadata = individual.joinpath('metadata')
             recordings = individual.joinpath('recordings')
             segmentation = individual.joinpath('segmentation')
 
-            metadata.mkdir(parents=True, exist_ok=True)
             recordings.mkdir(parents=True, exist_ok=True)
             segmentation.mkdir(parents=True, exist_ok=True)
 
