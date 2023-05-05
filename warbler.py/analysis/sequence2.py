@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from constant import CWD, PICKLE, PROJECTION, SETTINGS
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
-from datatype.imaging import (
-    create_image,
-    filter_image,
-    to_bytes,
+from datatype.imaging import create_image
+from datatype.plot import (
+    BandwidthSpectrogram,
+    SegmentationSpectrogram,
+    StandardSpectrogram
 )
 from datatype.segmentation import dynamic_threshold_segmentation
 from datatype.settings import Settings
@@ -21,11 +21,7 @@ from datatype.spectrogram import (
 from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
-from plot import (
-    BandwidthSpectrogram,
-    LusciniaSpectrogram,
-    SegmentationSpectrogram,
-)
+from tqdm import tqdm
 
 
 def create_grid(collection, text):
@@ -171,9 +167,10 @@ def get_buffer(row):
 
     # Original signal
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.title(
@@ -201,11 +198,12 @@ def get_buffer(row):
     strategy = Linear(signal, custom)
     spectrogram.strategy = strategy
 
-    spectrogram = spectrogram.generate(normalize=False)
+    spectrogram = spectrogram.generate()
 
-    image = create_image(spectrogram)
-
-    plot = BandwidthSpectrogram(signal, image, custom)
+    plot = BandwidthSpectrogram()
+    plot.settings = custom
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.title(
@@ -235,9 +233,10 @@ def get_buffer(row):
     )
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.title(
@@ -264,9 +263,10 @@ def get_buffer(row):
     signal.normalize()
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.title(
@@ -290,15 +290,15 @@ def get_buffer(row):
     plt.close()
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
     # Dereverberate
     signal.dereverberate(dereverberate)
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.title(
@@ -325,9 +325,10 @@ def get_buffer(row):
     # signal.reduce()
 
     # spectrogram = create_spectrogram(signal, custom)
-    # image = create_image(spectrogram)
 
-    # plot = LusciniaSpectrogram(signal, image)
+    # plot = StandardSpectrogram()
+    # plot.signal = signal
+    # plot.spectrogram = spectrogram
     # plot.create()
 
     # plt.title(
@@ -351,13 +352,15 @@ def get_buffer(row):
     # plt.close()
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
 
     # Segmentation
     threshold = dynamic_threshold_segmentation(signal, custom, full=True)
-    threshold['spectrogram'] = image
+    threshold['spectrogram'] = spectrogram
 
-    plot = SegmentationSpectrogram(signal, threshold, custom)
+    plot = SegmentationSpectrogram()
+    plot.settings = custom
+    plot.signal = signal
+    plot.threshold = threshold
     plot.create()
 
     plt.title(
@@ -446,8 +449,10 @@ def main():
         path = PROJECTION.joinpath(folder)
         path.mkdir(parents=True, exist_ok=True)
 
+    tqdm.pandas(desc='Getting buffer')
+
     dataframe['buffer'] = (
-        dataframe.apply(get_buffer, axis=1)
+        dataframe.progress_apply(get_buffer, axis=1)
     )
 
     folders = dataframe.folder.tolist()

@@ -8,16 +8,16 @@ from matplotlib import gridspec
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 # from matplotlib.widgets import Slider
-from PIL import ImageOps
+# from PIL import ImageOps
 
 
 class Plot(ABC):
     def __init__(
         self,
         scale=None,
+        settings=None,
         signal=None,
-        spectrogram=None,
-        settings=None
+        spectrogram=None
     ):
         self._scale = LinearAxes
         self._settings = settings
@@ -80,7 +80,7 @@ class Plot(ABC):
 
         if isinstance(self.spectrogram, PIL.Image.Image):
             origin = 'upper'
-            self.spectrogram = ImageOps.invert(self.spectrogram)
+            # self.spectrogram = ImageOps.invert(self.spectrogram)
         else:
             origin = 'lower'
             # self.spectrogram = ~self.spectrogram
@@ -131,7 +131,7 @@ class Plot(ABC):
         return image
 
 
-class GenericSpectrogram(Plot):
+class StandardSpectrogram(Plot):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -148,7 +148,8 @@ class GenericSpectrogram(Plot):
 
         ax = fig.add_subplot(projection=projection)
 
-        cmap = plt.cm.afmhot
+        # cmap = plt.cm.afmhot
+        cmap = plt.cm.Greys
         self.plot(ax=ax, cmap=cmap)
 
         return fig

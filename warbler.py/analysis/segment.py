@@ -14,7 +14,6 @@ def main():
     settings = row.at[0, 'settings']
 
     result = dynamic_threshold_segmentation(signal, settings)
-
     print(result)
 
 

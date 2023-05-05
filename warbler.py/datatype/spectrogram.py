@@ -17,8 +17,9 @@ def compress(spectrogram):
     maximum = np.max(spectrogram)
 
     spectrogram = (spectrogram - minimum) / (maximum - minimum)
-    return spectrogram
-    # return (spectrogram * 255).astype('uint8')
+
+    # return spectrogram
+    return (spectrogram * 255).astype('uint8')
 
 
 def create_spectrogram(signal, settings, matrix=None):
@@ -116,7 +117,13 @@ def resize(spectrogram, factor=10):
 
 
 class Strategy(ABC):
-    def __init__(self, signal=None, settings=None, matrix=None, normalize=True):
+    def __init__(
+        self,
+        signal=None,
+        settings=None,
+        matrix=None,
+        normalize=True
+    ):
         self._data = None
         self._matrix = matrix
         self._normalize = normalize

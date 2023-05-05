@@ -10,14 +10,13 @@ from constant import (
     SETTINGS,
     SPREADSHEET
 )
-from datatype.axes import SpectrogramAxes
+from datatype.plot import (
+    StandardSpectrogram,
+    SegmentationSpectrogram
+)
 from datatype.settings import Settings
 from datatype.signal import Signal
 from datatype.spectrogram import Spectrogram
-from plot import (
-    LusciniaSpectrogram,
-    SegmentationSpectrogram
-)
 from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
 
 
@@ -82,7 +81,7 @@ def main():
                     align=1
                 )
 
-                # Luscinia
+                # Standard
                 current.insert_textbox(
                     fitz.Rect(
                         10,
@@ -90,7 +89,7 @@ def main():
                         680,
                         750
                     ) * current.rotation_matrix,
-                    'Luscinia',
+                    'Standard',
                     fontsize=10,
                     align=0,
                     rotate=270
@@ -125,7 +124,7 @@ def main():
                 spectrogram = Spectrogram(signal, settings)
                 spectrogram = spectrogram.generate()
 
-                plot = LusciniaSpectrogram(signal, spectrogram)
+                plot = StandardSpectrogram(signal, spectrogram)
                 plot.create()
 
                 stream = io.BytesIO()
@@ -159,7 +158,7 @@ def main():
                 )
 
                 # Python: Segmented
-                dts = dynamic_threshold_segmentation(
+                threshold = dynamic_threshold_segmentation(
                     signal.data,
                     signal.rate,
                     n_fft=settings.n_fft,
@@ -178,14 +177,16 @@ def main():
                 )
 
                 try:
-                    dts.get('spec')
-                    dts.get('onsets')
-                    dts.get('offsets')
+                    threshold.get('spec')
+                    threshold.get('onsets')
+                    threshold.get('offsets')
                 except Exception:
                     print(f"Unable to process: {filename}")
                     continue
 
-                plot = SegmentationSpectrogram(signal, dts)
+                plot = SegmentationSpectrogram()
+                plot.signal = signal
+                plot.threshold = threshold
                 plot.create()
 
                 plt.xticks(

@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 from constant import SETTINGS
 from copy import deepcopy
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_figure,
@@ -12,10 +11,10 @@ from datatype.imaging import (
     create_signal_page,
     filter_image
 )
+from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
 from datatype.spectrogram import create_spectrogram
 from io import BytesIO
-from plot import LusciniaSpectrogram
 
 
 def to_string(method):
@@ -71,10 +70,10 @@ def create_document(subset):
         collection.append(image)
 
         spectrogram = create_spectrogram(drv, settings)
-        image = create_image(spectrogram)
-        image = filter_image(image)
 
-        plot = LusciniaSpectrogram(drv, image)
+        plot = StandardSpectrogram()
+        plot.signal = drv
+        plot.spectrogram = spectrogram
         plot.create()
 
         buffer = BytesIO()

@@ -15,8 +15,8 @@ from datatype.spectrogram import (
 )
 from plot import (
     BandwidthSpectrogram,
-    GenericSpectrogram,
     SegmentationSpectrogram,
+    StandardSpectrogram,
     VocalEnvelopeSpectrogram
 )
 
@@ -89,7 +89,7 @@ def main():
     plot.spectrogram = spectrogram
     plot.create()
 
-    plot = GenericSpectrogram()
+    plot = StandardSpectrogram()
     plot.scale = scale
     plot.settings = settings
     plot.signal = signal
@@ -125,6 +125,10 @@ def main():
         y_axis='mel',
         sr=sr,
     )
+
+    ax = plt.gca()
+    ax.set_xlabel('Time (s)')
+    ax.set_ylabel('Frequency (Hz)')
 
     plt.colorbar(format='%+2.0f dB')
     plt.title('Mel Spectrogram')

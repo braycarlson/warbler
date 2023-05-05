@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 
 from constant import SETTINGS
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_grid,
@@ -9,9 +8,9 @@ from datatype.imaging import (
     filter_image,
     to_bytes
 )
+from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
 from datatype.spectrogram import create_spectrogram
-from plot import LusciniaSpectrogram
 
 
 def main():
@@ -34,7 +33,9 @@ def main():
     # Original
     image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram(signal, image)
+    plot.signal = signal
+    plot.spectrogram = image
     plot.create()
 
     plt.show()
@@ -46,7 +47,9 @@ def main():
     image = create_image(spectrogram)
     filtered = filter_image(image)
 
-    plot = LusciniaSpectrogram(signal, filtered)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = filtered
     plot.create()
 
     plt.show()

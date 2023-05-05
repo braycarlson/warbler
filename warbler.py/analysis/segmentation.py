@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 
 from constant import DATASET, SETTINGS
-from datatype.axes import SpectrogramAxes
+from datatype.plot import VocalEnvelopeSpectrogram
 from datatype.segmentation import dynamic_threshold_segmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
-from plot import VocalEnvelopeSpectrogram
 
 
 def main():
@@ -31,13 +30,15 @@ def main():
 
     signal.dereverberate(dereverberate)
 
-    dts = dynamic_threshold_segmentation(
+    threshold = dynamic_threshold_segmentation(
         signal,
         settings,
         full=True
     )
 
-    plot = VocalEnvelopeSpectrogram(signal, dts)
+    plot = VocalEnvelopeSpectrogram()
+    plot.signal = signal
+    plot.threshold = threshold
     plot.create()
 
     plt.show()

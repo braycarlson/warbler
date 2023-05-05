@@ -2,11 +2,11 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
+from datatype.plot import StandardSpectrogram
 from datatype.spectrogram import compress, create_spectrogram
 from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
-from plot import GenericSpectrogram
 from skimage import filters
 
 
@@ -112,7 +112,7 @@ def create_image(spectrogram):
             spectrogram = compress(spectrogram)
 
         image = Pillow.fromarray(spectrogram)
-        image = ImageOps.invert(image)
+        # image = ImageOps.invert(image)
 
     if isinstance(spectrogram, bytes):
         buffer = BytesIO(spectrogram)
@@ -123,9 +123,10 @@ def create_image(spectrogram):
 
 def create_plot(signal, settings, matrix=None):
     spectrogram = create_spectrogram(signal, settings, matrix)
-    image = create_image(spectrogram)
 
-    plot = GenericSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     buffer = BytesIO()

@@ -3,7 +3,6 @@ import numpy as np
 
 from constant import PDF, SETTINGS
 from copy import deepcopy
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_figure,

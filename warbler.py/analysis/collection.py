@@ -1,11 +1,10 @@
 import matplotlib.pyplot as plt
 
 from constant import SETTINGS
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
+from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
-from datatype.spectrogram import Linear, mel_matrix, Spectrogram
-from plot import LusciniaSpectrogram
+from datatype.spectrogram import Linear, Spectrogram
 
 
 def plot(signal, settings, matrix=None):
@@ -15,7 +14,9 @@ def plot(signal, settings, matrix=None):
 
     spectrogram = spectrogram.generate()
 
-    plot = LusciniaSpectrogram(signal, spectrogram)
+    plot = StandardSpectrogram(signal, spectrogram)
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     plt.show()
@@ -30,8 +31,6 @@ def main():
 
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
-
-    matrix = mel_matrix(settings)
 
     # Bandpass filter
     column = ['signal', 'settings']

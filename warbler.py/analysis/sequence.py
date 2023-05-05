@@ -3,12 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from constant import CWD, OUTPUT, PICKLE, SETTINGS
-from datatype.axes import SpectrogramAxes
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_image,
     to_bytes,
     to_numpy
+)
+from datatype.plot import (
+    BandwidthSpectrogram,
+    SegmentationSpectrogram,
+    StandardSpectrogram
 )
 from datatype.segmentation import dynamic_threshold_segmentation
 from datatype.settings import Settings
@@ -21,19 +25,14 @@ from datatype.spectrogram import (
 )
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
-from plot import (
-    BandwidthSpectrogram,
-    LusciniaSpectrogram,
-    SegmentationSpectrogram,
-)
 from skimage import filters
 
 
 def filter_image(image):
     image = to_numpy(image)
 
-    if image.mean() > 127.5:
-        image = ~image
+    # if image.mean() > 127.5:
+    #     image = ~image
 
     # Blur
     image = cv2.medianBlur(image, 1)
@@ -167,9 +166,11 @@ def main():
 
     # Original signal
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
+    # image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     file = projection.joinpath('01_original.png')
@@ -189,16 +190,19 @@ def main():
     )
 
     # Bandwidth spectrogram
-    spectrogram = Spectrogram()
     strategy = Linear(signal, custom)
+
+    spectrogram = Spectrogram()
     spectrogram.strategy = strategy
+    spectrogram = spectrogram.generate()
 
-    spectrogram = spectrogram.generate(normalize=False)
+    # image = create_image(spectrogram)
+    # image = ImageOps.invert(image)
 
-    image = create_image(spectrogram)
-    image = ImageOps.invert(image)
-
-    plot = BandwidthSpectrogram(signal, image, custom)
+    plot = BandwidthSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
+    plot.settings = custom
     plot.create()
 
     file = projection.joinpath('02_pre_bandpass_filter.png')
@@ -224,9 +228,11 @@ def main():
     )
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
+    # image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     file = projection.joinpath('03_bandpass_filter.png')
@@ -249,9 +255,11 @@ def main():
     signal.normalize()
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
+    # image = create_image(spectrogram)
 
-    plot = LusciniaSpectrogram(signal, image)
+    plot = StandardSpectrogram()
+    plot.signal = signal
+    plot.spectrogram = spectrogram
     plot.create()
 
     file = projection.joinpath('04_normalize.png')
@@ -277,9 +285,11 @@ def main():
     # signal.dereverberate(dereverberate)
 
     # spectrogram = create_spectrogram(signal, custom)
-    # image = create_image(spectrogram)
+    # # image = create_image(spectrogram)
 
-    # plot = LusciniaSpectrogram(signal, image)
+    # plot = StandardSpectrogram()
+    # plot.signal = signal
+    # plot.spectrogram = spectrogram
     # plot.create()
 
     # file = projection.joinpath('05_dereverberate.png')
@@ -299,18 +309,21 @@ def main():
     # )
 
     # Segmentation
-    dts = dynamic_threshold_segmentation(
+    threshold = dynamic_threshold_segmentation(
         signal,
         custom,
         full=True
     )
 
     spectrogram = create_spectrogram(signal, custom)
-    image = create_image(spectrogram)
+    # image = create_image(spectrogram)
 
-    dts['spectrogram'] = image
+    threshold['spectrogram'] = spectrogram
 
-    plot = SegmentationSpectrogram(signal, dts, custom)
+    plot = SegmentationSpectrogram()
+    plot.settings = custom
+    plot.signal = signal
+    plot.threshold = threshold
     plot.create()
 
     file = projection.joinpath('06_segmentation.png')
@@ -332,7 +345,9 @@ def main():
     # # Image filter
     # image = filter_image(image)
 
-    # plot = LusciniaSpectrogram(signal, ~image)
+    # plot = StandardSpectrogram()
+    # plot.signal = signal
+    # plot.spectrogram = ~image
     # plot.create()
 
     # file = projection.joinpath('07_image_filter.png')

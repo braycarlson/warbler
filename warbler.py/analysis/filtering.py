@@ -21,6 +21,7 @@ from skimage import filters
 
 np.set_printoptions(threshold=np.inf)
 
+
 def create_grid(collection, text):
     column = 5
     padding = 0
