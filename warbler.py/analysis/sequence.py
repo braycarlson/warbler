@@ -6,6 +6,7 @@ from constant import CWD, OUTPUT, PICKLE, SETTINGS
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_image,
+    draw_segment,
     to_bytes,
     to_numpy
 )
@@ -21,6 +22,8 @@ from datatype.spectrogram import (
     create_spectrogram,
     Linear,
     mel_matrix,
+    pad,
+    resize,
     Spectrogram
 )
 from PIL import Image as Pillow
@@ -28,7 +31,17 @@ from PIL import ImageDraw, ImageFont, ImageOps
 from skimage import filters
 
 
-def filter_image(image):
+def filter_image(image: Pillow) -> Pillow:
+    """Apply a series of image filters to enhance the image.
+
+    Args:
+        image: The input image to be filtered.
+
+    Returns:
+        The filtered image.
+
+    """
+
     image = to_numpy(image)
 
     # if image.mean() > 127.5:
@@ -61,7 +74,18 @@ def filter_image(image):
     return image
 
 
-def create_grid(collection, text):
+def create_grid(collection: np.ndarray, text: str) -> Pillow:
+    """Create a grid of images with text overlay.
+
+    Args:
+        collection: The collection of images to be arranged in a grid.
+        text: The text to be displayed on the grid.
+
+    Returns:
+        The grid image with images and text overlay.
+
+    """
+
     column = row = 5
 
     if all(isinstance(image, bytes) for image in collection):
@@ -387,32 +411,73 @@ def main():
         segment = signal.segment(onset, offset)
         spectrogram = create_spectrogram(segment, settings, matrix)
 
+        original.append(
+            np.array(spectrogram)
+        )
+
         image = create_image(spectrogram)
-        o = to_bytes(image)
-
-        original.append(o)
-
         image = filter_image(image)
-        image = to_bytes(image)
 
-        filtered.append(image)
+        filtered.append(
+            np.array(image)
+        )
 
-    grid = create_grid(original, 'Original')
+    original = [
+        resize(spectrogram)
+        for spectrogram in original
+    ]
+
+    padding = np.amax(
+        [
+            len(spectrogram.T)
+            for spectrogram in original
+        ]
+    )
+
+    original = [
+        pad(spectrogram, padding)
+        for spectrogram in original
+    ]
+
+    fig, ax = draw_segment(original)
 
     file = projection.joinpath('07_original_notes.png')
 
-    grid.save(
+    fig.savefig(
         file,
-        format='png'
+        bbox_inches='tight',
+        dpi=300,
+        format='png',
+        pad_inches=0
     )
 
-    grid = create_grid(filtered, 'Filtered')
+    filtered = [
+        resize(f)
+        for f in filtered
+    ]
+
+    padding = np.amax(
+        [
+            len(spectrogram.T)
+            for spectrogram in filtered
+        ]
+    )
+
+    filtered = [
+        pad(spectrogram, padding)
+        for spectrogram in filtered
+    ]
+
+    fig, ax = draw_segment(filtered)
 
     file = projection.joinpath('08_filtered_notes.png')
 
-    grid.save(
+    fig.savefig(
         file,
-        format='png'
+        bbox_inches='tight',
+        dpi=300,
+        format='png',
+        pad_inches=0
     )
 
 

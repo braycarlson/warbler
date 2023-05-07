@@ -33,7 +33,7 @@ from joblib import Parallel, delayed
 from tqdm.autonotebook import tqdm
 
 
-def create_baseline():
+def create_baseline() -> None:
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 
@@ -150,7 +150,7 @@ def create_settings_path(folder, filename):
     )
 
 
-# def full():
+# def full() -> None:
 #     # create_baseline()
 
 #     np.set_printoptions(

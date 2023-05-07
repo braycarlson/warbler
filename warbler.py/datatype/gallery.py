@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from datatype.interactive import Interactive
 from IPython.display import display
 from ipywidgets import (
     Button,
@@ -5,10 +8,11 @@ from ipywidgets import (
     Layout,
     Output
 )
+from typing import List
 
 
 class Gallery:
-    def __init__(self, collection):
+    def __init__(self, collection: List[Interactive]):
         self.collection = collection
 
         self.index = 0
@@ -17,7 +21,14 @@ class Gallery:
         self.next = Button(description='Next')
         self.previous = Button(description='Previous')
 
-    def create(self):
+    def create(self) -> Output:
+        """Create the gallery display.
+
+        Returns:
+            An Output object representing the gallery display.
+
+        """
+
         with self.output:
             self.output.clear_output(True)
 
@@ -44,7 +55,14 @@ class Gallery:
 
         return self.output
 
-    def on_next(self, button):
+    def on_next(self, button: Button) -> None:
+        """Event handler for the 'Next' button click.
+
+        Args:
+            button: The 'Next' button widget.
+
+        """
+
         if self.index == self.length - 1:
             self.index = 0
         else:
@@ -52,7 +70,14 @@ class Gallery:
 
         self.create()
 
-    def on_previous(self, button):
+    def on_previous(self, button: Button) -> None:
+        """Event handler for the 'Previous' button click.
+
+        Args:
+            button: The 'Previous' button widget.
+
+        """
+
         if self.index == 0:
             self.index = self.length - 1
         else:
@@ -60,6 +85,8 @@ class Gallery:
 
         self.create()
 
-    def set_event_listener(self):
+    def set_event_listener(self) -> None:
+        """Set event listeners for the 'Next' and 'Previous' buttons."""
+
         self.next.on_click(self.on_next)
         self.previous.on_click(self.on_previous)

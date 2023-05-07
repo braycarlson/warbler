@@ -4,6 +4,12 @@ import numpy as np
 
 from constant import DATASET, PICKLE, SETTINGS
 from datatype.axes import LinearAxes
+from datatype.plot import (
+    BandwidthSpectrogram,
+    SegmentationSpectrogram,
+    StandardSpectrogram,
+    VocalEnvelopeSpectrogram
+)
 from datatype.segmentation import dynamic_threshold_segmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
@@ -12,12 +18,6 @@ from datatype.spectrogram import (
     Mel,
     mel_matrix,
     Spectrogram
-)
-from plot import (
-    BandwidthSpectrogram,
-    SegmentationSpectrogram,
-    StandardSpectrogram,
-    VocalEnvelopeSpectrogram
 )
 
 

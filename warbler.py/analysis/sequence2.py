@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 from constant import CWD, PICKLE, PROJECTION, SETTINGS
 from datatype.dataset import Dataset
@@ -22,9 +23,21 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
 from tqdm import tqdm
+from typing import List
 
 
-def create_grid(collection, text):
+def create_grid(collection: np.ndarray, text: str) -> Pillow:
+    """Create a grid image from a collection of images.
+
+    Args:
+        collection: A numpy array of images.
+        text: The text to be displayed on the grid.
+
+    Returns:
+        A Pillow image representing the grid.
+
+    """
+
     column = row = 5
 
     if all(isinstance(image, bytes) for image in collection):
@@ -84,7 +97,18 @@ def create_grid(collection, text):
     return grid
 
 
-def create_signal_page(collection, text):
+def create_signal_page(collection: np.ndarray, text: str) -> Pillow:
+    """Create a signal page image from a collection of images.
+
+    Args:
+        collection: A numpy array of images.
+        text: The text to be displayed on the signal page.
+
+    Returns:
+        A Pillow image representing the signal page.
+
+    """
+
     padding = y = 800
     length = len(collection)
 
@@ -148,7 +172,17 @@ def create_signal_page(collection, text):
     return grid
 
 
-def get_buffer(row):
+def get_buffer(row: pd.Series) -> List[BytesIO]:
+    """Create a list of image buffers from a row of data.
+
+    Args:
+        row: A pandas Series containing the data.
+
+    Returns:
+        A list of BytesIO image buffers.
+
+    """
+
     poster = []
 
     recording = row.recording

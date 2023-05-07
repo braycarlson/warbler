@@ -1,5 +1,9 @@
+from __future__ import annotations
+
+import pandas as pd
+
 from abc import ABC, abstractmethod
-from datatype.trace import AnimationTrace
+from datatype.trace import AnimationTrace, Visitor
 from IPython.display import Audio, display
 from ipywidgets import (
     HBox,
@@ -10,43 +14,87 @@ from ipywidgets import (
     VBox
 )
 from plotly import graph_objs as go
+from typing import NoReturn
 
 
 class DimensionalStrategy(ABC):
-    def __init__(self, dataframe=None, trace=None):
+    """Abstract base class for dimensional strategies.
+
+    Args:
+        dataframe: The input pandas DataFrame.
+        trace: The visitor object for the strategy.
+
+    Attributes:
+        _dataframe: The input pandas DataFrame.
+        _trace: The visitor object for the strategy.
+
+    """
+
+    def __init__(
+        self,
+        dataframe: pd.DataFrame = None,
+        trace: Visitor = None
+    ):
         self._dataframe = dataframe
         self._trace = trace
 
     @property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
+        """Get the input pandas DataFrame."""
+
         return self._dataframe
 
     @dataframe.setter
-    def dataframe(self, dataframe):
+    def dataframe(self, dataframe: pd.DataFrame) -> None:
         self._dataframe = dataframe
 
     @property
-    def trace(self):
+    def trace(self) -> Visitor:
+        """Get the visitor object for the strategy."""
+
         return self._trace
 
     @trace.setter
-    def trace(self, trace):
+    def trace(self, trace: Visitor) -> None:
         self._trace = trace
 
     @abstractmethod
-    def scatter(self):
-        pass
+    def scatter(self) -> NoReturn:
+        """Abstract method for generating a scatter plot."""
+
+        raise NotImplementedError
 
     @abstractmethod
-    def scene(self, data):
-        pass
+    def scene(self, data: go.layout.Scene) -> NoReturn:
+        """Abstract method for generating a scene layout.
+
+        Args:
+            data: The scene layout data.
+
+        """
+
+        raise NotImplementedError
 
 
 class ThreeDimensional(DimensionalStrategy):
-    def scatter(self):
+    def scatter(self) -> Visitor:
+        """Generate a scatter plot for a three-dimensional visualization.
+
+        Returns:
+            The visitor object with scatter data.
+
+        """
+
         return self.trace.three(self.dataframe)
 
-    def scene(self):
+    def scene(self) -> go.layout.Scene:
+        """Generate a scene layout for a three-dimensional visualization.
+
+        Returns:
+            The scene layout.
+
+        """
+
         return go.layout.Scene(
             xaxis=go.layout.scene.XAxis(title='x'),
             yaxis=go.layout.scene.YAxis(title='y'),
@@ -55,10 +103,24 @@ class ThreeDimensional(DimensionalStrategy):
 
 
 class TwoDimensional(DimensionalStrategy):
-    def scatter(self):
+    def scatter(self) -> Visitor:
+        """Generate a scatter plot for a two-dimensional visualization.
+
+        Returns:
+            The visitor object with scatter data.
+
+        """
+
         return self.trace.two(self.dataframe)
 
-    def scene(self):
+    def scene(self) -> go.layout.Scene:
+        """Generate a scene layout for a two-dimensional visualization.
+
+        Returns:
+            The scene layout.
+
+        """
+
         return go.layout.Scene(
             xaxis=go.layout.scene.XAxis(title='x'),
             yaxis=go.layout.scene.YAxis(title='y')
@@ -66,7 +128,27 @@ class TwoDimensional(DimensionalStrategy):
 
 
 class Builder:
-    def __init__(self, dataframe=None, strategy=None):
+    """
+    The builder class for creating an interactive plot.
+
+    Args:
+        dataframe: The input pandas DataFrame.
+        strategy: The dimensional strategy used for visualization.
+
+    Attributes:
+        _dataframe: The input pandas DataFrame.
+        _strategy: The dimensional strategy used for visualization.
+        plot: The Plot object for storing visualization components.
+        height: The height of the visualization.
+        width: The width of the visualization.
+
+    """
+
+    def __init__(
+        self,
+        dataframe: pd.DataFrame = None,
+        strategy: DimensionalStrategy = None
+    ):
         self._dataframe = dataframe
         self._strategy = strategy
 
@@ -76,22 +158,35 @@ class Builder:
         self.width = 1000
 
     @property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
+        """Get the input pandas DataFrame."""
+
         return self._dataframe
 
     @dataframe.setter
-    def dataframe(self, dataframe):
+    def dataframe(self, dataframe: pd.DataFrame) -> None:
+        """Set the input pandas DataFrame."""
+
         self._dataframe = dataframe
 
     @property
-    def strategy(self):
+    def strategy(self) -> DimensionalStrategy:
+        """Get the dimensional strategy used for visualization."""
+
         return self._strategy
 
     @strategy.setter
-    def strategy(self, strategy):
+    def strategy(self, strategy: DimensionalStrategy):
         self._strategy = strategy
 
-    def animation(self):
+    def animation(self) -> Self:  # noqa
+        """Enable animation for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if not isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -144,19 +239,40 @@ class Builder:
 
         return self
 
-    def scatter(self):
+    def scatter(self) -> Self:  # noqa
+        """Generate scatter data for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         scatter = self.strategy.scatter()
         self.plot.component['scatter'] = scatter
 
         return self
 
-    def scene(self):
+    def scene(self) -> Self:  # noqa
+        """Generate a scene layout for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         scene = self.strategy.scene()
         self.plot.component['scene'] = scene
 
         return self
 
-    def audio(self):
+    def audio(self) -> Self:  # noqa
+        """Enable audio component for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -172,7 +288,14 @@ class Builder:
 
         return self
 
-    def description(self):
+    def description(self) -> Self:  # noqa
+        """Enable description component for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -190,7 +313,14 @@ class Builder:
 
         return self
 
-    def figure(self):
+    def figure(self) -> Self:  # noqa
+        """Generate the figure for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         data = self.plot.component.get('scatter')
         layout = self.plot.component.get('layout')
 
@@ -207,7 +337,14 @@ class Builder:
 
         return self
 
-    def html(self):
+    def html(self) -> Self:  # noqa
+        """Enable the HTML component for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -259,7 +396,14 @@ class Builder:
 
         return self
 
-    def layout(self):
+    def layout(self) -> Self:  # noqa
+        """Set the layout for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         scene = self.plot.component.get('scene')
 
         layout = go.Layout(
@@ -281,7 +425,14 @@ class Builder:
 
         return self
 
-    def widget(self):
+    def widget(self) -> Self:  # noqa
+        """Generate the widget for the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         figure = self.plot.component.get('figure')
 
         if isinstance(self.strategy.trace, AnimationTrace):
@@ -293,7 +444,14 @@ class Builder:
 
         return self
 
-    def get(self):
+    def get(self) -> VBox:
+        """Get the final visualization as a VBox container.
+
+        Returns:
+            The VBox container containing the visualization.
+
+        """
+
         widget = self.plot.component.get('widget')
 
         if isinstance(self.strategy.trace, AnimationTrace):
@@ -348,7 +506,21 @@ class Builder:
 
         return box
 
-    def on_click(self, trace, points, selector):
+    def on_click(
+        self,
+        trace: go.Scatter3d,
+        points: go.callbacks.Point,
+        _
+    ) -> None:
+        """Event handler for click events on the visualization.
+
+        Args:
+            trace: The 3D scatter trace.
+            points: The clicked points.
+            _ : Unused argument.
+
+        """
+
         index = points.point_inds
 
         if not index:
@@ -361,7 +533,21 @@ class Builder:
 
         self.play(i)
 
-    def on_hover(self, trace, points, state):
+    def on_hover(
+        self,
+        trace: go.Scatter3d,
+        points: go.callbacks.Point,
+        _
+    ) -> None:
+        """Event handler for hover events on the visualization.
+
+        Args:
+            trace: The 3D scatter trace.
+            points: The hovered points.
+            _ : Unused argument.
+
+        """
+
         index = points.point_inds
 
         if not index:
@@ -408,7 +594,14 @@ class Builder:
         description = self.plot.component.get('description')
         description.value = spectrogram[zero]
 
-    def play(self, index):
+    def play(self, index: int):
+        """Play the audio segment corresponding to the index.
+
+        Args:
+            index: The index of the audio segment.
+
+        """
+
         segment = self.dataframe.loc[
             self.dataframe.index[index],
             'segment'
@@ -428,7 +621,14 @@ class Builder:
 
             display(audio)
 
-    def css(self):
+    def css(self) -> Self:  # noqa
+        """Apply CSS styling to the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -486,7 +686,14 @@ class Builder:
 
         return self
 
-    def listener(self):
+    def listener(self) -> Self:  # noqa
+        """Attach event listeners to the visualization.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
@@ -500,23 +707,64 @@ class Builder:
 
 
 class Plot():
+    """A class representing a plot.
+
+    Attributes:
+        component: A dictionary containing plot components.
+
+    """
+
     def __init__(self):
         self.component = {}
 
 
 class Interactive:
+    """A class for creating interactive visualizations.
+
+    Attributes:
+        builder: An instance of the Builder class.
+
+    """
+
     def __init__(self):
         self.builder = Builder()
 
     @Builder.dataframe.setter
-    def dataframe(self, dataframe):
+    def dataframe(self, dataframe: pd.DataFrame) -> None:
+        """Set the dataframe attribute of the builder.
+
+        Args:
+            dataframe: The input pandas DataFrame.
+
+        Returns:
+            None.
+
+        """
+
         self.builder.dataframe = dataframe
 
     @Builder.strategy.setter
-    def strategy(self, strategy):
+    def strategy(self, strategy: DimensionalStrategy) -> None:
+        """Set the strategy attribute of the builder.
+
+        Args:
+            strategy: An instance of the DimensionalStrategy class.
+
+        Returns:
+            None.
+
+        """
+
         self.builder.strategy = strategy
 
-    def create(self):
+    def create(self) -> VBox:
+        """Create an interactive visualization.
+
+         Returns:
+             A VBox object containing the interactive visualization.
+
+         """
+
         return (
             self.builder
             .scatter()

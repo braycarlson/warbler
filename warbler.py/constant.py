@@ -1,16 +1,37 @@
+import pathlib
 import pickle
 
 from natsort import os_sorted
 from pathlib import Path, PurePath
 
 
-def relative(path):
+def relative(path: str) -> pathlib.PurePath:
+    """Calculates the relative path from the current working directory to the given path.
+
+    Args:
+        path: The path for which the relative path needs to be calculated.
+
+    Returns:
+        A PurePath object representing the relative path from the current working directory.
+
+    """
+
     pure = PurePath(path)
     return pure.relative_to(CWD)
 
 
 # Find the "venv" folder relative to file
-def walk(file):
+def walk(file: pathlib.Path):
+    """Recursively finds the 'venv' folder relative to the given file.
+
+    Args:
+        file: The file from which the 'venv' folder needs to be found.
+
+    Returns:
+        The parent directory of the 'venv' folder if found, else None.
+
+    """
+
     for path in file.parents:
         if path.is_dir():
             venv = list(

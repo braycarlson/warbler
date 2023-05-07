@@ -1,15 +1,3 @@
-"""
-This module provides a function that loads a dataset, selects a subset of the
-data, and modifies the settings for each file in the subset.
-
-Functions:
-    - main(): loads a dataset, selects a subset of the data, and modifies the settings for each file in the subset.
-
-Requirements:
-    - Python 3.x
-    - pandas library
-"""
-
 from constant import DATASET
 from datatype.dataset import Dataset
 from datatype.settings import Settings

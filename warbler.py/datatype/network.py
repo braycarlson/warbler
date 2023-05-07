@@ -1,16 +1,25 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import seaborn as sns
 
 from collections import defaultdict
-from datatype.builder import Base, Plot
+from datatype.builder import Base, Component, Plot
 from datatype.settings import Settings
 from matplotlib.lines import Line2D
 
 
 class Builder(Base):
-    def ax(self):
+    def ax(self) -> Self:  # noqa
+        """Create a new figure and axis.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         figsize = self.settings.figure.get('figsize')
         fig, ax = plt.subplots(figsize=figsize)
 
@@ -21,7 +30,14 @@ class Builder(Base):
 
         return self
 
-    def build(self):
+    def build(self) -> Self:  # noqa
+        """Build the transition matrix and other data structures.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         sequences = self.component.collection.get('sequences')
 
         unique = np.unique(
@@ -81,7 +97,14 @@ class Builder(Base):
 
         return self
 
-    def centroid(self):
+    def centroid(self) -> Self:  # noqa
+        """Plot the centroids of each label.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         ax = self.component.collection.get('ax')
         location = self.component.collection.get('location')
 
@@ -113,7 +136,14 @@ class Builder(Base):
 
         return self
 
-    def compute(self):
+    def compute(self) -> Self:  # noqa
+        """Compute the transition graph from the transition matrix.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         column_names = self.component.collection.get('column_names')
         matrix = self.component.collection.get('matrix')
 
@@ -153,7 +183,14 @@ class Builder(Base):
 
         return self
 
-    def decorate(self):
+    def decorate(self) -> Self:  # noqa
+        """Set the default settings and update them with the custom settings.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         default = {
             'figure': {
                 'figsize': (9, 8)
@@ -185,7 +222,13 @@ class Builder(Base):
 
         return self
 
-    def drop(self):
+    def drop(self) -> Self:  # noqa
+        """Drop rows and columns from the transition matrix.
+
+        Returns:
+            The modified Builder instance.
+
+        """
         matrix = self.component.collection.get('matrix')
         remove = self.component.collection.get('remove')
 
@@ -204,7 +247,14 @@ class Builder(Base):
 
         return self
 
-    def edges(self):
+    def edges(self) -> Self:  # noqa
+        """Plot the edges of the transition graph.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         ax = self.component.collection.get('ax')
         graph = self.component.collection.get('graph')
         position = self.component.collection.get('position')
@@ -229,7 +279,14 @@ class Builder(Base):
 
         return self
 
-    def element(self):
+    def element(self) -> Self:  # noqa
+        """Create a dictionary mapping element index to label.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         element_dict = self.component.collection.get('element_dict')
 
         element_dict_r = {
@@ -241,7 +298,14 @@ class Builder(Base):
 
         return self
 
-    def nodes(self):
+    def nodes(self) -> Self:  # noqa
+        """Compute the positions of the nodes in the transition graph.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         graph = self.component.collection.get('graph')
         element_centers = self.component.collection.get('element_centers')
         element_dict_r = self.component.collection.get('element_dict_r')
@@ -264,7 +328,14 @@ class Builder(Base):
 
         return self
 
-    def legend(self):
+    def legend(self) -> Self:  # noqa
+        """Plot the legend for the labels.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         element_dict_r = self.component.collection.get('element_dict_r')
         label = self.component.collection.get('label')
         position = self.component.collection.get('position')
@@ -313,7 +384,14 @@ class Builder(Base):
 
         return self
 
-    def sequences(self):
+    def sequences(self) -> Self:  # noqa
+        """Create a list of sequences based on the labels.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         sequences = [
             self.label[self.sequence == sequence]
             for sequence in np.unique(self.sequence)
@@ -323,7 +401,14 @@ class Builder(Base):
 
         return self
 
-    def centers(self):
+    def centers(self) -> Self:  # noqa
+        """Compute the center(s) of each label.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         # Compute the center(s) of each label
         element_centers = {
             label: np.mean(
@@ -339,7 +424,14 @@ class Builder(Base):
 
 
 class Network(Plot):
-    def construct(self):
+    def construct(self) -> Component:
+        """Construct the network graph.
+
+        Returns:
+            Component: The constructed network graph component.
+
+        """
+
         return (
             self.builder
             .decorate()

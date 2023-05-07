@@ -1,5 +1,6 @@
 import fitz
 import numpy as np
+import pandas as pd
 
 from constant import PDF, SETTINGS
 from copy import deepcopy
@@ -10,9 +11,21 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 from itertools import permutations
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from typing import List
 
 
-def create_page(collection, text):
+def create_page(collection: np.ndarray, text: str) -> Image:
+    """Create a page with images arranged in a grid.
+
+    Args:
+        collection: A numpy array containing the images to be put on the page.
+        text: The text to be added to the page.
+
+    Returns:
+        An image representing the page with the images and text.
+
+    """
+
     padding = y = 150
     length = len(collection)
 
@@ -69,7 +82,18 @@ def create_page(collection, text):
     return grid
 
 
-def create_grid(collection, text):
+def create_grid(collection: np.ndarray, text: str) -> Image:
+    """Create a grid of images.
+
+    Args:
+        collection: A numpy array containing the images to be put in the grid.
+        text: The text to be added to the grid.
+
+    Returns:
+        An image representing the grid with the images and text.
+
+    """
+
     column = 5
     padding = 10
 
@@ -142,11 +166,31 @@ def create_grid(collection, text):
     return grid
 
 
-def to_string(method):
+def to_string(method: List[str]) -> str:
+    """Convert a list of strings to a single string.
+
+    Args:
+        method: A list of strings.
+
+    Returns:
+        A string containing the elements of the input list separated by commas.
+
+    """
+
     return ', '.join(method)
 
 
-def resize_image(spectrogram):
+def resize_image(spectrogram: np.ndarray) -> Image:
+    """Resize an image.
+
+    Args:
+        spectrogram: A numpy array representing the spectrogram image.
+
+    Returns:
+        The resized image.
+
+    """
+
     image = create_image(spectrogram)
     flip = ImageOps.flip(image)
 
@@ -161,7 +205,17 @@ def resize_image(spectrogram):
     )
 
 
-def create_document(subset):
+def create_document(subset: pd.DataFrame) -> None:
+    """Create a document with pages containing grids of images.
+
+    Args:
+        subset: A pandas DataFrame representing a subset of data.
+
+    Returns:
+        None.
+
+    """
+
     individal = subset.folder.iat[0]
     group = subset.groupby('filename', as_index=False)
 

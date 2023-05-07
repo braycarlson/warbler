@@ -22,7 +22,18 @@ from skimage import filters
 np.set_printoptions(threshold=np.inf)
 
 
-def create_grid(collection, text):
+def create_grid(collection: np.ndarray, text: str):
+    """Creates a grid of images from a collection.
+
+    Args:
+        collection: A numpy array of images.
+        text: A string representing the text to be displayed.
+
+    Returns:
+        An image representing the grid of images.
+
+    """
+
     column = 5
     padding = 0
 
@@ -86,7 +97,17 @@ def create_grid(collection, text):
     return grid
 
 
-def filter_image(image):
+def filter_image(image: Image):
+    """Filters an image by applying various image processing techniques.
+
+    Args:
+        image: An image object.
+
+    Returns:
+        A filtered image.
+
+    """
+
     image = to_numpy(image)
 
     if image.mean() > 127.5:

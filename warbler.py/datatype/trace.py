@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import numpy as np
+import pandas as pd
 import seaborn as sns
 
 from abc import ABC, abstractmethod
 from datatype.settings import Settings
 from plotly import graph_objs as go
+from typing import Dict, List, NoReturn, Tuple
 
 
 class Visitor(ABC):
+    """Abstract base class for data visualization visitors."""
+
     def __init__(self):
         self._settings = Settings.from_dict(
             {
@@ -18,39 +24,103 @@ class Visitor(ABC):
         )
 
     @abstractmethod
-    def palette(self, labels):
-        pass
+    def palette(self, labels: np.ndarray) -> NoReturn:
+        """Generate a palette of colors based on labels.
+
+        Args:
+            labels: Array of labels.
+
+        Returns:
+            None.
+
+        """
+
+        raise NotImplementedError
 
     @abstractmethod
-    def two(self, dataframe):
-        pass
+    def two(self, dataframe: pd.DataFrame) -> NoReturn:
+        """Generate a two-dimensional plot based on a dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            None.
+
+        """
+
+        raise NotImplementedError
 
     @abstractmethod
-    def three(self, dataframe):
-        pass
+    def three(self, dataframe: pd.DataFrame) -> NoReturn:
+        """Generate a three-dimensional plot based on a dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            None.
+
+        """
+
+        raise NotImplementedError
 
     @property
-    def settings(self):
+    def settings(self) -> Settings:
+        """Get the Settings for the visitor.
+
+        Returns:
+            The Settings instance.
+
+        """
+
         return self._settings
 
     @settings.setter
-    def settings(self, settings):
+    def settings(self, settings: Settings) -> None:
         self._settings = settings
 
 
 class AnimationTrace(Visitor):
+    """Visitor class for generating an animated trace."""
+
     def __init__(self):
         self._frames = []
-        self.x_eye = -1
-        self.y_eye = 2
+        self.x_eye = -1.0
+        self.y_eye = 2.0
         self.z_eye = 0.5
 
     @property
-    def frames(self):
+    def frames(self) -> List[go.Frame]:
+        """Get the list of animation frames.
+
+        Returns:
+            A list of animation frames.
+
+        """
+
         return self._frames
 
     @staticmethod
-    def rotate_z(x, y, z, theta):
+    def rotate_z(
+        x: float,
+        y: float,
+        z: float,
+        theta: float
+    ) -> Tuple[float, float, float]:
+        """Rotate the coordinates around the z-axis.
+
+        Args:
+            x: x-coordinate.
+            y: y-coordinate.
+            z: z-coordinate.
+            theta: Angle of rotation.
+
+        Returns:
+            The rotated coordinates.
+
+        """
+
         w = x + 1j * y
 
         return (
@@ -59,7 +129,14 @@ class AnimationTrace(Visitor):
             z
         )
 
-    def animate(self):
+    def animate(self) -> None:
+        """Create animation frames by rotating the camera.
+
+        Returns:
+            None.
+
+        """
+
         for theta in np.arange(0, 10, 0.1):
             (xe, ye, ze) = self.rotate_z(
                 self.x_eye,
@@ -80,10 +157,30 @@ class AnimationTrace(Visitor):
                 )
             )
 
-    def palette(self, labels):
+    def palette(self, labels: np.ndarray) -> None:
+        """Generate a palette of colors based on labels.
+
+        Args:
+            labels: Array of labels.
+
+        Returns:
+            None.
+
+        """
+
         pass
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> go.Scatter3d:
+        """Generate a three-dimensional scatter plot based on a dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A scatter plot object.
+
+        """
+
         return go.Scatter3d(
             x=dataframe.umap_x_3d,
             y=dataframe.umap_y_3d,
@@ -95,12 +192,35 @@ class AnimationTrace(Visitor):
             showlegend=False
         )
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> None:
+        """Generate a two-dimensional plot based on a dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            None.
+
+        """
+
         pass
 
 
 class CoordinateTrace(Visitor):
-    def palette(self, labels):
+    def palette(
+        self,
+        labels: np.ndarray
+    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+        """Generate a color palette dictionary based on labels.
+
+         Args:
+             labels: Array of labels.
+
+         Returns:
+             A dictionary mapping labels to a color palette.
+
+         """
+
         length = len(labels) * 2
 
         palette = (
@@ -117,7 +237,17 @@ class CoordinateTrace(Visitor):
         iterable = zip(labels, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generate 2D scatter plots for each coordinate pair.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
         columns = [
             'umap_x_2d',
             'umap_y_2d'
@@ -160,7 +290,17 @@ class CoordinateTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generate 3D scatter plots for each coordinate triplet.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
         columns = [
             'umap_x_3d',
             'umap_y_3d',
@@ -207,7 +347,20 @@ class CoordinateTrace(Visitor):
 
 
 class DurationTrace(Visitor):
-    def palette(self, labels):
+    def palette(
+        self,
+        labels: np.ndarray
+    ) -> Dict[np.ndarray, List[Tuple[int, int, int, float]]]:
+        """Generate a color palette dictionary based on labels.
+
+        Args:
+            labels: Array of labels.
+
+        Returns:
+            A dictionary mapping labels to RGBA color tuples.
+
+        """
+
         palette = [
             (212, 212, 212, 0.9),
             (154, 154, 154, 0.9),
@@ -218,7 +371,17 @@ class DurationTrace(Visitor):
         iterable = zip(labels, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generate 2D scatter plots for each label in the dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
         labels = dataframe.hdbscan_label_2d.unique()
         labels = labels[labels != -1]
 
@@ -281,7 +444,17 @@ class DurationTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generate 3D scatter plots for each label in the dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
         labels = dataframe.hdbscan_label_2d.unique()
         labels = labels[labels > -1]
 
@@ -347,7 +520,16 @@ class DurationTrace(Visitor):
 
 
 class FuzzyClusterTrace(Visitor):
-    def palette(self):
+    """Generate visualization traces for Fuzzy C-Means clustering."""
+
+    def palette(self) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+        """Generate a color palette based on the Fuzzy C-Means settings.
+
+        Returns:
+            A dictionary mapping Fuzzy C-Means labels to a color palette.
+
+        """
+
         self.settings.fcm.sort()
 
         palette = (
@@ -362,7 +544,17 @@ class FuzzyClusterTrace(Visitor):
         iterable = zip(self.settings.fcm, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generate 2D scatter plot traces for Fuzzy C-Means clusters.
+
+        Args:
+            dataframe: The dataframe containing cluster labels and coordinates.
+
+        Returns:
+            A list of Scattergl traces for the clusters.
+
+        """
+
         legend = self.palette()
 
         labels = dataframe.fcm_label_2d.unique()
@@ -391,7 +583,17 @@ class FuzzyClusterTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generate 3D scatter plot traces for Fuzzy C-Means clusters.
+
+        Args:
+            dataframe: The dataframe containing cluster labels and coordinates.
+
+        Returns:
+            A list of Scatter3d traces for the clusters.
+
+        """
+
         legend = self.palette()
 
         labels = dataframe.fcm_label_3d.unique()
@@ -423,7 +625,16 @@ class FuzzyClusterTrace(Visitor):
 
 
 class HDBScanTrace(Visitor):
-    def palette(self):
+    """A class for generating visualization traces for HDBScan clustering."""
+
+    def palette(self) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+        """Generate a color palette based on the HDBScan settings.
+
+        Returns:
+            A dictionary mapping HDBScan labels to a color palette.
+
+        """
+
         self.settings.hdbscan.sort()
 
         palette = (
@@ -438,7 +649,17 @@ class HDBScanTrace(Visitor):
         iterable = zip(self.settings.hdbscan, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generate 2D scatter plot traces for HDBScan clusters.
+
+        Args:
+            dataframe: The dataframe containing cluster labels and coordinates.
+
+        Returns:
+            A list of Scattergl traces for the clusters.
+
+        """
+
         legend = self.palette()
 
         labels = dataframe.hdbscan_label_2d.unique()
@@ -468,7 +689,17 @@ class HDBScanTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generate 3D scatter plot traces for HDBScan clusters.
+
+        Args:
+            dataframe: The dataframe containing cluster labels and coordinates.
+
+        Returns:
+            A list of Scatter3d traces for the clusters.
+
+        """
+
         legend = self.palette()
 
         labels = dataframe.hdbscan_label_3d.unique()
@@ -501,7 +732,20 @@ class HDBScanTrace(Visitor):
 
 
 class IndividualTrace(Visitor):
-    def palette(self, labels):
+    def palette(
+        self,
+        labels: np.ndarray
+    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+        """Creates a color palette dictionary based on the unique labels.
+
+        Args:
+            labels: A numpy array of labels.
+
+        Returns:
+            A dictionary mapping labels to a color palette.
+
+        """
+
         length = len(labels)
 
         palette = (
@@ -513,7 +757,17 @@ class IndividualTrace(Visitor):
         iterable = zip(labels, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generates 2D scatter plots for each cluster in the dataframe.
+
+        Args:
+            dataframe: A pandas DataFrame containing cluster data.
+
+        Returns:
+            A list of go.Scattergl objects representing the scatter plots.
+
+        """
+
         labels = dataframe.folder.unique()
         labels.sort()
 
@@ -543,7 +797,17 @@ class IndividualTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generates 3D scatter plots for each cluster in the dataframe.
+
+        Args:
+            dataframe: A pandas DataFrame containing cluster data.
+
+        Returns:
+            A list of go.Scatter3d objects representing the scatter plots.
+
+        """
+
         labels = dataframe.folder.unique()
         labels.sort()
 
@@ -576,7 +840,20 @@ class IndividualTrace(Visitor):
 
 
 class SequenceTrace(Visitor):
-    def palette(self, labels):
+    def palette(
+        self,
+        labels: np.ndarray
+    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+        """Creates a color palette dictionary based on the unique labels.
+
+        Args:
+            labels: A numpy array of labels.
+
+        Returns:
+            A dictionary mapping labels to a color palette.
+
+        """
+
         length = len(labels)
 
         palette = (
@@ -588,7 +865,17 @@ class SequenceTrace(Visitor):
         iterable = zip(labels, palette)
         return dict(iterable)
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Generates 2D scatter plots for each sequence in the dataframe.
+
+        Args:
+            dataframe: A pandas DataFrame containing sequence data.
+
+        Returns:
+            A list of go.Scattergl objects representing the scatter plots.
+
+        """
+
         sequences = dataframe.sequence.unique()
         sequences.sort()
 
@@ -617,7 +904,17 @@ class SequenceTrace(Visitor):
 
         return traces
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """Generates 3D scatter plots for each sequence in the dataframe.
+
+        Args:
+            dataframe: A pandas DataFrame containing sequence data.
+
+        Returns:
+            A list of go.Scatter3d objects representing the scatter plots.
+
+        """
+
         sequences = dataframe.sequence.unique()
         sequences.sort()
 
@@ -649,10 +946,30 @@ class SequenceTrace(Visitor):
 
 
 class SingleClusterTrace(Visitor):
-    def palette(self, labels):
+    def palette(self, labels: np.ndarray) -> None:
+        """Assigns colors to the given cluster labels.
+
+        Args:
+            labels: An array containing cluster labels.
+
+        Returns:
+            None.
+
+        """
+
         pass
 
-    def two(self, dataframe):
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
+        """Creates a 2D scatter plot using the given dataframe.
+
+        Args:
+            dataframe: A Pandas DataFrame containing data for the scatter plot.
+
+        Returns:
+            A list of Scattergl objects representing the scatter plot.
+
+        """
+
         return go.Scattergl(
             x=dataframe.umap_x_2d,
             y=dataframe.umap_y_2d,
@@ -665,7 +982,18 @@ class SingleClusterTrace(Visitor):
             showlegend=False
         )
 
-    def three(self, dataframe):
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
+        """
+        Creates a 3D scatter plot using the given dataframe.
+
+        Args:
+            dataframe: A Pandas DataFrame containing data for the scatter plot.
+
+        Returns:
+            A list of Scatter3d objects representing the scatter plot.
+
+        """
+
         return go.Scatter3d(
             x=dataframe.umap_x_3d,
             y=dataframe.umap_y_3d,

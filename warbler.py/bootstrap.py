@@ -8,11 +8,22 @@ from constant import (
     PICKLE
 )
 from functools import wraps
+from typing import Any, Callable, Dict, Tuple
 
 
-def bootstrap(func):
+def bootstrap(func: Callable) -> Callable:
+    """A decorator that creates paths before executing the decorated function.
+
+    Args:
+        func: The function to be decorated.
+
+    Returns:
+        The decorated function.
+
+    """
+
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Tuple[Any, Any], **kwargs: Dict[str, Any]) -> Callable:
         INPUT.mkdir(parents=True, exist_ok=True)
         OUTPUT.mkdir(parents=True, exist_ok=True)
 

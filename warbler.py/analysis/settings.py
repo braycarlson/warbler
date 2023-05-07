@@ -2,7 +2,17 @@ from constant import SEGMENTATIONS
 from datatype.settings import Settings
 
 
-def insert():
+def insert() -> None:
+    """Insert an attribute into the settings and saves the updated settings.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
     for segmentation in SEGMENTATIONS:
         settings = Settings.from_file(segmentation)
 
@@ -28,6 +38,16 @@ def insert():
 
 
 def update():
+    """Update an existing parameter in the settings and save the settings.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
     for segmentation in SEGMENTATIONS:
         settings = Settings.from_file(segmentation)
         settings.exclude = []

@@ -7,12 +7,25 @@ from datatype.settings import resolve
 from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
+from typing import Any, Dict, List
 
 
 log = logging.getLogger(__name__)
 
 
-def get_segmentation(row):
+def get_segmentation(row: pd.Series) -> List[Dict[str, Any]]:
+    """Extracts segment information from a row of data.
+
+    Args:
+        row: A pandas Series containing the necessary information.
+
+    Returns:
+        A list of dictionaries representing each segment, with details such as:
+        folder, filename, settings, segment object, onset, offset, sequence
+        number, minimum frequency, maximum frequency, and exclusion status.
+
+    """
+
     recording = []
 
     iterable = zip(row.onset, row.offset)

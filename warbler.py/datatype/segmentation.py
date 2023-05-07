@@ -1,10 +1,22 @@
 import numpy as np
 
-from datatype.spectrogram import Linear, Segment, Spectrogram
+from datatype.spectrogram import Segment, Spectrogram
 from scipy import ndimage
 
 
 def dynamic_threshold_segmentation(signal, settings, full=False):
+    """Performs dynamic threshold segmentation on a signal.
+
+    Args:
+        signal: The input signal.
+        settings: The settings for segmentation.
+        full: Flag indicating whether to include a spectrogram in the output.
+
+    Returns:
+        A dictionary containing the segmented template.
+
+    """
+
     # Make a copy of the original spectrogram
     segment = Segment(signal, settings)
 
@@ -81,6 +93,16 @@ def dynamic_threshold_segmentation(signal, settings, full=False):
 
 
 def onsets_offsets(signal):
+    """Calculates the onsets and offsets of a signal.
+
+    Args:
+        signal: The input signal.
+
+    Returns:
+        An array containing the onsets and offsets.
+
+    """
+
     elements, nelements = ndimage.label(signal)
 
     if nelements == 0:

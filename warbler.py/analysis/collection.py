@@ -1,13 +1,31 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
+from datatype.signal import Signal
 from datatype.spectrogram import Linear, Spectrogram
 
 
-def plot(signal, settings, matrix=None):
+def plot(
+    signal: Signal,
+    settings: Settings,
+    matrix: np.ndarray = None
+):
+    """Generates and displays a spectrogram plot.
+
+    Args:
+        signal: The signal used for generating the spectrogram.
+        settings: The settings for the spectrogram generation.
+        matrix: An optional matrix used for the linear transformation.
+
+    Returns:
+        None.
+
+    """
+
     spectrogram = Spectrogram()
     strategy = Linear(signal, settings, matrix)
     spectrogram.strategy = strategy

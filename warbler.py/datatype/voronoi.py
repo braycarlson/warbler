@@ -9,7 +9,27 @@ from scipy.spatial import cKDTree
 
 
 class Builder(Base):
+    """A class for constructing plots.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
     def axis(self):
+        """Create an axis for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         figure = self.component.collection.get('figure')
         grid = self.component.collection.get('grid')
 
@@ -25,6 +45,16 @@ class Builder(Base):
         return self
 
     def axes(self):
+        """Create multiple axes for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         axs = {}
 
         figure = self.component.collection.get('figure')
@@ -71,6 +101,16 @@ class Builder(Base):
         return self
 
     def decorate(self):
+        """Set the default settings for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         default = {
             'figure': {
                 'figsize': (10, 10)
@@ -131,6 +171,16 @@ class Builder(Base):
         return self
 
     def grid(self):
+        """Create a grid for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         n_column = self.settings.size * 4 - 4
 
         figure = plt.figure(**self.settings.figure)
@@ -147,6 +197,16 @@ class Builder(Base):
         return self
 
     def line(self):
+        """Create legend lines for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if not self.settings.is_legend:
             return self
 
@@ -168,6 +228,16 @@ class Builder(Base):
         return self
 
     def legend(self):
+        """Add a legend to the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         if not self.settings.is_legend:
             return self
 
@@ -182,6 +252,16 @@ class Builder(Base):
         return self
 
     def limit(self):
+        """Set the limits of the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         axis = self.component.collection.get('axis')
 
         xmin = self.component.collection.get('xmin')
@@ -206,6 +286,16 @@ class Builder(Base):
         return self
 
     def mask(self):
+        """Determine the range of the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         xmin = self.component.collection.get('xmin')
         xmax = self.component.collection.get('xmax')
         ymin = self.component.collection.get('ymin')
@@ -234,6 +324,16 @@ class Builder(Base):
         return self
 
     def range(self):
+        """Determine the range of the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         embedding = np.array(self.embedding)
         n = len(embedding)
 
@@ -265,6 +365,16 @@ class Builder(Base):
         return self
 
     def scatter(self):
+        """Add scatter points to the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         axis = self.component.collection.get('axis')
 
         if self.settings.is_color:
@@ -280,12 +390,32 @@ class Builder(Base):
         return self
 
     def spacing(self):
+        """Set the spacing of the grid.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         grid = self.component.collection.get('grid')
         grid.update(**self.settings.grid)
 
         return self
 
     def voronoi(self):
+        """Create Voronoi regions on the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         line = self.settings.voronoi.get('line')
         matshow = self.settings.voronoi.get('matshow')
         scatter = self.settings.voronoi.get('scatter')
@@ -415,7 +545,27 @@ class Builder(Base):
 
 
 class Voronoi(Plot):
+    """A class for constructing Voronoi plots.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
     def construct(self):
+        """Construct the Voronoi plot.
+
+        Args:
+            None.
+
+        Returns:
+            plot: The constructed Voronoi plot.
+
+        """
+
         return (
             self.builder
             .decorate()

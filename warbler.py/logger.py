@@ -6,6 +6,17 @@ from contextlib import contextmanager
 
 @contextmanager
 def logger():
+    """
+    A context manager for setting up a logger.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
     try:
         log = logging.getLogger()
         log.setLevel(logging.INFO)

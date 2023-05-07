@@ -1,15 +1,35 @@
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 
 from collections import defaultdict
-from datatype.builder import Base, Plot
+from datatype.builder import Base, Component, Plot
 from datatype.settings import Settings
 from matplotlib.lines import Line2D
 
 
 class Builder(Base):
-    def ax(self):
+    """A class for building plots with customizable settings.
+
+    Args:
+        None.
+
+    Returns:
+        An instance of the Builder class.
+
+    """
+
+    def ax(self) -> Self:  # noqa
+        """Creates a new figure and axes for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         figsize = self.settings.figure.get('figsize')
         fig, ax = plt.subplots(figsize=figsize)
 
@@ -20,7 +40,17 @@ class Builder(Base):
 
         return self
 
-    def decorate(self):
+    def decorate(self) -> Self:  # noqa
+        """Sets default settings and updates them with custom settings.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         default = {
             'figure': {
                 'figsize': (9, 8)
@@ -66,7 +96,17 @@ class Builder(Base):
 
         return self
 
-    def legend(self):
+    def legend(self) -> Self:  # noqa
+        """Adds a legend to the plot if settings allow.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         condition = (
             not self.settings.is_legend or
             not self.settings.is_color
@@ -85,7 +125,17 @@ class Builder(Base):
 
         return self
 
-    def line(self):
+    def line(self) -> Self:  # noqa
+        """Adds line handles to the plot for legend and color settings.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         condition = (
             not self.settings.is_legend or
             not self.settings.is_color
@@ -111,7 +161,17 @@ class Builder(Base):
 
         return self
 
-    def scatter(self):
+    def scatter(self) -> Self:  # noqa
+        """Adds scatter points to the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         ax = self.component.collection.get('ax')
 
         if self.settings.is_color:
@@ -130,7 +190,17 @@ class Builder(Base):
 
         return self
 
-    def title(self):
+    def title(self) -> Self:  # noqa
+        """Sets the title of the plot based on settings.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
         ax = self.component.collection.get('ax')
 
         name = self.settings.name
@@ -143,7 +213,27 @@ class Builder(Base):
 
 
 class ScatterHDBSCAN(Plot):
-    def construct(self):
+    """A class for constructing an HDBSCAN scatter plot.
+
+    Args:
+        None.
+
+    Returns:
+        Component: The constructed scatter plot component.
+
+    """
+
+    def construct(self) -> Component:
+        """Constructs the scatter plot component with HDBSCAN settings.
+
+        Args:
+            None.
+
+        Returns:
+            Component: The constructed scatter plot component.
+
+        """
+
         self.builder.settings['cluster'] = 'HDBSCAN'
 
         return (
@@ -160,7 +250,27 @@ class ScatterHDBSCAN(Plot):
 
 
 class ScatterFCM(Plot):
-    def construct(self):
+    """A class for constructing a Fuzzy C-Means scatter plot.
+
+    Args:
+        None.
+
+    Returns:
+        Component: The constructed scatter plot component.
+
+    """
+
+    def construct(self) -> Component:
+        """Constructs the scatter plot component with Fuzzy C-Means settings.
+
+        Args:
+            None.
+
+        Returns:
+            Component: The constructed scatter plot component.
+
+        """
+
         self.builder.settings['cluster'] = 'Fuzzy C-Means'
 
         return (

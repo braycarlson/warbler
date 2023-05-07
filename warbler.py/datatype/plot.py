@@ -1,23 +1,47 @@
+from __future__ import annotations
+
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+import numpy as np
 import PIL
 
 from abc import ABC, abstractmethod
-from datatype.axes import LinearAxes
+from datatype.axes import LinearAxes, SpectrogramAxes
+from datatype.settings import Settings
+from datatype.signal import Signal
 from matplotlib import gridspec
 from matplotlib.collections import PatchCollection
+from matplotlib.figure import Figure
+from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
 # from matplotlib.widgets import Slider
 # from PIL import ImageOps
+from typing import Any, Dict, NoReturn, Optional, Tuple
 
 
 class Plot(ABC):
+    """An abstract base class for creating plots.
+
+    Args:
+        scale: The type of scale to be used.
+        settings: The settings for the plot.
+        signal: The signal object to be plotted.
+        spectrogram: The spectrogram data to be plotted.
+
+    Attributes:
+        _scale: The type of scale to be used.
+        _settings: The settings for the plot.
+        _signal: The signal object to be plotted.
+        _spectrogram: The spectrogram data to be plotted.
+
+    """
+
     def __init__(
         self,
-        scale=None,
-        settings=None,
-        signal=None,
-        spectrogram=None
+        scale: Optional[SpectrogramAxes] = None,
+        settings: Settings = None,
+        signal: Signal = None,
+        spectrogram: np.ndarray = None
     ):
         self._scale = LinearAxes
         self._settings = settings
@@ -25,42 +49,62 @@ class Plot(ABC):
         self._spectrogram = spectrogram
 
     @property
-    def settings(self):
+    def settings(self) -> Settings:
+        """Get the settings for the plot."""
+
         return self._settings
 
     @settings.setter
-    def settings(self, settings):
+    def settings(self, settings: Settings) -> None:
         self._settings = settings
 
     @property
-    def signal(self):
+    def signal(self) -> Signal:
+        """Get the signal object to be plotted."""
+
         return self._signal
 
     @signal.setter
-    def signal(self, signal):
+    def signal(self, signal: Signal) -> None:
         self._signal = signal
 
     @property
-    def spectrogram(self):
+    def spectrogram(self) -> np.ndarray:
+        """Get the spectrogram data to be plotted."""
+
         return self._spectrogram
 
     @spectrogram.setter
-    def spectrogram(self, spectrogram):
+    def spectrogram(self, spectrogram: np.ndarray):
         self._spectrogram = spectrogram
 
     @property
-    def scale(self):
+    def scale(self) -> SpectrogramAxes:
+        """Get the type of scale to be used."""
+
         return self._scale
 
     @scale.setter
-    def scale(self, scale):
+    def scale(self, scale: SpectrogramAxes) -> None:
         self._scale = scale
 
     @abstractmethod
-    def create(self):
-        pass
+    def create(self) -> NoReturn:
+        """Create the plot."""
 
-    def plot(self, **kwargs):
+        raise NotImplementedError
+
+    def plot(self, **kwargs: Dict[str, Any]) -> AxesImage:
+        """Plot the data.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            The plotted image.
+
+        """
+
         x_minimum = 0
         x_maximum = self.signal.duration
         y_minimum = 0
@@ -132,10 +176,25 @@ class Plot(ABC):
 
 
 class StandardSpectrogram(Plot):
-    def __init__(self, *args, **kwargs):
+    """A class for creating standard spectrogram plots.
+
+    Args:
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+
+    """
+
+    def __init__(self, *args: Tuple[Any, Any], **kwargs: Dict[str, Any]):
         super().__init__(*args, **kwargs)
 
-    def create(self):
+    def create(self) -> Figure:
+        """Create the standard spectrogram plot.
+
+        Returns:
+            The created figure.
+
+        """
+
         fig = plt.figure(
             constrained_layout=True,
             figsize=(20, 4)
@@ -156,10 +215,25 @@ class StandardSpectrogram(Plot):
 
 
 class BandwidthSpectrogram(Plot):
-    def __init__(self, *args, **kwargs):
+    """A class for creating bandwidth spectrogram plots.
+
+    Args:
+        *args: Variable length argument list.
+        **kwargs: Arbitrary keyword arguments.
+
+    """
+
+    def __init__(self, *args: Tuple[Any, Any], **kwargs: Dict[str, Any]):
         super().__init__(*args, **kwargs)
 
-    def create(self):
+    def create(self) -> Figure:
+        """Create the bandwidth spectrogram plot.
+
+         Returns:
+             The created figure.
+
+         """
+
         fig = plt.figure(
             constrained_layout=True,
             figsize=(20, 4)
@@ -200,11 +274,32 @@ class BandwidthSpectrogram(Plot):
 
 
 class SegmentationSpectrogram(Plot):
-    def __init__(self, *args, threshold=None, **kwargs):
+    """A class for creating segmentation spectrogram plots.
+
+    Args:
+        *args: Variable length argument list.
+        threshold: A dictionary of threshold values.
+        **kwargs: Arbitrary keyword arguments.
+
+    """
+
+    def __init__(
+        self,
+        *args: Tuple[Any, Any],
+        threshold: Dict[str, Any] = None,
+        **kwargs: Dict[str, Any]
+    ):
         super().__init__(*args, **kwargs)
         self.threshold = threshold
 
-    def create(self):
+    def create(self) -> AxesImage:
+        """Create a segmentation spectrogram plot.
+
+        Returns:
+            The created AxesImage object.
+
+        """
+
         spectrogram = self.threshold.get('spectrogram')
         onsets = self.threshold.get('onset')
         offsets = self.threshold.get('offset')
@@ -291,11 +386,32 @@ class SegmentationSpectrogram(Plot):
 
 
 class VocalEnvelopeSpectrogram(Plot):
-    def __init__(self, *args, threshold=None, **kwargs):
+    """A class for creating vocal envelope spectrogram plots.
+
+    Args:
+        *args: Variable length argument list.
+        threshold: A dictionary of threshold values.
+        **kwargs: Arbitrary keyword arguments.
+
+    """
+
+    def __init__(
+        self,
+        *args: Tuple[Any, Any],
+        threshold: Dict[str, Any] = None,
+        **kwargs: Dict[str, Any]
+    ):
         super().__init__(*args, **kwargs)
         self.threshold = threshold
 
-    def create(self):
+    def create(self) -> AxesImage:
+        """Create a vocal envelope spectrogram plot.
+
+        Returns:
+            The created AxesImage object.
+
+        """
+
         spectrogram = self.threshold.get('spectrogram')
         vocal_envelope = self.threshold.get('vocal_envelope')
         onsets = self.threshold.get('onset')

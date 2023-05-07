@@ -1,5 +1,6 @@
 import fitz
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from constant import SETTINGS
 from copy import deepcopy
@@ -17,11 +18,17 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 
 
-def to_string(method):
-    return ', '.join(method)
+def create_document(subset: pd.DataFrame):
+    """Creates a PDF document containing the signal for each subset of data.
 
+    Args:
+        subset: A DataFrame containing a subset of data.
 
-def create_document(subset):
+    Returns:
+        None.
+
+    """
+
     individal = subset.folder.iat[0]
 
     signal = subset.signal.to_numpy()

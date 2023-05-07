@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import cv2
+import math
 import matplotlib.pyplot as plt
 import numpy as np
 
 from datatype.plot import StandardSpectrogram
+from datatype.settings import Settings
+from datatype.signal import Signal
 from datatype.spectrogram import compress, create_spectrogram
 from io import BytesIO
 from PIL import Image as Pillow
@@ -10,7 +15,18 @@ from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
 from skimage import filters
 
 
-def create_figure(plot, text):
+def create_figure(plot: BytesIO | np.ndarray, text: str):
+    """Creates a figure with an image and text.
+
+    Args:
+        plot: A BytesIO or numpy array representing the image.
+        text: The text to be displayed on the figure.
+
+    Returns:
+        The figure image with the specified plot and text.
+
+    """
+
     if isinstance(plot, BytesIO):
         image = Pillow.open(plot)
 
@@ -42,7 +58,17 @@ def create_figure(plot, text):
     return image
 
 
-def create_grid(collection):
+def create_grid(collection: np.ndarray):
+    """Creates a grid of images from a collection.
+
+    Args:
+        collection: A numpy array containing images.
+
+    Returns:
+        The grid image containing the images from the collection.
+
+    """
+
     row = len(collection)
     column = 7
 
@@ -101,7 +127,18 @@ def create_grid(collection):
     return grid
 
 
-def create_image(spectrogram):
+def create_image(spectrogram: bytes | np.ndarray):
+    """Creates an image from a spectrogram.
+
+    Args:
+        spectrogram: A bytes object or numpy array representing the
+            spectrogram.
+
+    Returns:
+        The image created from the spectrogram.
+
+    """
+
     if isinstance(spectrogram, np.ndarray):
         condition = (
             np.issubdtype(spectrogram.dtype, np.float32) |
@@ -112,16 +149,33 @@ def create_image(spectrogram):
             spectrogram = compress(spectrogram)
 
         image = Pillow.fromarray(spectrogram)
-        # image = ImageOps.invert(image)
+        image = ImageOps.invert(image)
 
     if isinstance(spectrogram, bytes):
         buffer = BytesIO(spectrogram)
         image = Pillow.open(buffer)
 
-    return ImageOps.flip(image)
+    return image
+    # return ImageOps.flip(image)
 
 
-def create_plot(signal, settings, matrix=None):
+def create_plot(
+    signal: Signal,
+    settings: Settings,
+    matrix: np.ndarray = None
+):
+    """Creates a plot from a signal and its spectrogram.
+
+    Args:
+        signal: The signal object.
+        settings: The settings object.
+        matrix: Optional numpy array for matrix modification.
+
+    Returns:
+        The BytesIO object containing the plot image.
+
+    """
+
     spectrogram = create_spectrogram(signal, settings, matrix)
 
     plot = StandardSpectrogram()
@@ -136,7 +190,18 @@ def create_plot(signal, settings, matrix=None):
     return buffer
 
 
-def create_signal_page(collection, text):
+def create_signal_page(collection: np.ndarray, text: str):
+    """Creates a page with a collection of images.
+
+    Args:
+        collection: A numpy array containing images.
+        text: The text to be displayed on the page.
+
+    Returns:
+        The page image with the specified collection of images and text.
+
+    """
+
     padding = y = 150
     length = len(collection)
 
@@ -200,7 +265,95 @@ def create_signal_page(collection, text):
     return grid
 
 
-def filter_image(image):
+def draw_segment(
+    spectrograms: np.ndarray,
+    maximum: int = 0,
+    zoom: int = 2,
+):
+    """Draws a segment of spectrograms in a grid.
+
+    Args:
+        spectrograms: A numpy array of spectrograms.
+        maximum: Maximum number of spectrograms to include in the grid.
+        zoom: Zoom factor for the grid.
+
+    Returns:
+        A tuple containing the figure and axis objects of the grid.
+
+    """
+
+    cmap = plt.cm.Greys
+    # cmap = plt.cm.afmhot
+
+    if maximum == 0:
+        n = len(spectrograms)
+        sqrt = math.sqrt(n)
+        closest = math.ceil(sqrt) ** 2
+
+        maximum = int(math.sqrt(closest))
+
+    rowsize = np.shape(spectrograms[0])[0]
+    maximum = maximum * np.shape(spectrograms[0])[1]
+
+    canvas = np.zeros(
+        (rowsize * maximum, maximum)
+    )
+
+    position = 0
+    row = 0
+
+    for _, spectrogram in enumerate(spectrograms):
+        shape = np.shape(spectrogram)
+
+        if position + shape[1] > maximum:
+            if row == maximum - 1:
+                break
+
+            row = row + 1
+            position = 0
+
+        canvas[
+            rowsize * (maximum - 1 - row):
+            rowsize * ((maximum - 1 - row) + 1),
+            position: position + shape[1],
+        ] = spectrogram
+
+        position = position + shape[1]
+
+    if row < maximum - 1:
+        canvas = canvas[(maximum - 1 - row) * rowsize:, :]
+
+    figsize = (
+        zoom * (maximum / rowsize),
+        zoom * (row + 1)
+    )
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    ax.matshow(
+        canvas,
+        aspect='auto',
+        cmap=cmap,
+        origin='lower',
+        interpolation='nearest'
+    )
+
+    ax.axis('off')
+
+    return (fig, ax)
+
+
+def filter_image(image: Pillow):
+    """Applies various filters to an image.
+
+    Args:
+        image: The image to be filtered.
+
+    Returns:
+        The filtered image as a numpy array.
+
+    """
+
     image = to_numpy(image)
 
     # Denoise
@@ -237,7 +390,17 @@ def filter_image(image):
     return image
 
 
-def resize_image(image):
+def resize_image(image: np.ndarray):
+    """Resizes an image.
+
+    Args:
+        image: The image to be resized as a numpy array.
+
+    Returns:
+        The resized image as a bytes object.
+
+    """
+
     image = Pillow.fromarray(image)
 
     width, height = image.size
@@ -256,7 +419,17 @@ def resize_image(image):
     return buffer.getvalue()
 
 
-def to_numpy(image):
+def to_numpy(image: Pillow):
+    """Converts an image to a numpy array.
+
+    Args:
+        image: The image to be converted.
+
+    Returns:
+        The image as a numpy array.
+
+    """
+
     if isinstance(image, bytes):
         buffer = BytesIO(image)
         image = Pillow.open(buffer)
@@ -264,7 +437,17 @@ def to_numpy(image):
     return np.array(image).astype('uint8')
 
 
-def to_bytes(image):
+def to_bytes(image: Pillow):
+    """Converts an image to a bytes object.
+
+    Args:
+        image: The image to be converted.
+
+    Returns:
+        The image as a bytes object.
+
+    """
+
     image = to_numpy(image)
 
     if np.mean(image) < 127.5:

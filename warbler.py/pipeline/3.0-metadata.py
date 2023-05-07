@@ -11,12 +11,26 @@ from librosa.util.exceptions import ParameterError
 from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
+from typing import Tuple
 
 
 log = logging.getLogger(__name__)
 
 
-def get_onset_offset(series):
+def get_onset_offset(
+    series: pd.Series
+) -> Tuple[float, float] | Tuple[np.nan, np.nan]:
+    """Calculates the onset and offset of a signal.
+
+    Args:
+        series: A Pandas Series containing the signal and settings.
+
+    Returns:
+        A tuple of the onset and offset values calculated from the signal
+        and settings, or a tuple of NaN values if an error occurs.
+
+    """
+
     signal, settings = series
 
     try:

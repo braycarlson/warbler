@@ -1,5 +1,6 @@
 import fitz
 import numpy as np
+import pandas as pd
 
 from constant import PDF, SETTINGS
 from copy import deepcopy
@@ -12,13 +13,34 @@ from datatype.imaging import (
 from datatype.settings import Settings
 from io import BytesIO
 from itertools import permutations
+from typing import List
 
 
-def to_string(method):
+def to_string(method: List[str]) -> str:
+    """Converts a list of strings into a single string.
+
+    Args:
+        method: The list of strings to be converted.
+
+    Returns:
+        A string representation of the list elements joined with commas.
+
+    """
+
     return ', '.join(method)
 
 
-def create_document(subset):
+def create_document(subset: pd.DataFrame) -> None:
+    """Creates a PDF document containing signal plots.
+
+    Args:
+        subset: A pandas DataFrame representing a subset of data.
+
+    Returns:
+        None.
+
+    """
+
     individal = subset.folder.iat[0]
 
     signal = subset.signal.to_numpy()
