@@ -1,19 +1,85 @@
+"""
+Transition
+----------
+
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-from constant import PROJECTION
 from datatype.dataset import Dataset
-from datatype.transition import draw_projection_transitions
+from datatype.transition import Builder, Transition
 
 
-def main():
+def dataset() -> None:
+    dataset = Dataset('segment')
+    dataframe = dataset.load()
+
+    settings = {
+        'colorline': {
+            'alpha': 0.25,
+            'cmap': plt.get_cmap('cubehelix'),
+            'linewidth': 0.5,
+            'norm': plt.Normalize(0.0, 1.0),
+        },
+        'figure': {
+            'figsize': (10, 10)
+        },
+        'name': 'Adelaide\'s warbler',
+        'padding': 0.1
+    }
+
+    coordinates = [
+        dataframe.umap_x_2d,
+        dataframe.umap_y_2d
+    ]
+
+    embedding = np.column_stack(coordinates)
+    sequence = dataframe.sequence.tolist()
+
+    transition = Transition()
+
+    transition.builder = Builder()
+    transition.embedding = embedding
+    transition.sequence = sequence
+    transition.settings = settings
+
+    component = transition.build()
+
+    figure = component.collection.get('figure')
+
+    transition.show()
+
+    filename = 'transition_dataset.png'
+
+    transition.save(
+        figure=figure,
+        filename=filename
+    )
+
+
+def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
     unique = dataframe.folder.unique()
 
+    settings = {
+        'colorline': {
+            'alpha': 0.25,
+            'cmap': plt.get_cmap('cubehelix'),
+            'linewidth': 6,
+            'norm': plt.Normalize(0.0, 1.0),
+        },
+        'figure': {
+            'figsize': (10, 10)
+        },
+        'name': 'Adelaide\'s warbler',
+        'padding': 0.1
+    }
+
     for folder in unique:
-        print(f"Processing: {folder}")
+        settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
 
@@ -25,36 +91,33 @@ def main():
         embedding = np.column_stack(coordinates)
         sequence = individual.sequence.tolist()
 
-        ax = draw_projection_transitions(
-            embedding,
-            sequence,
-            alpha=0.25,
-            linewidth=6
-        )
+        transition = Transition()
 
-        title = f"Projection Transition for {folder}"
+        transition.builder = Builder()
+        transition.embedding = embedding
+        transition.sequence = sequence
+        transition.settings = settings
 
-        ax.set_title(
-            title,
-            fontsize=18,
-            pad=25
-        )
+        component = transition.build()
 
-        plt.axis('off')
+        figure = component.collection.get('figure')
 
-        # plt.show()
-
-        PROJECTION.mkdir(parents=True, exist_ok=True)
+        transition.show()
 
         filename = f"transition_{folder}.png"
-        path = PROJECTION.joinpath(filename)
 
-        plt.savefig(
-            path,
-            bbox_inches='tight',
-            dpi=300,
-            format='png'
+        transition.save(
+            figure=figure,
+            filename=filename
         )
+
+
+def main():
+    # Create a transition plot for the entire dataset
+    dataset()
+
+    # Create a transition plot for each individual
+    individual()
 
 
 if __name__ == '__main__':

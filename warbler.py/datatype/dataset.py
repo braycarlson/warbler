@@ -1,3 +1,9 @@
+"""
+Dataset
+-------
+
+"""
+
 from __future__ import annotations
 
 import lzma
@@ -36,7 +42,7 @@ class PicklingStrategy(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, dataframe) -> NoReturn:
+    def save(self, dataframe) -> None:
         """Save the data to the pickle file.
 
         Args:

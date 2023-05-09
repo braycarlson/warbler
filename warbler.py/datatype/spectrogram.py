@@ -1,3 +1,9 @@
+"""
+Spectrogram
+-----------
+
+"""
+
 from __future__ import annotations
 
 import librosa
@@ -43,7 +49,7 @@ def compress(spectrogram: np.ndarray) -> np.ndarray:
 def create_spectrogram(
     signal: Signal,
     settings: Settings,
-    matrix: np.ndarray = None
+    matrix=None
 ) -> np.ndarray:
     """Creates a spectrogram from the signal, settings and matrix.
 
@@ -212,9 +218,9 @@ class Strategy(ABC):
 
     def __init__(
         self,
-        signal: Signal = None,
-        settings: Settings = None,
-        matrix: np.ndarray = None,
+        signal=None,
+        settings=None,
+        matrix=None,
         normalize: bool = True
     ):
         self._data = None
@@ -593,7 +599,7 @@ class Spectrogram:
 
     """
 
-    def __init__(self, strategy: Strategy = None):
+    def __init__(self, strategy=None):
         self._strategy = strategy
 
     @property

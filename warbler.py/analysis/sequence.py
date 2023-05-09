@@ -1,3 +1,9 @@
+"""
+Sequence
+--------
+
+"""
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,7 +13,6 @@ from datatype.dataset import Dataset
 from datatype.imaging import (
     create_image,
     draw_segment,
-    to_bytes,
     to_numpy
 )
 from datatype.plot import (
@@ -15,7 +20,7 @@ from datatype.plot import (
     SegmentationSpectrogram,
     StandardSpectrogram
 )
-from datatype.segmentation import dynamic_threshold_segmentation
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
 from datatype.spectrogram import (
@@ -333,21 +338,18 @@ def main():
     # )
 
     # Segmentation
-    threshold = dynamic_threshold_segmentation(
-        signal,
-        custom,
-        full=True
-    )
+    algorithm = DynamicThresholdSegmentation()
+    algorithm.signal = signal
+    algorithm.settings = custom
+    algorithm.start()
 
     spectrogram = create_spectrogram(signal, custom)
-    # image = create_image(spectrogram)
-
-    threshold['spectrogram'] = spectrogram
+    algorithm.component['spectrogram'] = spectrogram
 
     plot = SegmentationSpectrogram()
+    plot.algorithm = algorithm
     plot.settings = custom
     plot.signal = signal
-    plot.threshold = threshold
     plot.create()
 
     file = projection.joinpath('06_segmentation.png')

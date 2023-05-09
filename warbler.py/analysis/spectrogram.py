@@ -1,3 +1,9 @@
+"""
+Spectrogram
+-----------
+
+"""
+
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,7 +16,7 @@ from datatype.plot import (
     StandardSpectrogram,
     VocalEnvelopeSpectrogram
 )
-from datatype.segmentation import dynamic_threshold_segmentation
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
 from datatype.spectrogram import (
@@ -70,16 +76,20 @@ def main():
     spectrogram = spectrogram.generate()
 
     # SegmentationSpectrogram or VocalEnvelopeSpectrogram
-    threshold = dynamic_threshold_segmentation(signal, settings, full=True)
-    threshold['spectrogram'] = spectrogram
+    algorithm = DynamicThresholdSegmentation()
+    algorithm.signal = signal
+    algorithm.settings = settings
+    algorithm.start()
+
+    algorithm.component['spectrogram'] = spectrogram
 
     scale = LinearAxes
 
     plot = VocalEnvelopeSpectrogram()
+    plot.algorithm = algorithm
     plot.scale = scale
     plot.settings = settings
     plot.signal = signal
-    plot.threshold = threshold
     plot.create()
 
     plot = BandwidthSpectrogram()
@@ -97,10 +107,10 @@ def main():
     plot.create()
 
     plot = SegmentationSpectrogram()
+    plot.algorithm = algorithm
     plot.scale = scale
     plot.settings = settings
     plot.signal = signal
-    plot.threshold = threshold
     plot.create()
 
     plt.show()

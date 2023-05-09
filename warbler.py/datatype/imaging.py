@@ -1,3 +1,9 @@
+"""
+Imaging
+-------
+
+"""
+
 from __future__ import annotations
 
 import cv2
@@ -13,6 +19,7 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
 from skimage import filters
+from typing import Any, List
 
 
 def create_figure(plot: BytesIO | np.ndarray, text: str):
@@ -162,7 +169,7 @@ def create_image(spectrogram: bytes | np.ndarray):
 def create_plot(
     signal: Signal,
     settings: Settings,
-    matrix: np.ndarray = None
+    matrix=None
 ):
     """Creates a plot from a signal and its spectrogram.
 
@@ -190,7 +197,7 @@ def create_plot(
     return buffer
 
 
-def create_signal_page(collection: np.ndarray, text: str):
+def create_signal_page(collection: List[Any] | np.ndarray, text: str):
     """Creates a page with a collection of images.
 
     Args:

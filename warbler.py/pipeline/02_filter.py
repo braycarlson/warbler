@@ -1,3 +1,9 @@
+"""
+Filter
+------
+
+"""
+
 import logging
 
 from bootstrap import bootstrap

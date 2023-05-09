@@ -35,6 +35,8 @@ scikit-image[optional]
 scikit-learn
 scipy
 SoundFile
+sphinx
+sphinx-rtd-theme
 tensorflow
 # umap-learn
 umap-learn[plot]

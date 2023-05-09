@@ -1,5 +1,10 @@
+"""
+Collection
+----------
+
+"""
+
 import matplotlib.pyplot as plt
-import numpy as np
 
 from constant import SETTINGS
 from datatype.dataset import Dataset
@@ -12,7 +17,7 @@ from datatype.spectrogram import Linear, Spectrogram
 def plot(
     signal: Signal,
     settings: Settings,
-    matrix: np.ndarray = None
+    matrix=None
 ):
     """Generates and displays a spectrogram plot.
 
@@ -32,7 +37,7 @@ def plot(
 
     spectrogram = spectrogram.generate()
 
-    plot = StandardSpectrogram(signal, spectrogram)
+    plot = StandardSpectrogram()
     plot.signal = signal
     plot.spectrogram = spectrogram
     plot.create()

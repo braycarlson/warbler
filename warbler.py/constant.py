@@ -1,3 +1,9 @@
+"""
+Constant
+--------
+
+"""
+
 import pathlib
 import pickle
 
@@ -12,7 +18,8 @@ def relative(path: str) -> pathlib.PurePath:
         path: The path for which the relative path needs to be calculated.
 
     Returns:
-        A PurePath object representing the relative path from the current working directory.
+        A PurePath object representing the relative path from the current
+            working directory.
 
     """
 

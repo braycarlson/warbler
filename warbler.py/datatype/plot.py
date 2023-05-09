@@ -1,3 +1,9 @@
+"""
+Plot
+----
+
+"""
+
 from __future__ import annotations
 
 import matplotlib.colors as mcolors
@@ -7,6 +13,7 @@ import PIL
 
 from abc import ABC, abstractmethod
 from datatype.axes import LinearAxes, SpectrogramAxes
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
 from matplotlib import gridspec
@@ -16,7 +23,7 @@ from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
 # from matplotlib.widgets import Slider
 # from PIL import ImageOps
-from typing import Any, Dict, NoReturn, Optional, Tuple
+from typing import Any, Dict, NoReturn, Tuple
 
 
 class Plot(ABC):
@@ -38,10 +45,10 @@ class Plot(ABC):
 
     def __init__(
         self,
-        scale: Optional[SpectrogramAxes] = None,
-        settings: Settings = None,
-        signal: Signal = None,
-        spectrogram: np.ndarray = None
+        scale=None,
+        settings=None,
+        signal=None,
+        spectrogram=None
     ):
         self._scale = LinearAxes
         self._settings = settings
@@ -278,7 +285,7 @@ class SegmentationSpectrogram(Plot):
 
     Args:
         *args: Variable length argument list.
-        threshold: A dictionary of threshold values.
+        algorithm: The algorithm containing onset(s) and offset(s).
         **kwargs: Arbitrary keyword arguments.
 
     """
@@ -286,11 +293,11 @@ class SegmentationSpectrogram(Plot):
     def __init__(
         self,
         *args: Tuple[Any, Any],
-        threshold: Dict[str, Any] = None,
+        algorithm=None,
         **kwargs: Dict[str, Any]
     ):
         super().__init__(*args, **kwargs)
-        self.threshold = threshold
+        self.algorithm = algorithm
 
     def create(self) -> AxesImage:
         """Create a segmentation spectrogram plot.
@@ -300,9 +307,9 @@ class SegmentationSpectrogram(Plot):
 
         """
 
-        spectrogram = self.threshold.get('spectrogram')
-        onsets = self.threshold.get('onset')
-        offsets = self.threshold.get('offset')
+        spectrogram = self.algorithm.component.get('spectrogram')
+        onsets = self.algorithm.component.get('onset')
+        offsets = self.algorithm.component.get('offset')
 
         fig = plt.figure(
             constrained_layout=True,
@@ -390,7 +397,7 @@ class VocalEnvelopeSpectrogram(Plot):
 
     Args:
         *args: Variable length argument list.
-        threshold: A dictionary of threshold values.
+        algorithm: The algorithm containing onset(s) and offset(s).
         **kwargs: Arbitrary keyword arguments.
 
     """
@@ -398,11 +405,11 @@ class VocalEnvelopeSpectrogram(Plot):
     def __init__(
         self,
         *args: Tuple[Any, Any],
-        threshold: Dict[str, Any] = None,
+        algorithm=None,
         **kwargs: Dict[str, Any]
     ):
         super().__init__(*args, **kwargs)
-        self.threshold = threshold
+        self.algorithm = algorithm
 
     def create(self) -> AxesImage:
         """Create a vocal envelope spectrogram plot.
@@ -412,10 +419,10 @@ class VocalEnvelopeSpectrogram(Plot):
 
         """
 
-        spectrogram = self.threshold.get('spectrogram')
-        vocal_envelope = self.threshold.get('vocal_envelope')
-        onsets = self.threshold.get('onset')
-        offsets = self.threshold.get('offset')
+        spectrogram = self.algorithm.component.get('spectrogram')
+        onsets = self.algorithm.component.get('onset')
+        offsets = self.algorithm.component.get('offset')
+        vocal_envelope = self.algorithm.component.get('vocal_envelope')
 
         fig = plt.figure(
             figsize=(20, 4)

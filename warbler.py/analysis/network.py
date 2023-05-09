@@ -1,16 +1,16 @@
-import matplotlib.pyplot as plt
+"""
+Network
+-------
+
+"""
+
 import numpy as np
 
-from constant import PROJECTION
 from datatype.dataset import Dataset
-from datatype.network import (
-    Builder,
-    Network,
-    plot_network_graph
-)
+from datatype.network import Builder, Network
 
 
-def main():
+def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
@@ -20,11 +20,60 @@ def main():
         'ignore': [-1],
         'min_cluster_sample': 0,
         'min_connection': 0.05,
+        'name': 'Adelaide\'s warbler',
+    }
+
+    coordinates = [
+        dataframe.umap_x_2d,
+        dataframe.umap_y_2d
+    ]
+
+    embedding = np.column_stack(coordinates)
+
+    label = dataframe.hdbscan_label_2d.to_numpy()
+    sequence = dataframe.sequence.to_numpy()
+
+    network = Network()
+
+    network.builder = Builder()
+    network.embedding = embedding
+    network.label = label
+    network.sequence = sequence
+    network.settings = settings
+    network.unique = unique
+
+    component = network.build()
+
+    figure = component.collection.get('figure')
+
+    network.show()
+
+    filename = 'network_dataset.png'
+
+    network.save(
+        figure=figure,
+        filename=filename
+    )
+
+
+def individual() -> None:
+    dataset = Dataset('segment')
+    dataframe = dataset.load()
+
+    unique = dataframe.hdbscan_label_2d.unique()
+
+    settings = {
+        'ignore': [-1],
+        'min_cluster_sample': 0,
+        'min_connection': 0.05,
+        'name': 'Adelaide\'s warbler',
     }
 
     folders = dataframe.folder.unique()
 
-    for folder in folders[:1]:
+    for folder in folders:
+        settings['name'] = folder
+
         individual = dataframe[dataframe.folder == folder]
 
         coordinates = [
@@ -46,56 +95,26 @@ def main():
         network.settings = settings
         network.unique = unique
 
-        network.construct()
+        component = network.build()
+
+        figure = component.collection.get('figure')
+
         network.show()
 
-    # dataset = Dataset('segment')
-    # dataframe = dataset.load()
+        filename = f"network_{folder}.png"
 
-    # unique = dataframe.folder.unique()
+        network.save(
+            figure=figure,
+            filename=filename
+        )
 
-    # original = dataframe.hdbscan_label_2d.unique()
-    # n_colors = len(original)
 
-    # for folder in unique[:1]:
-    #     print(f"Processing: {folder}")
+def main():
+    # Create a network graph for the entire dataset
+    dataset()
 
-    #     individual = dataframe[dataframe.folder == folder]
-
-    #     coordinates = [
-    #         individual.umap_x_2d,
-    #         individual.umap_y_2d
-    #     ]
-
-    #     embedding = np.column_stack(coordinates)
-
-    #     sequence = individual.sequence.to_numpy()
-    #     label = individual.hdbscan_label_2d.to_numpy()
-
-    #     figsize = (9, 8)
-    #     _, ax = plt.subplots(figsize=figsize)
-
-    #     plot_network_graph(
-    #         label,
-    #         embedding,
-    #         sequence,
-    #         ax=ax,
-    #         color_palette='tab20',
-    #         n_colors=n_colors,
-    #         original=original
-    #     )
-
-    #     ax.axis('off')
-
-    #     title = f"Network Graph of {folder}"
-
-    #     ax.set_title(
-    #         title,
-    #         fontsize=18,
-    #         pad=25
-    #     )
-
-    #     plt.show()
+    # Create a network graph for each individual
+    individual()
 
 
 if __name__ == '__main__':

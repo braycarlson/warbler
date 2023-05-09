@@ -1,9 +1,15 @@
-from constant import SEGMENTATION
+"""
+Global
+------
+
+"""
+
+from constant import SEGMENTATIONS
 from datatype.settings import Settings
 
 
 def main():
-    for path in SEGMENTATION:
+    for path in SEGMENTATIONS:
         settings = Settings.from_file(path)
 
         # settings.ref_level_db = 15

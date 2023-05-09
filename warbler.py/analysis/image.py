@@ -1,3 +1,9 @@
+"""
+Image
+-----
+
+"""
+
 from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.imaging import (

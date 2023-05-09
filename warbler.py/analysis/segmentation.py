@@ -1,8 +1,14 @@
+"""
+Segmentation
+------------
+
+"""
+
 import matplotlib.pyplot as plt
 
 from constant import DATASET, SETTINGS
 from datatype.plot import VocalEnvelopeSpectrogram
-from datatype.segmentation import dynamic_threshold_segmentation
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
 
@@ -23,22 +29,23 @@ def main():
             settings.butter_highcut
         )
 
-    signal.normalize()
+    if settings.normalize:
+        signal.normalize()
 
     if settings.reduce_noise:
         signal.reduce()
 
-    signal.dereverberate(dereverberate)
+    if settings.dereverberate:
+        signal.dereverberate(dereverberate)
 
-    threshold = dynamic_threshold_segmentation(
-        signal,
-        settings,
-        full=True
-    )
+    algorithm = DynamicThresholdSegmentation()
+    algorithm.signal = signal
+    algorithm.settings = settings
+    algorithm.start()
 
     plot = VocalEnvelopeSpectrogram()
+    plot.algorithm = algorithm
     plot.signal = signal
-    plot.threshold = threshold
     plot.create()
 
     plt.show()

@@ -1,3 +1,9 @@
+"""
+PDF
+---
+
+"""
+
 import fitz
 import io
 import matplotlib.pyplot as plt
@@ -14,10 +20,10 @@ from datatype.plot import (
     StandardSpectrogram,
     SegmentationSpectrogram
 )
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
-from datatype.spectrogram import Spectrogram
-from vocalseg.dynamic_thresholding import dynamic_threshold_segmentation
+from datatype.spectrogram import Linear, Spectrogram
 
 
 def main():
@@ -31,9 +37,9 @@ def main():
 
     keys = dataframe.individual.unique()
 
-    individuals = dataframe.individual.values
-    filenames = dataframe.updated_filename.values
-    pages = dataframe.printout_page_number.values
+    individuals = dataframe.individual.tolist()
+    filenames = dataframe.updated_filename.tolist()
+    pages = dataframe.printout_page_number.tolist()
 
     # Image box
     width = 325
@@ -121,10 +127,15 @@ def main():
                 if settings.reduce_noise:
                     signal.reduce()
 
-                spectrogram = Spectrogram(signal, settings)
+                strategy = Linear(signal, settings)
+
+                spectrogram = Spectrogram()
+                spectrogram.strategy = strategy
                 spectrogram = spectrogram.generate()
 
-                plot = StandardSpectrogram(signal, spectrogram)
+                plot = StandardSpectrogram()
+                plot.signal = signal
+                plot.spectrogram = spectrogram
                 plot.create()
 
                 stream = io.BytesIO()
@@ -158,35 +169,22 @@ def main():
                 )
 
                 # Python: Segmented
-                threshold = dynamic_threshold_segmentation(
-                    signal.data,
-                    signal.rate,
-                    n_fft=settings.n_fft,
-                    hop_length_ms=settings.hop_length_ms,
-                    win_length_ms=settings.win_length_ms,
-                    ref_level_db=settings.ref_level_db,
-                    pre=settings.preemphasis,
-                    min_level_db=settings.min_level_db,
-                    min_level_db_floor=settings.min_level_db_floor,
-                    db_delta=settings.db_delta,
-                    silence_threshold=settings.silence_threshold,
-                    # spectral_range=settings.spectral_range,
-                    min_silence_for_spec=settings.min_silence_for_spec,
-                    max_vocal_for_spec=settings.max_vocal_for_spec,
-                    min_syllable_length_s=settings.min_syllable_length_s
-                )
+                algorithm = DynamicThresholdSegmentation()
+                algorithm.signal = signal
+                algorithm.settings = settings
+                algorithm.start()
 
                 try:
-                    threshold.get('spec')
-                    threshold.get('onsets')
-                    threshold.get('offsets')
+                    algorithm.component.get('spectrogram')
+                    algorithm.component.get('onset')
+                    algorithm.component.get('offset')
                 except Exception:
                     print(f"Unable to process: {filename}")
                     continue
 
                 plot = SegmentationSpectrogram()
+                plot.algorithm = algorithm
                 plot.signal = signal
-                plot.threshold = threshold
                 plot.create()
 
                 plt.xticks(
@@ -238,7 +236,7 @@ def main():
             document.set_toc(toc)
 
         path = PDF.joinpath(key + '.pdf')
-        document.save(path)
+        document.save(path, deflate=True)
         document.close()
 
 

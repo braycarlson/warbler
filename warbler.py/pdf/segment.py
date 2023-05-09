@@ -1,3 +1,9 @@
+"""
+Segment
+-------
+
+"""
+
 import fitz
 import numpy as np
 import pandas as pd
@@ -11,10 +17,10 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 from itertools import permutations
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from typing import List
+from typing import Any, List, Tuple
 
 
-def create_page(collection: np.ndarray, text: str) -> Image:
+def create_page(collection: List[Any] | np.ndarray, text: str) -> Image:
     """Create a page with images arranged in a grid.
 
     Args:
@@ -166,7 +172,7 @@ def create_grid(collection: np.ndarray, text: str) -> Image:
     return grid
 
 
-def to_string(method: List[str]) -> str:
+def to_string(method: List[str] | Tuple[str, ...]) -> str:
     """Convert a list of strings to a single string.
 
     Args:

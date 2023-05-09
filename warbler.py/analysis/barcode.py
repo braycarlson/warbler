@@ -1,11 +1,17 @@
+"""
+Barcode
+-------
+
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from constant import PROJECTION
 from datatype.barcode import (
+    Barcode,
+    Builder,
     palplot,
-    plot_sorted_barcodes,
-    song_barcode
+    SongBarcode
 )
 from datatype.dataset import Dataset
 
@@ -31,27 +37,38 @@ def main():
         len(hdbscan)
     )
 
+    settings = {
+        'figure': {
+            'figsize': (20, 4),
+
+        },
+        'length': 100,
+        'maximum': 600,
+        'name': 'Adelaide\'s warbler',
+        'nex': 600
+    }
+
     for folder in unique:
-        print(f"Processing: {folder}")
+        settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
 
-        label_dict = {
+        mapping = {
             lab: str(i).zfill(3)
             for i, lab in enumerate(hdbscan)
         }
 
-        label_pal_dict = {
-            label_dict[lab]: color
+        palette = {
+            mapping[lab]: color
             for lab, color in zip(hdbscan, label_pal)
         }
 
         figsize = (25, 3)
-        fig, ax = plt.subplots(2, figsize=figsize)
+        figure, ax = plt.subplots(2, figsize=figsize)
 
         palplot(
             list(
-                label_pal_dict.values()
+                palette.values()
             ),
             ax=ax[0]
         )
@@ -70,54 +87,42 @@ def main():
         transitions = []
 
         for filename in individual.filename.unique():
-            song = individual[individual['filename'] == filename]
+            subset = individual[individual['filename'] == filename]
 
-            label = song.hdbscan_label_2d.tolist()
-            onset = song.onset.tolist()
-            offset = song.offset.tolist()
+            label = subset.hdbscan_label_2d.tolist()
+            onset = subset.onset.tolist()
+            offset = subset.offset.tolist()
 
-            transition, color = song_barcode(
-                onset,
-                offset,
-                label,
-                label_dict,
-                label_pal_dict,
-                resolution=0.01,
-            )
+            song = SongBarcode()
+            song.onset = onset
+            song.offset = offset
+            song.label = label
+            song.mapping = mapping
+            song.palette = palette
+
+            transition, color = song.build()
 
             colors.append(color)
             transitions.append(transition)
 
-        plot_sorted_barcodes(
-            colors,
-            transitions,
-            max_list_len=600,
-            seq_len=100,
-            nex=600,
-            figsize=(20, 4),
-            ax=ax[1]
-        )
+        builder = Builder()
+        builder.ax = ax[1]
+        builder.color = colors
+        builder.transition = transitions
 
-        # plt.show()
+        barcode = Barcode()
+        barcode.builder = builder
+        barcode.settings = settings
 
-        title = f"Barcode for {folder}"
+        barcode.build()
 
-        ax[0].set_title(
-            title,
-            fontsize=18,
-            pad=25
-        )
-
-        PROJECTION.mkdir(parents=True, exist_ok=True)
+        barcode.show()
 
         filename = f"barcode_{folder}.png"
-        path = PROJECTION.joinpath(filename)
 
-        plt.savefig(
-            path,
-            bbox_inches='tight',
-            dpi=300,
-            format='png'
+        barcode.save(
+            figure=figure,
+            filename=filename,
         )
 
 

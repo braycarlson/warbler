@@ -1,3 +1,11 @@
+"""
+Metadata
+--------
+
+"""
+
+from __future__ import annotations
+
 import logging
 import numpy as np
 import pandas as pd
@@ -5,7 +13,7 @@ import pandas as pd
 from bootstrap import bootstrap
 from constant import SETTINGS
 from datatype.dataset import Dataset
-from datatype.segmentation import dynamic_threshold_segmentation
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import resolve, Settings
 from librosa.util.exceptions import ParameterError
 from logger import logger
@@ -19,7 +27,7 @@ log = logging.getLogger(__name__)
 
 def get_onset_offset(
     series: pd.Series
-) -> Tuple[float, float] | Tuple[np.nan, np.nan]:
+) -> Tuple[float, float] | Tuple[int, int]:
     """Calculates the onset and offset of a signal.
 
     Args:
@@ -34,7 +42,10 @@ def get_onset_offset(
     signal, settings = series
 
     try:
-        result = dynamic_threshold_segmentation(signal, settings)
+        algorithm = DynamicThresholdSegmentation()
+        algorithm.signal = signal
+        algorithm.settings = settings
+        algorithm.start()
     except ValueError:
         log.warning(f"Shape: {signal.path.name}")
         return (np.nan, np.nan)
@@ -42,12 +53,12 @@ def get_onset_offset(
         log.warning(f"Parameter(s): {signal.path.name}")
         return (np.nan, np.nan)
 
-    if result is None:
+    if algorithm.component is None:
         log.warning(f"Envelope: {signal.path.name}")
         return (np.nan, np.nan)
 
-    onset = result.get('onset')
-    offset = result.get('offset')
+    onset = algorithm.component.get('onset')
+    offset = algorithm.component.get('offset')
 
     if len(onset) == len(offset):
         return (onset, offset)

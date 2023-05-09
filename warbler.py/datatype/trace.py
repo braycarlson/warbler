@@ -1,3 +1,9 @@
+"""
+Trace
+-----
+
+"""
+
 from __future__ import annotations
 
 import numpy as np
@@ -7,7 +13,7 @@ import seaborn as sns
 from abc import ABC, abstractmethod
 from datatype.settings import Settings
 from plotly import graph_objs as go
-from typing import Dict, List, NoReturn, Tuple
+from typing import Any, List, Tuple
 
 
 class Visitor(ABC):
@@ -24,7 +30,7 @@ class Visitor(ABC):
         )
 
     @abstractmethod
-    def palette(self, labels: np.ndarray) -> NoReturn:
+    def palette(self, labels: Any) -> Any:
         """Generate a palette of colors based on labels.
 
         Args:
@@ -38,7 +44,7 @@ class Visitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def two(self, dataframe: pd.DataFrame) -> NoReturn:
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
         """Generate a two-dimensional plot based on a dataframe.
 
         Args:
@@ -52,7 +58,7 @@ class Visitor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def three(self, dataframe: pd.DataFrame) -> NoReturn:
+    def three(self, dataframe: pd.DataFrame) -> List[go.Scatter3d]:
         """Generate a three-dimensional plot based on a dataframe.
 
         Args:
@@ -157,7 +163,7 @@ class AnimationTrace(Visitor):
                 )
             )
 
-    def palette(self, labels: np.ndarray) -> None:
+    def palette(self, labels: Any) -> Any:
         """Generate a palette of colors based on labels.
 
         Args:
@@ -168,7 +174,7 @@ class AnimationTrace(Visitor):
 
         """
 
-        pass
+        raise NotImplementedError
 
     def three(self, dataframe: pd.DataFrame) -> go.Scatter3d:
         """Generate a three-dimensional scatter plot based on a dataframe.
@@ -192,7 +198,7 @@ class AnimationTrace(Visitor):
             showlegend=False
         )
 
-    def two(self, dataframe: pd.DataFrame) -> None:
+    def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
         """Generate a two-dimensional plot based on a dataframe.
 
         Args:
@@ -203,14 +209,11 @@ class AnimationTrace(Visitor):
 
         """
 
-        pass
+        raise NotImplementedError
 
 
 class CoordinateTrace(Visitor):
-    def palette(
-        self,
-        labels: np.ndarray
-    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+    def palette(self, labels: Any) -> Any:
         """Generate a color palette dictionary based on labels.
 
          Args:
@@ -347,10 +350,7 @@ class CoordinateTrace(Visitor):
 
 
 class DurationTrace(Visitor):
-    def palette(
-        self,
-        labels: np.ndarray
-    ) -> Dict[np.ndarray, List[Tuple[int, int, int, float]]]:
+    def palette(self, labels: Any) -> Any:
         """Generate a color palette dictionary based on labels.
 
         Args:
@@ -522,7 +522,7 @@ class DurationTrace(Visitor):
 class FuzzyClusterTrace(Visitor):
     """Generate visualization traces for Fuzzy C-Means clustering."""
 
-    def palette(self) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+    def palette(self, labels: Any = None) -> Any:
         """Generate a color palette based on the Fuzzy C-Means settings.
 
         Returns:
@@ -627,7 +627,7 @@ class FuzzyClusterTrace(Visitor):
 class HDBScanTrace(Visitor):
     """A class for generating visualization traces for HDBScan clustering."""
 
-    def palette(self) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+    def palette(self, labels: Any = None) -> Any:
         """Generate a color palette based on the HDBScan settings.
 
         Returns:
@@ -732,10 +732,7 @@ class HDBScanTrace(Visitor):
 
 
 class IndividualTrace(Visitor):
-    def palette(
-        self,
-        labels: np.ndarray
-    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+    def palette(self, labels: Any) -> Any:
         """Creates a color palette dictionary based on the unique labels.
 
         Args:
@@ -840,10 +837,7 @@ class IndividualTrace(Visitor):
 
 
 class SequenceTrace(Visitor):
-    def palette(
-        self,
-        labels: np.ndarray
-    ) -> Dict[np.ndarray, sns.palettes._ColorPalette]:
+    def palette(self, labels: Any) -> Any:
         """Creates a color palette dictionary based on the unique labels.
 
         Args:
@@ -946,7 +940,7 @@ class SequenceTrace(Visitor):
 
 
 class SingleClusterTrace(Visitor):
-    def palette(self, labels: np.ndarray) -> None:
+    def palette(self, labels: Any) -> None:
         """Assigns colors to the given cluster labels.
 
         Args:
@@ -957,7 +951,7 @@ class SingleClusterTrace(Visitor):
 
         """
 
-        pass
+        raise NotImplementedError
 
     def two(self, dataframe: pd.DataFrame) -> List[go.Scattergl]:
         """Creates a 2D scatter plot using the given dataframe.

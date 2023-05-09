@@ -1,3 +1,9 @@
+"""
+Scatter
+-------
+
+"""
+
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
@@ -31,16 +37,17 @@ class Builder(Base):
         """
 
         figsize = self.settings.figure.get('figsize')
-        fig, ax = plt.subplots(figsize=figsize)
+        figure, ax = plt.subplots(figsize=figsize)
 
         ax.xaxis.set_visible(self.settings.is_axis)
         ax.yaxis.set_visible(self.settings.is_axis)
 
         self.component.collection['ax'] = ax
+        self.component.collection['figure'] = figure
 
         return self
 
-    def decorate(self) -> Self:  # noqa
+    def initialize(self) -> Self:  # noqa
         """Sets default settings and updates them with custom settings.
 
         Args:
@@ -81,7 +88,7 @@ class Builder(Base):
         }
 
         if self.settings is not None:
-            merge = defaultdict(dict)
+            merge: defaultdict = defaultdict(dict)
             merge.update(default)
 
             for key, value in self.settings.items():
@@ -207,13 +214,18 @@ class Builder(Base):
         cluster = self.settings.cluster
 
         title = f"{cluster} Clustering of {name}"
-        ax.set_title(title)
+
+        ax.set_title(
+            title,
+            fontsize=18,
+            pad=25
+        )
 
         return self
 
 
 class ScatterHDBSCAN(Plot):
-    """A class for constructing an HDBSCAN scatter plot.
+    """A class for building an HDBSCAN scatter plot.
 
     Args:
         None.
@@ -223,8 +235,8 @@ class ScatterHDBSCAN(Plot):
 
     """
 
-    def construct(self) -> Component:
-        """Constructs the scatter plot component with HDBSCAN settings.
+    def build(self) -> Component:
+        """Builds the scatter plot component with HDBSCAN settings.
 
         Args:
             None.
@@ -238,7 +250,7 @@ class ScatterHDBSCAN(Plot):
 
         return (
             self.builder
-            .decorate()
+            .initialize()
             .ax()
             .title()
             .palette()
@@ -250,7 +262,7 @@ class ScatterHDBSCAN(Plot):
 
 
 class ScatterFCM(Plot):
-    """A class for constructing a Fuzzy C-Means scatter plot.
+    """A class for building a Fuzzy C-Means scatter plot.
 
     Args:
         None.
@@ -260,8 +272,8 @@ class ScatterFCM(Plot):
 
     """
 
-    def construct(self) -> Component:
-        """Constructs the scatter plot component with Fuzzy C-Means settings.
+    def build(self) -> Component:
+        """Builds the scatter plot component with Fuzzy C-Means settings.
 
         Args:
             None.
@@ -275,7 +287,7 @@ class ScatterFCM(Plot):
 
         return (
             self.builder
-            .decorate()
+            .initialize()
             .ax()
             .title()
             .palette()

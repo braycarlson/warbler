@@ -1,3 +1,9 @@
+"""
+Image: Single
+-------------
+
+"""
+
 import matplotlib.pyplot as plt
 
 from constant import SETTINGS

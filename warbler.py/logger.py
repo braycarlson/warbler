@@ -1,3 +1,9 @@
+"""
+Logger
+------
+
+"""
+
 import logging
 
 from constant import LOGS

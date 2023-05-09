@@ -1,3 +1,9 @@
+"""
+Filtering
+---------
+
+"""
+
 import cv2
 import numpy as np
 
@@ -17,9 +23,6 @@ from datatype.spectrogram import (
 )
 from PIL import Image, ImageOps
 from skimage import filters
-
-
-np.set_printoptions(threshold=np.inf)
 
 
 def create_grid(collection: np.ndarray, text: str):

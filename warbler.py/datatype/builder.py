@@ -1,3 +1,9 @@
+"""
+Builder
+-------
+
+"""
+
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
@@ -9,7 +15,8 @@ from abc import abstractmethod
 from constant import PROJECTION
 from datatype.settings import Settings
 from matplotlib.backends._backend_tk import FigureManagerTk
-from typing import NoReturn
+from matplotlib.figure import Figure
+from typing import Any, Dict
 
 
 warnings.simplefilter('ignore', UserWarning)
@@ -25,7 +32,7 @@ class Component():
 class Base:
     """Base class for other builder classes."""
 
-    def __init__(self, settings: Settings = None):
+    def __init__(self, settings=None):
         self._component = Component()
         self._embedding = None
         self._label = None
@@ -46,11 +53,19 @@ class Base:
 
         return self._embedding
 
+    @embedding.setter
+    def embedding(self, embedding: np.ndarray) -> None:
+        self._embedding = embedding
+
     @property
     def label(self) -> np.ndarray:
         """Get the cluster labels."""
 
         return self._label
+
+    @label.setter
+    def label(self, label: np.ndarray) -> None:
+        self._label = label
 
     @property
     def sequence(self) -> np.ndarray:
@@ -58,11 +73,19 @@ class Base:
 
         return self._sequence
 
+    @sequence.setter
+    def sequence(self, sequence: np.ndarray) -> None:
+        self._sequence = sequence
+
     @property
     def settings(self) -> Settings:
         """Get the settings."""
 
         return self._settings
+
+    @settings.setter
+    def settings(self, settings: Dict[Any, Any]) -> None:
+        self._settings = settings
 
     @property
     def spectrogram(self) -> np.ndarray:
@@ -70,31 +93,15 @@ class Base:
 
         return self._spectrogram
 
+    @spectrogram.setter
+    def spectrogram(self, spectrogram: np.ndarray) -> None:
+        self._spectrogram = spectrogram
+
     @property
     def unique(self) -> np.ndarray:
         """Get the unique cluster labels."""
 
         return self._unique
-
-    @embedding.setter
-    def embedding(self, embedding: np.ndarray) -> None:
-        self._embedding = embedding
-
-    @label.setter
-    def label(self, label: np.ndarray) -> None:
-        self._label = label
-
-    @sequence.setter
-    def sequence(self, sequence: np.ndarray) -> None:
-        self._sequence = sequence
-
-    @settings.setter
-    def settings(self, settings: Settings) -> None:
-        self._settings = settings
-
-    @spectrogram.setter
-    def spectrogram(self, spectrogram: np.ndarray) -> None:
-        self._spectrogram = spectrogram
 
     @unique.setter
     def unique(self, unique: np.ndarray) -> None:
@@ -171,10 +178,14 @@ class Plot:
         self._settings = None
 
     @property
-    def builder(self) -> Base:
+    def builder(self) -> Any:
         """Get the builder."""
 
         return self._builder
+
+    @builder.setter
+    def builder(self, builder: Any) -> None:
+        self._builder = builder
 
     @property
     def settings(self) -> Settings:
@@ -182,94 +193,62 @@ class Plot:
 
         return self.builder.settings
 
-    @builder.setter
-    def builder(self, builder: Base) -> None:
-        """Set the builder.
-
-        Args:
-            builder: An instance of the Base class.
-
-        """
-
-        self._builder = builder
-
-    @Base.embedding.setter
-    def embedding(self, embedding: np.ndarray) -> None:
-        """Set the embeddings in the builder.
-
-        Args:
-            embedding: The embeddings array.
-
-        """
-
-        self.builder.embedding = embedding
-
-    @Base.label.setter
-    def label(self, label: np.ndarray) -> None:
-        """Set the cluster label in the builder.
-
-        Args:
-            label: The cluster labels array.
-
-        """
-
-        self.builder.label = label
-
-    @Base.sequence.setter
-    def sequence(self, sequence: np.ndarray) -> None:
-        """Set the sequences in the builder.
-
-        Args:
-            sequence: The sequences array.
-
-        """
-
-        self.builder.sequence = sequence
-
     @settings.setter
     def settings(self, settings: Settings) -> None:
-        """Set the settings in the builder.
-
-        Args:
-            settings: An instance of the Settings class.
-
-        """
-
         self.builder.settings = settings
 
-    @Base.spectrogram.setter
+    @property
+    def embedding(self):
+        return self.builder.embedding
+
+    @embedding.setter
+    def embedding(self, embedding: np.ndarray) -> None:
+        self.builder.embedding = embedding
+
+    @property
+    def label(self):
+        return self.builder.label
+
+    @label.setter
+    def label(self, label: np.ndarray) -> None:
+        self.builder.label = label
+
+    @property
+    def sequence(self):
+        return self.builder.sequence
+
+    @sequence.setter
+    def sequence(self, sequence: np.ndarray) -> None:
+        self.builder.sequence = sequence
+
+    @property
+    def spectrogram(self):
+        return self.builder.spectrogram
+
+    @spectrogram.setter
     def spectrogram(self, spectrogram: np.ndarray) -> None:
-        """Set the spectrograms in the builder.
-
-        Args:
-            spectrogram: The spectrograms array.
-
-        """
-
         self.builder.spectrogram = spectrogram
 
-    @Base.unique.setter
+    @property
+    def unique(self):
+        return self.builder.unique
+
+    @unique.setter
     def unique(self, unique: np.ndarray) -> None:
-        """Set the unique cluster labels in the builder.
-
-        Args:
-            unique: The unique cluster labels array.
-
-        """
-
         self.builder.unique = unique
 
     @abstractmethod
-    def construct(self) -> NoReturn:
-        """Construct the plot. This must be implemented in subclasses."""
+    def build(self) -> Component:
+        """Build the plot. This must be implemented in subclasses."""
 
         raise NotImplementedError
 
-    def save(self, filename: str) -> None:
+    def save(self, figure: Figure = None, filename: str = None) -> None:
         """Save the plot to an image.
 
         Args:
             filename: The name of the file to save.
+            fig: The figure to save.
 
         """
 
@@ -280,12 +259,20 @@ class Plot:
 
         path = PROJECTION.joinpath(filename)
 
-        plt.savefig(
-            path,
-            bbox_inches='tight',
-            dpi=300,
-            format='png'
-        )
+        if figure is None:
+            plt.savefig(
+                path,
+                bbox_inches='tight',
+                dpi=300,
+                format='png'
+            )
+        else:
+            figure.savefig(
+                path,
+                bbox_inches='tight',
+                dpi=300,
+                format='png'
+            )
 
         plt.close()
 
@@ -317,3 +304,4 @@ class Plot:
 
         plt.tight_layout()
         plt.show()
+        plt.close()

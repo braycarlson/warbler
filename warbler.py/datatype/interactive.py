@@ -1,3 +1,9 @@
+"""
+Interactive
+-----------
+
+"""
+
 from __future__ import annotations
 
 import pandas as pd
@@ -14,7 +20,7 @@ from ipywidgets import (
     VBox
 )
 from plotly import graph_objs as go
-from typing import NoReturn
+from typing import Any, NoReturn
 
 
 class DimensionalStrategy(ABC):
@@ -33,7 +39,7 @@ class DimensionalStrategy(ABC):
     def __init__(
         self,
         dataframe: pd.DataFrame = None,
-        trace: Visitor = None
+        trace=None
     ):
         self._dataframe = dataframe
         self._trace = trace
@@ -49,7 +55,7 @@ class DimensionalStrategy(ABC):
         self._dataframe = dataframe
 
     @property
-    def trace(self) -> Visitor:
+    def trace(self) -> Any:
         """Get the visitor object for the strategy."""
 
         return self._trace
@@ -77,7 +83,7 @@ class DimensionalStrategy(ABC):
 
 
 class ThreeDimensional(DimensionalStrategy):
-    def scatter(self) -> Visitor:
+    def scatter(self) -> Any:
         """Generate a scatter plot for a three-dimensional visualization.
 
         Returns:
@@ -103,7 +109,7 @@ class ThreeDimensional(DimensionalStrategy):
 
 
 class TwoDimensional(DimensionalStrategy):
-    def scatter(self) -> Visitor:
+    def scatter(self) -> Any:
         """Generate a scatter plot for a two-dimensional visualization.
 
         Returns:
@@ -144,11 +150,7 @@ class Builder:
 
     """
 
-    def __init__(
-        self,
-        dataframe: pd.DataFrame = None,
-        strategy: DimensionalStrategy = None
-    ):
+    def __init__(self, dataframe=None, strategy=None):
         self._dataframe = dataframe
         self._strategy = strategy
 
@@ -729,32 +731,20 @@ class Interactive:
     def __init__(self):
         self.builder = Builder()
 
-    @Builder.dataframe.setter
+    @property
+    def dataframe(self):
+        return self.builder.dataframe
+
+    @dataframe.setter
     def dataframe(self, dataframe: pd.DataFrame) -> None:
-        """Set the dataframe attribute of the builder.
-
-        Args:
-            dataframe: The input pandas DataFrame.
-
-        Returns:
-            None.
-
-        """
-
         self.builder.dataframe = dataframe
 
-    @Builder.strategy.setter
+    @property
+    def strategy(self):
+        return self.builder.strategy
+
+    @strategy.setter
     def strategy(self, strategy: DimensionalStrategy) -> None:
-        """Set the strategy attribute of the builder.
-
-        Args:
-            strategy: An instance of the DimensionalStrategy class.
-
-        Returns:
-            None.
-
-        """
-
         self.builder.strategy = strategy
 
     def create(self) -> VBox:

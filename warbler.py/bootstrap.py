@@ -1,3 +1,9 @@
+"""
+Bootstrap
+---------
+
+"""
+
 from constant import (
     DATASET,
     DIRECTORIES,

@@ -1,3 +1,9 @@
+"""
+Scatter
+-------
+
+"""
+
 import numpy as np
 
 from datatype.dataset import Dataset
@@ -8,7 +14,7 @@ from datatype.scatter import (
 )
 
 
-def main():
+def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
@@ -45,38 +51,85 @@ def main():
     scatter.settings = settings
     scatter.unique = unique
 
-    scatter.construct()
+    component = scatter.build()
+
+    figure = component.collection.get('figure')
+
     scatter.show()
 
-    # scatter.save('adelaideswarbler.png')
+    filename = 'scatter_dataset.png'
 
-    # unique = dataframe.folder.unique()
+    scatter.save(
+        figure=figure,
+        filename=filename
+    )
 
-    # for folder in unique:
-    #     print(f"Processing: {folder}")
 
-    #     settings['scatter']['alpha'] = 0.75
-    #     settings['scatter']['s'] = 25
-    #     settings['name'] = folder
+def individual() -> None:
+    dataset = Dataset('segment')
+    dataframe = dataset.load()
 
-    #     individual = dataframe[dataframe.folder == folder]
+    settings = {
+        'scatter': {
+            'alpha': 0.50,
+            's': 10
+        },
+        'name': 'Adelaide\'s warbler',
+    }
 
-    #     coordinates = [
-    #         individual.umap_x_2d,
-    #         individual.umap_y_2d
-    #     ]
+    folders = dataframe.folder.unique()
+    unique = dataframe.hdbscan_label_2d.unique()
 
-    #     embedding = np.column_stack(coordinates)
-    #     label = individual.fcm_label_2d.to_numpy()
+    for folder in folders:
+        settings['scatter']['alpha'] = 0.75
+        settings['scatter']['s'] = 25
+        settings['name'] = folder
 
-    #     scatter.embedding = embedding
-    #     scatter.label = label
-    #     scatter.settings = settings
-    #     scatter.unique = unique
+        individual = dataframe[dataframe.folder == folder]
 
-    #     scatter.construct()
-    #     # scatter.show()
-    #     scatter.save(folder + '.png')
+        # Mask the "noise"
+        individual = (
+            individual[individual.hdbscan_label_2d > -1]
+            .reset_index(drop=True)
+        )
+
+        coordinates = [
+            individual.umap_x_2d,
+            individual.umap_y_2d
+        ]
+
+        embedding = np.column_stack(coordinates)
+        label = individual.hdbscan_label_2d.to_numpy()
+
+        scatter = ScatterHDBSCAN()
+        # scatter = ScatterFCM()
+
+        scatter.builder = Builder()
+        scatter.embedding = embedding
+        scatter.label = label
+        scatter.settings = settings
+        scatter.unique = unique
+
+        component = scatter.build()
+
+        figure = component.collection.get('figure')
+
+        scatter.show()
+
+        filename = f"scatter_{folder}.png"
+
+        scatter.save(
+            figure=figure,
+            filename=filename
+        )
+
+
+def main():
+    # Create a scatter plot for the entire dataset
+    dataset()
+
+    # Create a scatter plot for each individual
+    individual()
 
 
 if __name__ == '__main__':

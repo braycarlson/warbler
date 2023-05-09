@@ -1,3 +1,9 @@
+"""
+Axes
+----
+
+"""
+
 from __future__ import annotations
 
 import matplotlib.ticker as ticker
@@ -5,7 +11,7 @@ import numpy as np
 
 from matplotlib.axes import Axes
 from matplotlib.projections import register_projection
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Type
 
 
 class SpectrogramAxes(Axes):
@@ -19,11 +25,7 @@ class SpectrogramAxes(Axes):
 
     name = 'spectrogram'
 
-    def __init__(
-        self,
-        *args: Tuple[Any, Any],
-        **kwargs: Dict[str, Any]
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def initialize_x(self) -> None:
@@ -50,7 +52,7 @@ class SpectrogramAxes(Axes):
         self.initialize_y()
         self.format()
 
-    def _x_label(self, **kwargs: Dict[str, Any]) -> None:
+    def _x_label(self, **kwargs) -> None:
         """Set the label for the x-axis.
 
         Args:
@@ -67,7 +69,7 @@ class SpectrogramAxes(Axes):
             **kwargs
         )
 
-    def _y_label(self, **kwargs: Dict[str, Any]) -> None:
+    def _y_label(self, **kwargs) -> None:
         """Set the label for the y-axis.
 
         Args:
@@ -146,11 +148,7 @@ class SpectrogramAxes(Axes):
             fontweight=400
         )
 
-    def _title(
-        self,
-        title: str = 'Spectrogram',
-        **kwargs: Dict[str, Any]
-    ) -> None:
+    def _title(self, title: str = 'Spectrogram', **kwargs) -> None:
         """Set the title of the plot.
 
         Args:
@@ -184,14 +182,10 @@ class LinearAxes(SpectrogramAxes):
 
     name = 'linear'
 
-    def __init__(
-        self,
-        *args: Tuple[Any, Any],
-        **kwargs: Dict[str, Any]
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[LinearAxes, Dict[str, Any]]:
+    def _as_mpl_axes(self) -> Tuple[Type[LinearAxes], Dict[str, Any]]:
         """Convert LinearAxes object to matplotlib axes.
 
         Returns:
@@ -261,9 +255,7 @@ class LinearAxes(SpectrogramAxes):
     def _y_minor_tick(self) -> None:
         """Set the minor ticks for the y-axis."""
 
-        self.yaxis.set_minor_locator(
-            ticker.MaxNLocator(10)
-        )
+        self.minorticks_off()
 
     def _y_lim(self, maximum: int = 22050) -> None:
         """Set the y-axis limits.
@@ -273,7 +265,7 @@ class LinearAxes(SpectrogramAxes):
 
         """
 
-        self.set_ylim(0, maximum)
+        self.set_ylim(0, maximum / 2)
 
     def _y_scale(self, scale: str = 'linear') -> None:
         """Set the scale of the y-axis.
@@ -302,14 +294,10 @@ class LogarithmicAxes(SpectrogramAxes):
 
     name = 'logarithmic'
 
-    def __init__(
-        self,
-        *args: Tuple[Any, Any],
-        **kwargs: Dict[str, Any]
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[LogarithmicAxes, Dict[str, Any]]:
+    def _as_mpl_axes(self) -> Tuple[Type[LogarithmicAxes], Dict[str, Any]]:
         """Convert LogarithmicAxes object to matplotlib axes.
 
         Returns:
@@ -410,14 +398,10 @@ class LusciniaAxes(LinearAxes):
 
     name = 'luscinia'
 
-    def __init__(
-        self,
-        *args: Tuple[Any, Any],
-        **kwargs: Dict[str, Any]
-    ):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[LusciniaAxes, Dict[str, Any]]:
+    def _as_mpl_axes(self) -> Tuple[Type[LusciniaAxes], Dict[str, Any]]:
         """Convert LusciniaAxes object to matplotlib axes.
 
         Returns:
@@ -438,7 +422,7 @@ class LusciniaAxes(LinearAxes):
         self._y_padding()
         self._y_ticks()
 
-    def _x_label(self, **kwargs: Dict[str, Any]) -> None:
+    def _x_label(self, **kwargs) -> None:
         """Set the label for the x-axis.
 
         Args:
@@ -455,7 +439,7 @@ class LusciniaAxes(LinearAxes):
             **kwargs
         )
 
-    def _y_label(self, **kwargs: Dict[str, Any]) -> None:
+    def _y_label(self, **kwargs) -> None:
         """Set the label for the y-axis.
 
         Args:

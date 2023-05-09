@@ -1,125 +1,153 @@
+"""
+Segmentation
+------------
+
+"""
+
 import numpy as np
 
 from datatype.spectrogram import Segment, Spectrogram
 from scipy import ndimage
 
 
-def dynamic_threshold_segmentation(signal, settings, full=False):
-    """Performs dynamic threshold segmentation on a signal.
+class DynamicThresholdSegmentation:
+    def __init__(self, signal=None, settings=None):
+        self._component = {}
+        self._settings = settings
+        self._signal = signal
 
-    Args:
-        signal: The input signal.
-        settings: The settings for segmentation.
-        full: Flag indicating whether to include a spectrogram in the output.
+    @property
+    def component(self):
+        return self._component
 
-    Returns:
-        A dictionary containing the segmented template.
+    @component.setter
+    def component(self, component):
+        self._component = component
 
-    """
+    @property
+    def settings(self):
+        return self._settings
 
-    # Make a copy of the original spectrogram
-    segment = Segment(signal, settings)
+    @settings.setter
+    def settings(self, settings):
+        self._settings = settings
 
-    spectrogram = Spectrogram()
-    spectrogram.strategy = segment
-    original = spectrogram.generate()
+    @property
+    def signal(self):
+        return self._signal
 
-    # segment = Segment(signal, settings)
-    # original = segment.generate()
+    @signal.setter
+    def signal(self, signal):
+        self._signal = signal
 
-    fft_rate = signal.rate / int(
-        settings.hop_length_ms / 1000 * signal.rate
-    )
+    def _calculate_onset_offset(self, signal: np.ndarray):
+        """Calculates the onsets and offsets of a signal.
 
-    if settings.spectral_range is not None:
-        spec_bin_hz = (signal.rate / 2) / np.shape(original)[0]
+        Args:
+            signal: The input signal.
 
-        original = original[
-            int(settings.spectral_range[0] / spec_bin_hz):
-            int(settings.spectral_range[1] / spec_bin_hz),
-            :,
-        ]
+        Returns:
+            An array containing the onsets and offsets.
 
-    # Loop through possible thresholding configurations starting at the highest
-    for _, min_level_db in enumerate(
-        np.arange(
-            settings.min_level_db,
-            settings.min_level_db_floor,
-            settings.db_delta
+        """
+
+        signal = signal > self.settings.silence_threshold
+        elements, nelements = ndimage.label(signal)
+
+        zero = [0]
+
+        if nelements == 0:
+            return np.array(
+                [zero, zero]
+            )
+
+        onset, offset = np.array(
+            [
+                np.where(elements == element)[0][np.array([0, -1])] +
+                np.array([0, 1])
+                for element in np.unique(elements)
+                if element != 0
+            ]
+        ).T
+
+        return np.array([onset, offset])
+
+    def start(self):
+        """Performs dynamic threshold segmentation on a signal.
+
+        Args:
+            None.
+
+        Returns:
+            A dictionary containing the segmented template.
+
+        """
+
+        # Make a copy of the original spectrogram
+        segment = Segment(self.signal, self.settings)
+
+        spectrogram = Spectrogram()
+        spectrogram.strategy = segment
+        original = spectrogram.generate()
+
+        fft = self.signal.rate / int(
+            self.settings.hop_length_ms / 1000 * self.signal.rate
         )
-    ):
-        segment.settings.min_level_db = min_level_db
-        test = spectrogram.generate()
 
-        # Subtract the median
-        test = test - np.median(test, axis=1).reshape(
-            (len(test), 1)
+        if self.settings.spectral_range is not None:
+            x, _ = np.shape(original)
+
+            resolution = (self.signal.rate / 2) / x
+            lower, upper = self.settings.spectral_range
+
+            original = original[
+                int(lower / resolution):
+                int(upper / resolution),
+                :,
+            ]
+
+        # Possible thresholding configurations starting at the highest
+        configuration = np.arange(
+            self.settings.min_level_db,
+            self.settings.min_level_db_floor,
+            self.settings.db_delta
         )
 
-        test[test < 0] = 0
+        for _, min_level_db in enumerate(configuration):
+            segment.settings.min_level_db = min_level_db
+            sample = spectrogram.generate()
 
-        # Get the vocal envelope
-        vocal_envelope = np.max(test, axis=0) * np.sqrt(
-            np.mean(test, axis=0)
-        )
+            # Subtract the median
+            sample = sample - np.median(sample, axis=1).reshape(
+                (len(sample), 1)
+            )
 
-        # Normalize envelope
-        vocal_envelope = vocal_envelope / np.max(vocal_envelope)
+            sample[sample < 0] = 0
 
-        # Look at how much silence exists in the signal
-        onsets, offsets = onsets_offsets(
-            vocal_envelope > settings.silence_threshold
-        ) / fft_rate
+            # Get the vocal envelope
+            vocal_envelope = np.max(sample, axis=0) * np.sqrt(
+                np.mean(sample, axis=0)
+            )
 
-    onset, offset = onsets_offsets(
-        vocal_envelope > settings.silence_threshold
-    ) / fft_rate
+            # Normalize envelope
+            vocal_envelope = vocal_envelope / np.max(vocal_envelope)
 
-    # Threshold out short syllables
-    mask = (offsets - onsets) >= settings.min_syllable_length_s
+            # Determine how much silence exists in the signal
+            onsets, offsets = self._calculate_onset_offset(
+                vocal_envelope > self.settings.silence_threshold
+            ) / fft
 
-    template = {
-        'onset': onset[mask],
-        'offset': offset[mask]
-    }
+        onset, offset = self._calculate_onset_offset(
+            vocal_envelope > self.settings.silence_threshold
+        ) / fft
 
-    if full:
+        # Threshold out short syllables
+        mask = (offsets - onsets) >= self.settings.min_syllable_length_s
         vocal_envelope = vocal_envelope.astype('float32')
 
-        template['spectrogram'] = test
-        template['vocal_envelope'] = vocal_envelope
+        self.component['onset'] = onset[mask]
+        self.component['offset'] = offset[mask]
+        self.component['spectrogram'] = sample
+        self.component['vocal_envelope'] = vocal_envelope
 
-    return template
-
-
-def onsets_offsets(signal):
-    """Calculates the onsets and offsets of a signal.
-
-    Args:
-        signal: The input signal.
-
-    Returns:
-        An array containing the onsets and offsets.
-
-    """
-
-    elements, nelements = ndimage.label(signal)
-
-    if nelements == 0:
-        return np.array(
-            [
-                [0],
-                [0]
-            ]
-        )
-
-    onset, offset = np.array(
-        [
-            np.where(elements == element)[0][np.array([0, -1])] +
-            np.array([0, 1])
-            for element in np.unique(elements)
-            if element != 0
-        ]
-    ).T
-
-    return np.array([onset, offset])
+        return self

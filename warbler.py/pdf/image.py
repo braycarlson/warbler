@@ -1,3 +1,9 @@
+"""
+Image
+-----
+
+"""
+
 import fitz
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -7,10 +13,8 @@ from copy import deepcopy
 from datatype.dataset import Dataset
 from datatype.imaging import (
     create_figure,
-    create_image,
     create_plot,
     create_signal_page,
-    filter_image
 )
 from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings

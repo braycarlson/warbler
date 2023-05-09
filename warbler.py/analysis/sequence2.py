@@ -1,3 +1,9 @@
+"""
+Sequence2
+---------
+
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -10,7 +16,7 @@ from datatype.plot import (
     SegmentationSpectrogram,
     StandardSpectrogram
 )
-from datatype.segmentation import dynamic_threshold_segmentation
+from datatype.segmentation import DynamicThresholdSegmentation
 from datatype.settings import Settings
 from datatype.signal import Signal
 from datatype.spectrogram import (
@@ -388,13 +394,17 @@ def get_buffer(row: pd.Series) -> List[BytesIO]:
     spectrogram = create_spectrogram(signal, custom)
 
     # Segmentation
-    threshold = dynamic_threshold_segmentation(signal, custom, full=True)
-    threshold['spectrogram'] = spectrogram
+    algorithm = DynamicThresholdSegmentation()
+    algorithm.signal = signal
+    algorithm.settings = custom
+    algorithm.start()
+
+    algorithm.component['spectrogram'] = spectrogram
 
     plot = SegmentationSpectrogram()
+    plot.algorithm = algorithm
     plot.settings = custom
     plot.signal = signal
-    plot.threshold = threshold
     plot.create()
 
     plt.title(

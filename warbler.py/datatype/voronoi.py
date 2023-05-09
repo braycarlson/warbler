@@ -1,7 +1,16 @@
+"""
+Voronoi
+-------
+
+"""
+
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-from datatype.builder import Base, Plot
+from collections import defaultdict
+from datatype.builder import Base, Component, Plot
 from datatype.settings import Settings
 from matplotlib.lines import Line2D
 from matplotlib import gridspec
@@ -19,7 +28,7 @@ class Builder(Base):
 
     """
 
-    def axis(self):
+    def axis(self) -> Self:  # noqa
         """Create an axis for the plot.
 
         Args:
@@ -44,7 +53,7 @@ class Builder(Base):
 
         return self
 
-    def axes(self):
+    def axes(self) -> Self:  # noqa
         """Create multiple axes for the plot.
 
         Args:
@@ -100,7 +109,33 @@ class Builder(Base):
 
         return self
 
-    def decorate(self):
+    def grid(self) -> Self:  # noqa
+        """Create a grid for the plot.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
+        n_column = self.settings.size * 4 - 4
+
+        figure = plt.figure(**self.settings.figure)
+
+        grid = gridspec.GridSpec(
+            self.settings.size,
+            self.settings.size
+        )
+
+        self.component.collection['figure'] = figure
+        self.component.collection['grid'] = grid
+        self.component.collection['n_column'] = n_column
+
+        return self
+
+    def initialize(self) -> Self:  # noqa
         """Set the default settings for the plot.
 
         Args:
@@ -161,42 +196,29 @@ class Builder(Base):
             'is_color': True,
             'is_legend': True,
             'is_line': True,
+            'name': 'Adelaide\'s warbler',
             'padding': 0.1,
             'palette': 'tab20',
             'size': 15
         }
 
+        if self.settings is not None:
+            merge: defaultdict = defaultdict(dict)
+            merge.update(default)
+
+            for key, value in self.settings.items():
+                if isinstance(value, dict):
+                    merge[key].update(value)
+                else:
+                    merge[key] = value
+
+            default = dict(merge)
+
         self.settings = Settings.from_dict(default)
 
         return self
 
-    def grid(self):
-        """Create a grid for the plot.
-
-        Args:
-            None.
-
-        Returns:
-            The modified Builder instance.
-
-        """
-
-        n_column = self.settings.size * 4 - 4
-
-        figure = plt.figure(**self.settings.figure)
-
-        grid = gridspec.GridSpec(
-            self.settings.size,
-            self.settings.size
-        )
-
-        self.component.collection['figure'] = figure
-        self.component.collection['grid'] = grid
-        self.component.collection['n_column'] = n_column
-
-        return self
-
-    def line(self):
+    def line(self) -> Self:  # noqa
         """Create legend lines for the plot.
 
         Args:
@@ -227,7 +249,7 @@ class Builder(Base):
 
         return self
 
-    def legend(self):
+    def legend(self) -> Self:  # noqa
         """Add a legend to the plot.
 
         Args:
@@ -251,7 +273,7 @@ class Builder(Base):
 
         return self
 
-    def limit(self):
+    def limit(self) -> Self:  # noqa
         """Set the limits of the plot.
 
         Args:
@@ -285,7 +307,7 @@ class Builder(Base):
 
         return self
 
-    def mask(self):
+    def mask(self) -> Self:  # noqa
         """Determine the range of the plot.
 
         Args:
@@ -323,7 +345,7 @@ class Builder(Base):
 
         return self
 
-    def range(self):
+    def range(self) -> Self:  # noqa
         """Determine the range of the plot.
 
         Args:
@@ -364,7 +386,7 @@ class Builder(Base):
 
         return self
 
-    def scatter(self):
+    def scatter(self) -> Self:  # noqa
         """Add scatter points to the plot.
 
         Args:
@@ -389,7 +411,7 @@ class Builder(Base):
 
         return self
 
-    def spacing(self):
+    def spacing(self) -> Self:  # noqa
         """Set the spacing of the grid.
 
         Args:
@@ -405,7 +427,30 @@ class Builder(Base):
 
         return self
 
-    def voronoi(self):
+    def title(self) -> Self:  # noqa
+        """Sets the title of the plot based on settings.
+
+        Args:
+            None.
+
+        Returns:
+            The modified Builder instance.
+
+        """
+
+        axis = self.component.collection.get('axis')
+
+        title = f"Voronoi of {self.settings.name}"
+
+        axis.set_title(
+            title,
+            fontsize=18,
+            pad=50
+        )
+
+        return self
+
+    def voronoi(self) -> Self:  # noqa
         """Create Voronoi regions on the plot.
 
         Args:
@@ -545,7 +590,7 @@ class Builder(Base):
 
 
 class Voronoi(Plot):
-    """A class for constructing Voronoi plots.
+    """A class for building Voronoi plots.
 
     Args:
         None.
@@ -555,24 +600,25 @@ class Voronoi(Plot):
 
     """
 
-    def construct(self):
-        """Construct the Voronoi plot.
+    def build(self) -> Component:
+        """Build the Voronoi plot.
 
         Args:
             None.
 
         Returns:
-            plot: The constructed Voronoi plot.
+            The components.
 
         """
 
         return (
             self.builder
-            .decorate()
+            .initialize()
             .grid()
             .range()
             .mask()
             .axis()
+            .title()
             .palette()
             .scatter()
             .line()

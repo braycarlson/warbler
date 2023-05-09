@@ -1,3 +1,9 @@
+"""
+Gallery
+-------
+
+"""
+
 from __future__ import annotations
 
 from datatype.interactive import Interactive

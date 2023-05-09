@@ -1,3 +1,9 @@
+"""
+Signal
+------
+
+"""
+
 from __future__ import annotations
 
 import io
@@ -13,14 +19,14 @@ from nara_wpe.wpe import wpe
 from nara_wpe.utils import istft, stft
 from scipy.io import wavfile
 from scipy.signal import butter, lfilter
-from typing import NoReturn, Optional, Tuple
+from typing import Optional, Tuple
 
 
 class Strategy(ABC):
     """A base class for strategies on loading an audio signal."""
 
     @abstractmethod
-    def load(self, path: str | pathlib.Path) -> NoReturn:
+    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
         """An abstract method for loading an audio signal.
 
         Args:
@@ -37,7 +43,7 @@ class Strategy(ABC):
 class Librosa(Strategy):
     """A class that loads audio using Librosa."""
 
-    def load(self, path: str | pathlib.Path) -> Tuple[int, np.ndarray]:
+    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
         """Load audio using Librosa.
 
         Args:
@@ -58,7 +64,7 @@ class Librosa(Strategy):
 class Scipy(Strategy):
     """A class that loads audio using Scipy."""
 
-    def load(self, path) -> Tuple[int, np.ndarray]:
+    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
         """Load audio using Scipy.
 
         Args:
@@ -76,7 +82,7 @@ class Scipy(Strategy):
 class Soundfile(Strategy):
     """A class that loads audio using Soundfile."""
 
-    def load(self, path) -> Tuple[int, np.ndarray]:
+    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
         """Load audio using Soundfile.
 
         Args:
@@ -108,7 +114,7 @@ class Signal:
 
     """
 
-    def __init__(self, path: Optional[str | pathlib.Path] = None):
+    def __init__(self, path=None):
         self._strategy = Scipy()
         self._path = path
         self._rate, self._data = self._load()
