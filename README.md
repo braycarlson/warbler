@@ -31,11 +31,11 @@ sudo apt install ffmpeg
 ### pyenv
 
 ```
-pyenv install 3.9.5
+pyenv install 3.11.2
 ```
 
 ```
-pyenv local 3.9.5
+pyenv local 3.11.2
 ```
 
 ### Virtual Environment
