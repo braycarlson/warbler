@@ -6,12 +6,15 @@ Axes
 
 from __future__ import annotations
 
-import matplotlib.ticker as ticker
 import numpy as np
 
 from matplotlib.axes import Axes
 from matplotlib.projections import register_projection
-from typing import Any, Dict, Tuple, Type
+from matplotlib import ticker
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class SpectrogramAxes(Axes):
@@ -185,7 +188,7 @@ class LinearAxes(SpectrogramAxes):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[Type[LinearAxes], Dict[str, Any]]:
+    def _as_mpl_axes(self) -> tuple[type[LinearAxes], dict[str, Any]]:
         """Convert LinearAxes object to matplotlib axes.
 
         Returns:
@@ -230,7 +233,7 @@ class LinearAxes(SpectrogramAxes):
 
         self.xaxis.set_major_formatter(
             ticker.FuncFormatter(
-                lambda x, _: '{0:,.1f}'.format(x)
+                lambda x, _: f"{x:,.1f}"
             )
         )
 
@@ -239,7 +242,7 @@ class LinearAxes(SpectrogramAxes):
 
         self.yaxis.set_major_formatter(
             ticker.FuncFormatter(
-                lambda y, _: '{0:g}'.format(
+                lambda y, _: '{:g}'.format(
                     int(y / 1e3)
                 )
             )
@@ -277,7 +280,7 @@ class LinearAxes(SpectrogramAxes):
 
         self.set_yscale(scale)
 
-    def _y_step(self):
+    def _y_step(self) -> None:
         """Set the step size for the y-axis."""
 
         ticks = np.arange(
@@ -297,7 +300,7 @@ class LogarithmicAxes(SpectrogramAxes):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[Type[LogarithmicAxes], Dict[str, Any]]:
+    def _as_mpl_axes(self) -> tuple[type[LogarithmicAxes], dict[str, Any]]:
         """Convert LogarithmicAxes object to matplotlib axes.
 
         Returns:
@@ -343,7 +346,7 @@ class LogarithmicAxes(SpectrogramAxes):
 
         self.xaxis.set_major_formatter(
             ticker.FuncFormatter(
-                lambda x, _: '{0:,.1f}'.format(x)
+                lambda x, _: f"{x:,.1f}"
             )
         )
 
@@ -401,7 +404,7 @@ class LusciniaAxes(LinearAxes):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _as_mpl_axes(self) -> Tuple[Type[LusciniaAxes], Dict[str, Any]]:
+    def _as_mpl_axes(self) -> tuple[type[LusciniaAxes], dict[str, Any]]:
         """Convert LusciniaAxes object to matplotlib axes.
 
         Returns:

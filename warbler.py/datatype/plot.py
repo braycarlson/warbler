@@ -8,22 +8,26 @@ from __future__ import annotations
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
-import numpy as np
 import PIL
 
 from abc import ABC, abstractmethod
 from datatype.axes import LinearAxes, SpectrogramAxes
-from datatype.segmentation import DynamicThresholdSegmentation
-from datatype.settings import Settings
-from datatype.signal import Signal
 from matplotlib import gridspec
 from matplotlib.collections import PatchCollection
-from matplotlib.figure import Figure
-from matplotlib.image import AxesImage
 from matplotlib.patches import Rectangle
 # from matplotlib.widgets import Slider
 # from PIL import ImageOps
-from typing import Any, Dict, NoReturn, Tuple
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy as np
+    import numpy.typing as npt
+
+    from datatype.segmentation import DynamicThresholdSegmentation
+    from datatype.settings import Settings
+    from datatype.signal import Signal
+    from matplotlib.figure import Figure
+    from matplotlib.image import AxesImage
 
 
 class Plot(ABC):
@@ -45,10 +49,9 @@ class Plot(ABC):
 
     def __init__(
         self,
-        scale=None,
-        settings=None,
-        signal=None,
-        spectrogram=None
+        settings: Settings | None = None,
+        signal: Signal | None = None,
+        spectrogram : np.array = None
     ):
         self._scale = LinearAxes
         self._settings = settings
@@ -76,13 +79,13 @@ class Plot(ABC):
         self._signal = signal
 
     @property
-    def spectrogram(self) -> np.ndarray:
+    def spectrogram(self) -> npt.NDArray:
         """Get the spectrogram data to be plotted."""
 
         return self._spectrogram
 
     @spectrogram.setter
-    def spectrogram(self, spectrogram: np.ndarray):
+    def spectrogram(self, spectrogram: npt.NDArray) -> None:
         self._spectrogram = spectrogram
 
     @property
@@ -96,12 +99,12 @@ class Plot(ABC):
         self._scale = scale
 
     @abstractmethod
-    def create(self) -> NoReturn:
+    def create(self) -> Figure | AxesImage:
         """Create the plot."""
 
         raise NotImplementedError
 
-    def plot(self, **kwargs: Dict[str, Any]) -> AxesImage:
+    def plot(self, **kwargs) -> AxesImage:
         """Plot the data.
 
         Args:
@@ -129,12 +132,11 @@ class Plot(ABC):
             y_maximum
         ]
 
-        if isinstance(self.spectrogram, PIL.Image.Image):
-            origin = 'upper'
-            # self.spectrogram = ImageOps.invert(self.spectrogram)
-        else:
-            origin = 'lower'
-            # self.spectrogram = ~self.spectrogram
+        origin = (
+            'upper'
+            if isinstance(self.spectrogram, PIL.Image.Image)
+            else 'lower'
+        )
 
         image = ax.matshow(
             self.spectrogram,
@@ -191,7 +193,7 @@ class StandardSpectrogram(Plot):
 
     """
 
-    def __init__(self, *args: Tuple[Any, Any], **kwargs: Dict[str, Any]):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def create(self) -> Figure:
@@ -230,16 +232,16 @@ class BandwidthSpectrogram(Plot):
 
     """
 
-    def __init__(self, *args: Tuple[Any, Any], **kwargs: Dict[str, Any]):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def create(self) -> Figure:
         """Create the bandwidth spectrogram plot.
 
-         Returns:
-             The created figure.
+        Returns:
+            The created figure.
 
-         """
+        """
 
         fig = plt.figure(
             constrained_layout=True,
@@ -292,9 +294,9 @@ class SegmentationSpectrogram(Plot):
 
     def __init__(
         self,
-        *args: Tuple[Any, Any],
-        algorithm=None,
-        **kwargs: Dict[str, Any]
+        *args,
+        algorithm: DynamicThresholdSegmentation = None,
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.algorithm = algorithm
@@ -331,19 +333,16 @@ class SegmentationSpectrogram(Plot):
             spectrogram=spectrogram
         )
 
-        ylmin, ylmax = ax.get_ylim()
+        _, ylmax = ax.get_ylim()
 
         blue = mcolors.to_rgba('#0079d3', alpha=0.75)
         red = mcolors.to_rgba('#d1193e', alpha=0.75)
 
-        for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+        for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
             color = blue
 
             if self.settings is not None:
-                if index in self.settings.exclude:
-                    color = red
-                else:
-                    color = blue
+                color = red if index in self.settings.exclude else blue
 
             ax.axvline(
                 onset,
@@ -404,9 +403,9 @@ class VocalEnvelopeSpectrogram(Plot):
 
     def __init__(
         self,
-        *args: Tuple[Any, Any],
-        algorithm=None,
-        **kwargs: Dict[str, Any]
+        *args,
+        algorithm: DynamicThresholdSegmentation = None,
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.algorithm = algorithm
@@ -455,11 +454,11 @@ class VocalEnvelopeSpectrogram(Plot):
             [0, len(vocal_envelope)]
         )
 
-        ylmin, ylmax = ax1.get_ylim()
+        _, ylmax = ax1.get_ylim()
 
         patches = []
 
-        for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+        for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
             ax1.axvline(
                 onset,
                 color='dodgerblue',

@@ -6,6 +6,7 @@ Segment
 
 import fitz
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from constant import PDF, SETTINGS
@@ -17,10 +18,10 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 from itertools import permutations
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from typing import Any, List, Tuple
+from typing import Any
 
 
-def create_page(collection: List[Any] | np.ndarray, text: str) -> Image:
+def create_page(collection: list[Any] | npt.NDArray, text: str) -> Image:
     """Create a page with images arranged in a grid.
 
     Args:
@@ -51,7 +52,7 @@ def create_page(collection: List[Any] | np.ndarray, text: str) -> Image:
         size=(width, height),
     )
 
-    for index, image in enumerate(collection):
+    for _, image in enumerate(collection):
         x = int(
             (width - image.width) / 2
         )
@@ -88,7 +89,7 @@ def create_page(collection: List[Any] | np.ndarray, text: str) -> Image:
     return grid
 
 
-def create_grid(collection: np.ndarray, text: str) -> Image:
+def create_grid(collection: npt.NDArray, text: str) -> Image:
     """Create a grid of images.
 
     Args:
@@ -172,7 +173,7 @@ def create_grid(collection: np.ndarray, text: str) -> Image:
     return grid
 
 
-def to_string(method: List[str] | Tuple[str, ...]) -> str:
+def to_string(method: list[str] | tuple[str, ...]) -> str:
     """Convert a list of strings to a single string.
 
     Args:
@@ -186,7 +187,7 @@ def to_string(method: List[str] | Tuple[str, ...]) -> str:
     return ', '.join(method)
 
 
-def resize_image(spectrogram: np.ndarray) -> Image:
+def resize_image(spectrogram: npt.NDArray) -> Image:
     """Resize an image.
 
     Args:
@@ -222,7 +223,7 @@ def create_document(subset: pd.DataFrame) -> None:
 
     """
 
-    individal = subset.folder.iat[0]
+    individal = subset.folder.iloc[0]
     group = subset.groupby('filename', as_index=False)
 
     document = fitz.open()
@@ -337,7 +338,7 @@ def create_document(subset: pd.DataFrame) -> None:
     document.close()
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
@@ -345,7 +346,7 @@ def main():
 
     for folder in folders:
         subset = dataframe[dataframe.folder == folder]
-        subset.reset_index(inplace=True)
+        subset = subset.reset_index()
         subset = subset.copy()
 
         create_document(subset)

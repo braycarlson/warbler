@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @bootstrap
-def main():
+def main() -> None:
     dataset = Dataset('signal')
 
     collection = []
@@ -47,7 +47,7 @@ def main():
             individual.glob('segmentation/*.json')
         )
 
-        for recording, segmentation in zip(recordings, segmentations):
+        for recording, segmentation in zip(recordings, segmentations, strict=True):
             filename = recording.stem
             print(f"Processing: {filename}")
 
@@ -88,10 +88,10 @@ def main():
             ignore = Dataset('ignore')
 
             reject = dataframe.loc[mask]
-            reject.reset_index(drop=True, inplace=True)
+            reject = reject.reset_index(drop=True)
             reject = reject.copy()
 
-            reject.drop('signal', axis=1, inplace=True)
+            reject = reject.drop('signal', axis=1)
 
             ignore.save(reject)
 
@@ -99,7 +99,7 @@ def main():
             filename = reject.filename.to_numpy()
 
             dataframe = dataframe[~dataframe.filename.isin(filename)]
-            dataframe.reset_index(drop=True, inplace=True)
+            dataframe = dataframe.reset_index(drop=True)
             dataframe = dataframe.copy()
 
         dataset.save(dataframe)

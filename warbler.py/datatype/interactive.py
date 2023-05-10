@@ -6,7 +6,7 @@ Interactive
 
 from __future__ import annotations
 
-import pandas as pd
+import numpy as np
 
 from abc import ABC, abstractmethod
 from datatype.trace import AnimationTrace, Visitor
@@ -20,7 +20,10 @@ from ipywidgets import (
     VBox
 )
 from plotly import graph_objs as go
-from typing import Any, NoReturn
+from typing import Any, Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 class DimensionalStrategy(ABC):
@@ -38,8 +41,8 @@ class DimensionalStrategy(ABC):
 
     def __init__(
         self,
-        dataframe: pd.DataFrame = None,
-        trace=None
+        dataframe: pd.DataFrame | None = None,
+        trace: Visitor | None = None
     ):
         self._dataframe = dataframe
         self._trace = trace
@@ -65,13 +68,13 @@ class DimensionalStrategy(ABC):
         self._trace = trace
 
     @abstractmethod
-    def scatter(self) -> NoReturn:
+    def scatter(self) -> Any:
         """Abstract method for generating a scatter plot."""
 
         raise NotImplementedError
 
     @abstractmethod
-    def scene(self, data: go.layout.Scene) -> NoReturn:
+    def scene(self) -> go.layout.Scene:
         """Abstract method for generating a scene layout.
 
         Args:
@@ -150,7 +153,7 @@ class Builder:
 
     """
 
-    def __init__(self, dataframe=None, strategy=None):
+    def __init__(self, dataframe: pd.DataFrame = None, strategy: Visitor = None):
         self._dataframe = dataframe
         self._strategy = strategy
 
@@ -178,10 +181,10 @@ class Builder:
         return self._strategy
 
     @strategy.setter
-    def strategy(self, strategy: DimensionalStrategy):
+    def strategy(self, strategy: DimensionalStrategy) -> None:
         self._strategy = strategy
 
-    def animation(self) -> Self:  # noqa
+    def animation(self) -> Self:
         """Enable animation for the visualization.
 
         Returns:
@@ -198,50 +201,50 @@ class Builder:
         figure.frames = self.strategy.trace.frames
 
         figure.update_layout(
-            scene_camera=dict(
-                eye=dict(
-                    x=self.strategy.trace.x_eye,
-                    y=self.strategy.trace.y_eye,
-                    z=self.strategy.trace.z_eye
-                )
-            ),
+            scene_camera={
+                'eye': {
+                    'x': self.strategy.trace.x_eye,
+                    'y': self.strategy.trace.y_eye,
+                    'z': self.strategy.trace.z_eye
+                }
+            },
             updatemenus=[
-                dict(
-                    type='buttons',
-                    showactive=True,
-                    y=1,
-                    x=0.1,
-                    xanchor='left',
-                    yanchor='top',
-                    pad=dict(t=45, r=10),
-                    buttons=[
-                        dict(
-                            label='Rotate',
-                            method='animate',
-                            args=[
+                {
+                    'type': 'buttons',
+                    'showactive': True,
+                    'y': 1,
+                    'x': 0.1,
+                    'xanchor': 'left',
+                    'yanchor': 'top',
+                    'pad': {'t': 45, 'r': 10},
+                    'buttons': [
+                        {
+                            'label': 'Rotate',
+                            'method': 'animate',
+                            'args': [
                                 None,
-                                dict(
-                                    frame=dict(
-                                        duration=0.5,
-                                        redraw=True
-                                    ),
-                                    transition=dict(
-                                        duration=0,
-                                        easing='linear'
-                                    ),
-                                    fromcurrent=True,
-                                    mode='immediate'
-                                )
+                                {
+                                    'frame': {
+                                        'duration': 0.5,
+                                        'redraw': True
+                                    },
+                                    'transition': {
+                                        'duration': 0,
+                                        'easing': 'linear'
+                                    },
+                                    'fromcurrent': True,
+                                    'mode': 'immediate'
+                                }
                             ]
-                        )
+                        }
                     ],
-                )
+                }
             ]
         )
 
         return self
 
-    def scatter(self) -> Self:  # noqa
+    def scatter(self) -> Self:
         """Generate scatter data for the visualization.
 
         Returns:
@@ -254,7 +257,7 @@ class Builder:
 
         return self
 
-    def scene(self) -> Self:  # noqa
+    def scene(self) -> Self:
         """Generate a scene layout for the visualization.
 
         Returns:
@@ -267,7 +270,7 @@ class Builder:
 
         return self
 
-    def audio(self) -> Self:  # noqa
+    def audio(self) -> Self:
         """Enable audio component for the visualization.
 
         Returns:
@@ -290,7 +293,7 @@ class Builder:
 
         return self
 
-    def description(self) -> Self:  # noqa
+    def description(self) -> Self:
         """Enable description component for the visualization.
 
         Returns:
@@ -307,7 +310,7 @@ class Builder:
                 self.dataframe.index[0],
                 ['filter_bytes']
             ]
-            .values[0]
+            .tolist()[0]
         )
 
         description = Image(value=value)
@@ -315,7 +318,7 @@ class Builder:
 
         return self
 
-    def figure(self) -> Self:  # noqa
+    def figure(self) -> Self:
         """Generate the figure for the visualization.
 
         Returns:
@@ -339,7 +342,7 @@ class Builder:
 
         return self
 
-    def html(self) -> Self:  # noqa
+    def html(self) -> Self:
         """Enable the HTML component for the visualization.
 
         Returns:
@@ -398,7 +401,7 @@ class Builder:
 
         return self
 
-    def layout(self) -> Self:  # noqa
+    def layout(self) -> Self:
         """Set the layout for the visualization.
 
         Returns:
@@ -414,20 +417,20 @@ class Builder:
             width=self.width,
             template='plotly_white',
             showlegend=True,
-            legend=dict(
-                itemsizing='constant',
-                x=0.01,
-                xanchor='right',
-                y=0.99,
-                yanchor='top'
-            )
+            legend={
+                'itemsizing': 'constant',
+                'x': 0.01,
+                'xanchor': 'right',
+                'y': 0.99,
+                'yanchor': 'top'
+            }
         )
 
         self.plot.component['layout'] = layout
 
         return self
 
-    def widget(self) -> Self:  # noqa
+    def widget(self) -> Self:
         """Generate the widget for the visualization.
 
         Returns:
@@ -512,7 +515,7 @@ class Builder:
         self,
         trace: go.Scatter3d,
         points: go.callbacks.Point,
-        _
+        _ : None
     ) -> None:
         """Event handler for click events on the visualization.
 
@@ -539,7 +542,7 @@ class Builder:
         self,
         trace: go.Scatter3d,
         points: go.callbacks.Point,
-        _
+        _: None
     ) -> None:
         """Event handler for hover events on the visualization.
 
@@ -573,9 +576,15 @@ class Builder:
 
         html = self.plot.component.get('html')
 
+        selection = np.array(
+            self.dataframe.index[i],
+            dtype=np.int64,
+            ndmin=1
+        )
+
         html.value = (
             self.dataframe
-            .loc[self.dataframe.index[[i]], column]
+            .loc[selection, column]
             .transpose()
             .to_html(
                 classes='description',
@@ -584,19 +593,16 @@ class Builder:
             )
         )
 
-        spectrogram = (
-            self.dataframe
-            .loc[
-                self.dataframe.index[[i]],
-                ['filter_bytes']
-            ]
-            .values[zero]
-        )
+        spectrogram = [
+            self
+            .dataframe.loc[selection, 'filter_bytes']
+            .squeeze()
+        ]
 
         description = self.plot.component.get('description')
         description.value = spectrogram[zero]
 
-    def play(self, index: int):
+    def play(self, index: int) -> None:
         """Play the audio segment corresponding to the index.
 
         Args:
@@ -613,7 +619,7 @@ class Builder:
         player = self.plot.component.get('player')
 
         with player:
-            player.clear_output(True)
+            player.clear_output(wait=True)
 
             audio = Audio(
                 data=segment.data,
@@ -623,7 +629,7 @@ class Builder:
 
             display(audio)
 
-    def css(self) -> Self:  # noqa
+    def css(self) -> Self:
         """Apply CSS styling to the visualization.
 
         Returns:
@@ -634,7 +640,7 @@ class Builder:
         if isinstance(self.strategy.trace, AnimationTrace):
             return self
 
-        css = '''
+        css = """
             <style>
                 .left {
                     width: 30% !important;
@@ -681,14 +687,14 @@ class Builder:
                     margin-right: 50px;
                 }
             </style>
-        '''
+        """
 
         html = HTML(css)
         display(html)
 
         return self
 
-    def listener(self) -> Self:  # noqa
+    def listener(self) -> Self:
         """Attach event listeners to the visualization.
 
         Returns:
@@ -732,7 +738,7 @@ class Interactive:
         self.builder = Builder()
 
     @property
-    def dataframe(self):
+    def dataframe(self) -> pd.DataFrame:
         return self.builder.dataframe
 
     @dataframe.setter
@@ -740,7 +746,7 @@ class Interactive:
         self.builder.dataframe = dataframe
 
     @property
-    def strategy(self):
+    def strategy(self) -> DimensionalStrategy:
         return self.builder.strategy
 
     @strategy.setter
@@ -750,10 +756,10 @@ class Interactive:
     def create(self) -> VBox:
         """Create an interactive visualization.
 
-         Returns:
-             A VBox object containing the interactive visualization.
+        Returns:
+            A VBox object containing the interactive visualization.
 
-         """
+        """
 
         return (
             self.builder

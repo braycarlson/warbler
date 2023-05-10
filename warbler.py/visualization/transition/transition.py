@@ -46,7 +46,7 @@ def dataset() -> None:
 
     component = transition.build()
 
-    figure = component.collection.get('figure')
+    figure = component.get('figure')
 
     transition.show()
 
@@ -100,9 +100,9 @@ def individual() -> None:
 
         component = transition.build()
 
-        figure = component.collection.get('figure')
+        figure = component.get('figure')
 
-        transition.show()
+        # transition.show()
 
         filename = f"transition_{folder}.png"
 
@@ -112,7 +112,7 @@ def individual() -> None:
         )
 
 
-def main():
+def main() -> None:
     # Create a transition plot for the entire dataset
     dataset()
 

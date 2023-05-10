@@ -7,6 +7,7 @@ Sequence
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 from constant import CWD, OUTPUT, PICKLE, SETTINGS
 from datatype.dataset import Dataset
@@ -79,7 +80,7 @@ def filter_image(image: Pillow) -> Pillow:
     return image
 
 
-def create_grid(collection: np.ndarray, text: str) -> Pillow:
+def create_grid(collection: npt.NDArray, text: str) -> Pillow:
     """Create a grid of images with text overlay.
 
     Args:
@@ -150,7 +151,7 @@ def create_grid(collection: np.ndarray, text: str) -> Pillow:
     return grid
 
 
-def main():
+def main() -> None:
     projection = OUTPUT.joinpath('projection')
     projection.mkdir(parents=True, exist_ok=True)
 
@@ -406,7 +407,7 @@ def main():
     original = []
     filtered = []
 
-    for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
+    for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
         if index in custom.exclude:
             continue
 
@@ -441,7 +442,7 @@ def main():
         for spectrogram in original
     ]
 
-    fig, ax = draw_segment(original)
+    fig, _ = draw_segment(original)
 
     file = projection.joinpath('07_original_notes.png')
 
@@ -470,7 +471,7 @@ def main():
         for spectrogram in filtered
     ]
 
-    fig, ax = draw_segment(filtered)
+    fig, _ = draw_segment(filtered)
 
     file = projection.joinpath('08_filtered_notes.png')
 

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from datatype.barcode import (
-    Barcode,
+    BarcodeFCM,
     Builder,
     palplot,
     SongBarcode
@@ -16,25 +16,19 @@ from datatype.barcode import (
 from datatype.dataset import Dataset
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    # Mask the "noise"
-    dataframe = (
-        dataframe[dataframe.hdbscan_label_2d > -1]
-        .reset_index(drop=True)
-    )
-
     unique = dataframe.folder.unique()
 
-    hdbscan = dataframe.hdbscan_label_2d.unique()
-    hdbscan.sort()
+    fcm = dataframe.fcm_label_2d.unique()
+    fcm.sort()
 
     # Song palette
     label_pal = sns.color_palette(
         'tab20',
-        len(hdbscan)
+        len(fcm)
     )
 
     settings = {
@@ -55,12 +49,12 @@ def main():
 
         mapping = {
             lab: str(i).zfill(3)
-            for i, lab in enumerate(hdbscan)
+            for i, lab in enumerate(fcm)
         }
 
         palette = {
             mapping[lab]: color
-            for lab, color in zip(hdbscan, label_pal)
+            for lab, color in zip(fcm, label_pal, strict=True)
         }
 
         figsize = (25, 3)
@@ -73,7 +67,7 @@ def main():
             ax=ax[0]
         )
 
-        for i, label in enumerate(hdbscan):
+        for i, label in enumerate(fcm):
             ax[0].text(
                 i,
                 0,
@@ -89,7 +83,7 @@ def main():
         for filename in individual.filename.unique():
             subset = individual[individual['filename'] == filename]
 
-            label = subset.hdbscan_label_2d.tolist()
+            label = subset.fcm_label_2d.tolist()
             onset = subset.onset.tolist()
             offset = subset.offset.tolist()
 
@@ -110,13 +104,13 @@ def main():
         builder.color = colors
         builder.transition = transitions
 
-        barcode = Barcode()
+        barcode = BarcodeFCM()
         barcode.builder = builder
         barcode.settings = settings
 
         barcode.build()
 
-        barcode.show()
+        # barcode.show()
 
         filename = f"barcode_{folder}.png"
 

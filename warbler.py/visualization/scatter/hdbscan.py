@@ -1,17 +1,13 @@
 """
-Scatter
--------
+Scatter: HDBSCAN
+----------------
 
 """
 
 import numpy as np
 
 from datatype.dataset import Dataset
-from datatype.scatter import (
-    Builder,
-    ScatterFCM,
-    ScatterHDBSCAN
-)
+from datatype.scatter import Builder, ScatterHDBSCAN
 
 
 def dataset() -> None:
@@ -43,7 +39,6 @@ def dataset() -> None:
     }
 
     scatter = ScatterHDBSCAN()
-    # scatter = ScatterFCM()
 
     scatter.builder = Builder()
     scatter.embedding = embedding
@@ -53,11 +48,11 @@ def dataset() -> None:
 
     component = scatter.build()
 
-    figure = component.collection.get('figure')
+    figure = component.get('figure')
 
-    scatter.show()
+    # scatter.show()
 
-    filename = 'scatter_dataset.png'
+    filename = 'scatter_hdbscan_dataset.png'
 
     scatter.save(
         figure=figure,
@@ -102,7 +97,6 @@ def individual() -> None:
         label = individual.hdbscan_label_2d.to_numpy()
 
         scatter = ScatterHDBSCAN()
-        # scatter = ScatterFCM()
 
         scatter.builder = Builder()
         scatter.embedding = embedding
@@ -112,11 +106,11 @@ def individual() -> None:
 
         component = scatter.build()
 
-        figure = component.collection.get('figure')
+        figure = component.get('figure')
 
-        scatter.show()
+        # scatter.show()
 
-        filename = f"scatter_{folder}.png"
+        filename = f"scatter_hdbscan_{folder}.png"
 
         scatter.save(
             figure=figure,
@@ -124,7 +118,7 @@ def individual() -> None:
         )
 
 
-def main():
+def main() -> None:
     # Create a scatter plot for the entire dataset
     dataset()
 

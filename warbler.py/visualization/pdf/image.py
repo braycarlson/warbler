@@ -22,7 +22,7 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 
 
-def create_document(subset: pd.DataFrame):
+def create_document(subset: pd.DataFrame) -> None:
     """Creates a PDF document containing the signal for each subset of data.
 
     Args:
@@ -33,13 +33,13 @@ def create_document(subset: pd.DataFrame):
 
     """
 
-    individal = subset.folder.iat[0]
+    individal = subset.folder.iloc[0]
 
     signal = subset.signal.to_numpy()
     setting = subset.settings.to_numpy()
     filename = subset.filename.to_numpy()
 
-    iterable = zip(filename, signal, setting)
+    iterable = zip(filename, signal, setting, strict=True)
 
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
@@ -130,7 +130,7 @@ def create_document(subset: pd.DataFrame):
     document.close()
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
@@ -138,7 +138,7 @@ def main():
 
     for folder in folders:
         subset = dataframe[dataframe.folder == folder]
-        subset.reset_index(inplace=True)
+        subset = subset.reset_index()
         subset = subset.copy()
 
         create_document(subset)

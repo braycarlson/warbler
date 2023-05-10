@@ -33,7 +33,7 @@ warnings.filterwarnings('ignore', category=UserWarning)
 
 
 @bootstrap
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

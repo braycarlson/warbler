@@ -19,14 +19,22 @@ from nara_wpe.wpe import wpe
 from nara_wpe.utils import istft, stft
 from scipy.io import wavfile
 from scipy.signal import butter, lfilter
-from typing import Optional, Tuple
+from typing import BinaryIO, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from datatype.settings import Settings
 
 
 class Strategy(ABC):
     """A base class for strategies on loading an audio signal."""
 
     @abstractmethod
-    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
+    def load(
+        self,
+        path: str | BinaryIO | pathlib.Path | None
+    ) -> tuple[int, npt.NDArray]:
         """An abstract method for loading an audio signal.
 
         Args:
@@ -43,7 +51,10 @@ class Strategy(ABC):
 class Librosa(Strategy):
     """A class that loads audio using Librosa."""
 
-    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
+    def load(
+        self,
+        path: str | BinaryIO | pathlib.Path | None
+    ) -> tuple[int, npt.NDArray]:
         """Load audio using Librosa.
 
         Args:
@@ -64,7 +75,10 @@ class Librosa(Strategy):
 class Scipy(Strategy):
     """A class that loads audio using Scipy."""
 
-    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
+    def load(
+        self,
+        path: str | BinaryIO | pathlib.Path | None
+    ) -> tuple[int, npt.NDArray]:
         """Load audio using Scipy.
 
         Args:
@@ -82,7 +96,10 @@ class Scipy(Strategy):
 class Soundfile(Strategy):
     """A class that loads audio using Soundfile."""
 
-    def load(self, path: str | None | pathlib.Path) -> Tuple[int, np.ndarray]:
+    def load(
+        self,
+        path: str | BinaryIO | pathlib.Path | None
+    ) -> tuple[int, npt.NDArray]:
         """Load audio using Soundfile.
 
         Args:
@@ -114,12 +131,12 @@ class Signal:
 
     """
 
-    def __init__(self, path=None):
+    def __init__(self, path: str | BinaryIO | pathlib.Path | None = None):
         self._strategy = Scipy()
         self._path = path
         self._rate, self._data = self._load()
 
-    def _load(self) -> Tuple[int, np.ndarray]:
+    def _load(self) -> tuple[int, npt.NDArray]:
         """Load audio data using the selected strategy.
 
         Returns:
@@ -131,7 +148,8 @@ class Signal:
         """
 
         if isinstance(self.path, pathlib.Path) and not self.path.exists():
-            raise FileNotFoundError(f"{self.path} was not found")
+            message = f"{self.path} was not found"
+            raise FileNotFoundError(message)
 
         rate, data = self.strategy.load(self.path)
 
@@ -156,7 +174,7 @@ class Signal:
         self._strategy = strategy
 
     @property
-    def data(self) -> np.ndarray:
+    def data(self) -> npt.NDArray:
         """Get the audio data.
 
         Returns:
@@ -167,11 +185,11 @@ class Signal:
         return self._data
 
     @data.setter
-    def data(self, data: np.ndarray) -> None:
+    def data(self, data: npt.NDArray) -> None:
         self._data = data
 
     @property
-    def path(self) -> Optional[str | pathlib.Path]:
+    def path(self) -> str | BinaryIO | pathlib.Path | None:
         """Get the path to the audio file.
 
         Returns:
@@ -183,7 +201,7 @@ class Signal:
         return self._path
 
     @path.setter
-    def path(self, path: str | pathlib.Path) -> None:
+    def path(self, path: str | BinaryIO | pathlib.Path) -> None:
         self._path = path
 
     @property
@@ -209,7 +227,7 @@ class Signal:
         self._duration = len(self.data) / float(self.rate)
         return self._duration
 
-    def filter(self, lowcut: float, highcut: float, order: int = 5):
+    def filter(self, lowcut: float, highcut: float, order: int = 5) -> None:
         """Apply a bandpass filter to the audio signal.
 
         Args:
@@ -241,7 +259,7 @@ class Signal:
             self.data
         )
 
-    def frequencies(self) -> Tuple[float, float]:
+    def frequencies(self) -> tuple[float, float]:
         """Calculate the minimum and maximum frequencies in the signal.
 
         Args:
@@ -330,7 +348,7 @@ class Signal:
             **kwargs
         )
 
-    def dereverberate(self, settings) -> None:
+    def dereverberate(self, settings: Settings) -> None:
         """Apply dereverberation to the audio signal.
 
         Args:
@@ -353,14 +371,14 @@ class Signal:
             'shift': shift
         }
 
-        Y = stft(y, **options).transpose(2, 0, 1)
+        y = stft(y, **options).transpose(2, 0, 1)
 
         taps = settings.taps
         delay = settings.delay
         iterations = settings.iterations
 
-        Z = wpe(
-            Y,
+        x = wpe(
+            y,
             taps=taps,
             delay=delay,
             iterations=iterations,
@@ -368,7 +386,7 @@ class Signal:
         ).transpose(1, 2, 0)
 
         z = istft(
-            Z,
+            x,
             size=size,
             shift=shift
         )

@@ -19,11 +19,11 @@ from datatype.settings import Settings
 from datatype.spectrogram import create_spectrogram
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
-    signal = dataframe.at[10, 'signal']
+    signal = dataframe.loc[10, 'signal']
 
     path = SETTINGS.joinpath('dereverberate.json')
     dereverberate = Settings.from_file(path)
@@ -39,7 +39,7 @@ def main():
     # Original
     image = create_image(spectrogram)
 
-    plot = StandardSpectrogram(signal, image)
+    plot = StandardSpectrogram()
     plot.signal = signal
     plot.spectrogram = image
     plot.create()

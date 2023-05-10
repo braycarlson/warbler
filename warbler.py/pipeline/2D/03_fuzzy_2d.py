@@ -1,26 +1,32 @@
+"""
+FCM
+---
+
+"""
+
 import numpy as np
 
 from datatype.dataset import Dataset
 from fcmeans import FCM
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    X = np.concatenate(
+    x = np.concatenate(
         (
             [dataframe.umap_x_2d],
             [dataframe.umap_y_2d]
         )
     )
 
-    X = X.transpose()
+    x = x.transpose()
 
     fcm = FCM(n_clusters=6)
-    fcm.fit(X)
+    fcm.fit(x)
 
-    labels = fcm.predict(X)
+    labels = fcm.predict(x)
 
     dataframe['fcm_label_2d'] = labels
 

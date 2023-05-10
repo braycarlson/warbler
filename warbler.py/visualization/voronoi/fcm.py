@@ -1,35 +1,30 @@
 """
-Voronoi
--------
+Voronoi: FCM
+------------
 
 """
 
 import numpy as np
 
 from datatype.dataset import Dataset
-from datatype.voronoi import Builder, Voronoi
+from datatype.voronoi import Builder, VoronoiFCM
 
 
 def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.hdbscan_label_2d.unique()
+    settings = {}
 
-    # Mask the "noise"
-    dataframe = (
-        dataframe[dataframe.hdbscan_label_2d > -1]
-        .reset_index(drop=True)
-    )
+    unique = dataframe.fcm_label_2d.unique()
 
     by = ['duration']
 
     ascending = [False]
 
-    dataframe.sort_values(
+    dataframe = dataframe.sort_values(
         ascending=ascending,
-        by=by,
-        inplace=True
+        by=by
     )
 
     coordinates = [
@@ -40,23 +35,24 @@ def dataset() -> None:
     embedding = np.column_stack(coordinates)
 
     spectrogram = dataframe.original_array.to_numpy()
-    label = dataframe.hdbscan_label_2d.to_numpy()
+    label = dataframe.fcm_label_2d.to_numpy()
 
-    voronoi = Voronoi()
+    voronoi = VoronoiFCM()
 
     voronoi.builder = Builder()
     voronoi.embedding = embedding
     voronoi.label = label
     voronoi.spectrogram = ~spectrogram
+    voronoi.settings = settings
     voronoi.unique = unique
 
     component = voronoi.build()
 
-    figure = component.collection.get('figure')
+    figure = component.get('figure')
 
-    voronoi.show()
+    # voronoi.show()
 
-    filename = 'voronoi_dataset.png'
+    filename = 'voronoi_fcm_dataset.png'
 
     voronoi.save(
         figure=figure,
@@ -71,7 +67,7 @@ def individual() -> None:
     settings = {}
 
     folders = dataframe.folder.unique()
-    unique = dataframe.hdbscan_label_2d.unique()
+    unique = dataframe.fcm_label_2d.unique()
 
     for folder in folders:
         settings['name'] = folder
@@ -80,7 +76,7 @@ def individual() -> None:
 
         # Mask the "noise"
         individual = (
-            individual[individual.hdbscan_label_2d > -1]
+            individual[individual.fcm_label_2d > -1]
             .reset_index(drop=True)
         )
 
@@ -88,10 +84,9 @@ def individual() -> None:
 
         ascending = [False]
 
-        individual.sort_values(
+        individual = individual.sort_values(
             ascending=ascending,
-            by=by,
-            inplace=True
+            by=by
         )
 
         coordinates = [
@@ -102,9 +97,9 @@ def individual() -> None:
         embedding = np.column_stack(coordinates)
 
         spectrogram = individual.original_array.to_numpy()
-        label = individual.hdbscan_label_2d.to_numpy()
+        label = individual.fcm_label_2d.to_numpy()
 
-        voronoi = Voronoi()
+        voronoi = VoronoiFCM()
 
         voronoi.builder = Builder()
         voronoi.embedding = embedding
@@ -115,11 +110,11 @@ def individual() -> None:
 
         component = voronoi.build()
 
-        figure = component.collection.get('figure')
+        figure = component.get('figure')
 
-        voronoi.show()
+        # voronoi.show()
 
-        filename = f"voronoi_{folder}.png"
+        filename = f"voronoi_fcm_{folder}.png"
 
         voronoi.save(
             figure=figure,
@@ -127,7 +122,7 @@ def individual() -> None:
         )
 
 
-def main():
+def main() -> None:
     # Create a voronoi plot for the entire dataset
     dataset()
 

@@ -13,101 +13,100 @@ import warnings
 
 from abc import abstractmethod
 from constant import PROJECTION
-from datatype.settings import Settings
 from matplotlib.backends._backend_tk import FigureManagerTk
-from matplotlib.figure import Figure
-from typing import Any, Dict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from datatype.settings import Settings
+    from matplotlib.figure import Figure
+    from typing import Any, Self
+
 
 
 warnings.simplefilter('ignore', UserWarning)
 
 
-class Component():
-    """A class representing a component."""
-
-    def __init__(self):
-        self.collection = {}
-
-
 class Base:
     """Base class for other builder classes."""
 
-    def __init__(self, settings=None):
-        self._component = Component()
-        self._embedding = None
-        self._label = None
-        self._sequence = None
-        self._settings = settings
-        self._spectrogram = None
-        self._unique = None
+    def __init__(self, settings: Settings | None = None):
+        self._component: dict[Any, Any] = {}
+        self._embedding: npt.NDArray | None = None
+        self._label: npt.NDArray | None = None
+        self._sequence: npt.NDArray | None = None
+        self._settings: dict[Any, Any] | Settings | None = settings
+        self._spectrogram: npt.NDArray | None = None
+        self._unique: npt.NDArray | None = None
 
     @property
-    def component(self) -> Component:
+    def component(self) -> dict[Any, Any] | None:
         """Get the components."""
 
         return self._component
 
     @property
-    def embedding(self) -> np.ndarray:
+    def embedding(self) -> npt.NDArray | None:
         """Get the embeddings."""
 
         return self._embedding
 
     @embedding.setter
-    def embedding(self, embedding: np.ndarray) -> None:
+    def embedding(self, embedding: npt.NDArray) -> None:
         self._embedding = embedding
 
     @property
-    def label(self) -> np.ndarray:
+    def label(self) -> npt.NDArray | None:
         """Get the cluster labels."""
 
         return self._label
 
     @label.setter
-    def label(self, label: np.ndarray) -> None:
+    def label(self, label: npt.NDArray) -> None:
         self._label = label
 
     @property
-    def sequence(self) -> np.ndarray:
+    def sequence(self) -> npt.NDArray | None:
         """Get the sequences."""
 
         return self._sequence
 
     @sequence.setter
-    def sequence(self, sequence: np.ndarray) -> None:
+    def sequence(self, sequence: npt.NDArray) -> None:
         self._sequence = sequence
 
     @property
-    def settings(self) -> Settings:
+    def settings(self) -> dict[Any, Any] | Settings | None:
         """Get the settings."""
 
         return self._settings
 
     @settings.setter
-    def settings(self, settings: Dict[Any, Any]) -> None:
+    def settings(self, settings: dict[Any, Any] | Settings) -> None:
         self._settings = settings
 
     @property
-    def spectrogram(self) -> np.ndarray:
+    def spectrogram(self) -> npt.NDArray | None:
         """Get the spectrograms."""
 
         return self._spectrogram
 
     @spectrogram.setter
-    def spectrogram(self, spectrogram: np.ndarray) -> None:
+    def spectrogram(self, spectrogram: npt.NDArray) -> None:
         self._spectrogram = spectrogram
 
     @property
-    def unique(self) -> np.ndarray:
+    def unique(self) -> npt.NDArray | None:
         """Get the unique cluster labels."""
 
         return self._unique
 
     @unique.setter
-    def unique(self, unique: np.ndarray) -> None:
+    def unique(self, unique: npt.NDArray) -> None:
         self._unique = unique
 
-    def get(self) -> Component:
+    def get(self) -> dict[Any, Any] | None:
         """Get the component.
 
         Returns:
@@ -117,7 +116,7 @@ class Base:
 
         return self.component
 
-    def palette(self) -> Self:  # noqa
+    def palette(self) -> Self:
         """Create a color palette.
 
         Returns:
@@ -137,7 +136,7 @@ class Base:
         )
 
         master = dict(
-            zip(self.unique, palette)
+            zip(self.unique, palette, strict=True)
         )
 
         label = {
@@ -159,9 +158,9 @@ class Base:
             dtype='float'
         )
 
-        self.component.collection['color'] = color
-        self.component.collection['label'] = label
-        self.component.collection['palette'] = palette
+        self.component['color'] = color
+        self.component['label'] = label
+        self.component['palette'] = palette
 
         return self
 
@@ -170,12 +169,12 @@ class Plot:
     """A class for plotting."""
 
     def __init__(self):
-        self._builder = None
-        self._embedding = None
-        self._label = None
-        self._sequence = None
-        self._spectrogram = None
-        self._settings = None
+        self._builder: Any = None
+        self._embedding: npt.NDArray | None = None
+        self._label: npt.NDArray | None = None
+        self._sequence: npt.NDArray | None = None
+        self._spectrogram: npt.NDArray | None = None
+        self._settings: dict[Any, Any] | Settings | None = None
 
     @property
     def builder(self) -> Any:
@@ -188,62 +187,66 @@ class Plot:
         self._builder = builder
 
     @property
-    def settings(self) -> Settings:
+    def settings(self) -> dict[Any, Any] | Settings | None:
         """Get the settings from the builder."""
 
         return self.builder.settings
 
     @settings.setter
-    def settings(self, settings: Settings) -> None:
+    def settings(self, settings: dict[Any, Any] | Settings) -> None:
         self.builder.settings = settings
 
     @property
-    def embedding(self):
+    def embedding(self) -> npt.NDArray | None:
         return self.builder.embedding
 
     @embedding.setter
-    def embedding(self, embedding: np.ndarray) -> None:
+    def embedding(self, embedding: npt.NDArray) -> None:
         self.builder.embedding = embedding
 
     @property
-    def label(self):
+    def label(self) -> npt.NDArray | None:
         return self.builder.label
 
     @label.setter
-    def label(self, label: np.ndarray) -> None:
+    def label(self, label: npt.NDArray) -> None:
         self.builder.label = label
 
     @property
-    def sequence(self):
+    def sequence(self) -> npt.NDArray | None:
         return self.builder.sequence
 
     @sequence.setter
-    def sequence(self, sequence: np.ndarray) -> None:
+    def sequence(self, sequence: npt.NDArray) -> None:
         self.builder.sequence = sequence
 
     @property
-    def spectrogram(self):
+    def spectrogram(self) -> npt.NDArray | None:
         return self.builder.spectrogram
 
     @spectrogram.setter
-    def spectrogram(self, spectrogram: np.ndarray) -> None:
+    def spectrogram(self, spectrogram: npt.NDArray) -> None:
         self.builder.spectrogram = spectrogram
 
     @property
-    def unique(self):
+    def unique(self) -> npt.NDArray | None:
         return self.builder.unique
 
     @unique.setter
-    def unique(self, unique: np.ndarray) -> None:
+    def unique(self, unique: npt.NDArray) -> None:
         self.builder.unique = unique
 
     @abstractmethod
-    def build(self) -> Component:
+    def build(self) -> dict[Any, Any]:
         """Build the plot. This must be implemented in subclasses."""
 
         raise NotImplementedError
 
-    def save(self, figure: Figure = None, filename: str = None) -> None:
+    def save(
+        self,
+        figure: Figure | None = None,
+        filename: str | None = None
+    ) -> None:
         """Save the plot to an image.
 
         Args:
@@ -251,6 +254,9 @@ class Plot:
             fig: The figure to save.
 
         """
+
+        if filename is None:
+            filename = 'plot.png'
 
         PROJECTION.mkdir(
             parents=True,

@@ -9,7 +9,7 @@ from datatype.dataset import Dataset
 from datatype.settings import Settings
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

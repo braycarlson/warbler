@@ -10,11 +10,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from collections import defaultdict
-from datatype.builder import Base, Component, Plot
+from datatype.builder import Base, Plot
 from datatype.settings import Settings
 from matplotlib.lines import Line2D
 from matplotlib import gridspec
 from scipy.spatial import cKDTree
+from typing import Any, Self
 
 
 class Builder(Base):
@@ -28,7 +29,7 @@ class Builder(Base):
 
     """
 
-    def axis(self) -> Self:  # noqa
+    def axis(self) -> Self:
         """Create an axis for the plot.
 
         Args:
@@ -39,8 +40,8 @@ class Builder(Base):
 
         """
 
-        figure = self.component.collection.get('figure')
-        grid = self.component.collection.get('grid')
+        figure = self.component.get('figure')
+        grid = self.component.get('grid')
 
         axis = figure.add_subplot(
             grid[
@@ -49,11 +50,11 @@ class Builder(Base):
             ]
         )
 
-        self.component.collection['axis'] = axis
+        self.component['axis'] = axis
 
         return self
 
-    def axes(self) -> Self:  # noqa
+    def axes(self) -> Self:
         """Create multiple axes for the plot.
 
         Args:
@@ -66,15 +67,15 @@ class Builder(Base):
 
         axs = {}
 
-        figure = self.component.collection.get('figure')
-        grid = self.component.collection.get('grid')
+        figure = self.component.get('figure')
+        grid = self.component.get('grid')
 
-        n_column = self.component.collection.get('n_column')
+        n_column = self.component.get('n_column')
 
-        xmin = self.component.collection.get('xmin')
-        ymax = self.component.collection.get('ymax')
-        x_block = self.component.collection.get('x_block')
-        y_block = self.component.collection.get('y_block')
+        xmin = self.component.get('xmin')
+        ymax = self.component.get('ymax')
+        x_block = self.component.get('x_block')
+        y_block = self.component.get('y_block')
 
         size = self.settings.size
 
@@ -105,11 +106,11 @@ class Builder(Base):
             axs[column]['xpos'] = xpos
             axs[column]['ypos'] = ypos
 
-        self.component.collection['axs'] = axs
+        self.component['axs'] = axs
 
         return self
 
-    def grid(self) -> Self:  # noqa
+    def grid(self) -> Self:
         """Create a grid for the plot.
 
         Args:
@@ -129,13 +130,13 @@ class Builder(Base):
             self.settings.size
         )
 
-        self.component.collection['figure'] = figure
-        self.component.collection['grid'] = grid
-        self.component.collection['n_column'] = n_column
+        self.component['figure'] = figure
+        self.component['grid'] = grid
+        self.component['n_column'] = n_column
 
         return self
 
-    def initialize(self) -> Self:  # noqa
+    def initialize(self) -> Self:
         """Set the default settings for the plot.
 
         Args:
@@ -192,6 +193,7 @@ class Builder(Base):
                 'linewidth': 1,
                 'n_subset': -1,
             },
+            'cluster': 'HDBSCAN',
             'color': 'k',
             'is_color': True,
             'is_legend': True,
@@ -218,7 +220,7 @@ class Builder(Base):
 
         return self
 
-    def line(self) -> Self:  # noqa
+    def line(self) -> Self:
         """Create legend lines for the plot.
 
         Args:
@@ -232,7 +234,7 @@ class Builder(Base):
         if not self.settings.is_legend:
             return self
 
-        label = self.component.collection.get('label')
+        label = self.component.get('label')
 
         handles = [
             Line2D(
@@ -245,11 +247,11 @@ class Builder(Base):
             for label, markerfacecolor in label.items()
         ]
 
-        self.component.collection['handles'] = handles
+        self.component['handles'] = handles
 
         return self
 
-    def legend(self) -> Self:  # noqa
+    def legend(self) -> Self:
         """Add a legend to the plot.
 
         Args:
@@ -263,8 +265,8 @@ class Builder(Base):
         if not self.settings.is_legend:
             return self
 
-        axis = self.component.collection.get('axis')
-        handles = self.component.collection.get('handles')
+        axis = self.component.get('axis')
+        handles = self.component.get('handles')
 
         axis.legend(
             handles=handles,
@@ -273,7 +275,7 @@ class Builder(Base):
 
         return self
 
-    def limit(self) -> Self:  # noqa
+    def limit(self) -> Self:
         """Set the limits of the plot.
 
         Args:
@@ -284,12 +286,12 @@ class Builder(Base):
 
         """
 
-        axis = self.component.collection.get('axis')
+        axis = self.component.get('axis')
 
-        xmin = self.component.collection.get('xmin')
-        xmax = self.component.collection.get('xmax')
-        ymin = self.component.collection.get('ymin')
-        ymax = self.component.collection.get('ymax')
+        xmin = self.component.get('xmin')
+        xmax = self.component.get('xmax')
+        ymin = self.component.get('ymin')
+        ymax = self.component.get('ymax')
 
         axis.set_xlim(
             [
@@ -307,7 +309,7 @@ class Builder(Base):
 
         return self
 
-    def mask(self) -> Self:  # noqa
+    def mask(self) -> Self:
         """Determine the range of the plot.
 
         Args:
@@ -318,10 +320,10 @@ class Builder(Base):
 
         """
 
-        xmin = self.component.collection.get('xmin')
-        xmax = self.component.collection.get('xmax')
-        ymin = self.component.collection.get('ymin')
-        ymax = self.component.collection.get('ymax')
+        xmin = self.component.get('xmin')
+        xmax = self.component.get('xmax')
+        ymin = self.component.get('ymin')
+        ymax = self.component.get('ymax')
 
         xmin_mask = self.embedding[:, 0] > xmin
         ymin_mask = self.embedding[:, 1] > ymin
@@ -345,7 +347,7 @@ class Builder(Base):
 
         return self
 
-    def range(self) -> Self:  # noqa
+    def range(self) -> Self:
         """Determine the range of the plot.
 
         Args:
@@ -377,16 +379,16 @@ class Builder(Base):
         x_block = (xmax - xmin) / self.settings.size
         y_block = (ymax - ymin) / self.settings.size
 
-        self.component.collection['xmin'] = xmin
-        self.component.collection['xmax'] = xmax
-        self.component.collection['ymin'] = ymin
-        self.component.collection['ymax'] = ymax
-        self.component.collection['x_block'] = x_block
-        self.component.collection['y_block'] = y_block
+        self.component['xmin'] = xmin
+        self.component['xmax'] = xmax
+        self.component['ymin'] = ymin
+        self.component['ymax'] = ymax
+        self.component['x_block'] = x_block
+        self.component['y_block'] = y_block
 
         return self
 
-    def scatter(self) -> Self:  # noqa
+    def scatter(self) -> Self:
         """Add scatter points to the plot.
 
         Args:
@@ -397,10 +399,10 @@ class Builder(Base):
 
         """
 
-        axis = self.component.collection.get('axis')
+        axis = self.component.get('axis')
 
         if self.settings.is_color:
-            color = self.component.collection.get('color')
+            color = self.component.get('color')
             self.settings.scatter['color'] = color
 
         axis.scatter(
@@ -411,7 +413,7 @@ class Builder(Base):
 
         return self
 
-    def spacing(self) -> Self:  # noqa
+    def spacing(self) -> Self:
         """Set the spacing of the grid.
 
         Args:
@@ -422,12 +424,12 @@ class Builder(Base):
 
         """
 
-        grid = self.component.collection.get('grid')
+        grid = self.component.get('grid')
         grid.update(**self.settings.grid)
 
         return self
 
-    def title(self) -> Self:  # noqa
+    def title(self) -> Self:
         """Sets the title of the plot based on settings.
 
         Args:
@@ -438,9 +440,9 @@ class Builder(Base):
 
         """
 
-        axis = self.component.collection.get('axis')
+        axis = self.component.get('axis')
 
-        title = f"Voronoi of {self.settings.name}"
+        title = f"{self.settings.cluster} Clustering for {self.settings.name}"
 
         axis.set_title(
             title,
@@ -450,7 +452,7 @@ class Builder(Base):
 
         return self
 
-    def voronoi(self) -> Self:  # noqa
+    def voronoi(self) -> Self:
         """Create Voronoi regions on the plot.
 
         Args:
@@ -469,9 +471,9 @@ class Builder(Base):
 
         s = scatter.get('s')
 
-        axis = self.component.collection.get('axis')
-        axs = self.component.collection.get('axs')
-        figure = self.component.collection.get('figure')
+        axis = self.component.get('axis')
+        axs = self.component.get('axs')
+        figure = self.component.get('figure')
 
         # Create a voronoi diagram over the x and y pos points
         points = [
@@ -584,12 +586,12 @@ class Builder(Base):
             for line in lines:
                 figure.lines.append(line)
 
-        self.component.collection['lines'] = lines
+        self.component['lines'] = lines
 
         return self
 
 
-class Voronoi(Plot):
+class VoronoiFCM(Plot):
     """A class for building Voronoi plots.
 
     Args:
@@ -600,7 +602,7 @@ class Voronoi(Plot):
 
     """
 
-    def build(self) -> Component:
+    def build(self) -> dict[Any, Any]:
         """Build the Voronoi plot.
 
         Args:
@@ -610,6 +612,52 @@ class Voronoi(Plot):
             The components.
 
         """
+
+        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+
+        return (
+            self.builder
+            .initialize()
+            .grid()
+            .range()
+            .mask()
+            .axis()
+            .title()
+            .palette()
+            .scatter()
+            .line()
+            .legend()
+            .axes()
+            .limit()
+            .voronoi()
+            .spacing()
+            .get()
+        )
+
+
+class VoronoiHDBSCAN(Plot):
+    """A class for building Voronoi plots.
+
+    Args:
+        None.
+
+    Returns:
+        None.
+
+    """
+
+    def build(self) -> dict[Any, Any]:
+        """Build the Voronoi plot.
+
+        Args:
+            None.
+
+        Returns:
+            The components.
+
+        """
+
+        self.builder.settings['cluster'] = 'HDBSCAN'
 
         return (
             self.builder

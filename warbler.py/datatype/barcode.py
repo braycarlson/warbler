@@ -7,27 +7,32 @@ Barcode
 
 from __future__ import annotations
 
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 
 from collections import defaultdict
-from datatype.builder import Base, Component, Plot
+from datatype.builder import Base, Plot
 from datatype.settings import Settings
 from joblib import Parallel, delayed
 from matplotlib import gridspec
-from matplotlib.axes import Axes
+from matplotlib import ticker
 from nltk.metrics.distance import edit_distance
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
-from typing import Any, Dict, List, Tuple
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from matplotlib.axes import Axes
+    from typing import Any, Self
 
 
 def palplot(
-    palette: List[Tuple[float, float, float]],
+    palette: list[tuple[float, ...]],
     size: int = 1,
-    ax: Axes = None
+    ax: Axes | None = None
 ) -> None:
     length = len(palette)
 
@@ -40,7 +45,7 @@ def palplot(
 
     ax.imshow(
         np.arange(length).reshape(1, length),
-        cmap=matplotlib.colors.ListedColormap(list(palette)),
+        cmap=mpl.colors.ListedColormap(list(palette)),
         interpolation='nearest',
         aspect='auto'
     )
@@ -65,11 +70,11 @@ def palplot(
 class SongBarcode():
     def __init__(
         self,
-        onset=None,
-        offset=None,
-        label=None,
-        mapping=None,
-        palette=None
+        onset: list[float] | None = None,
+        offset: list[float] | None = None,
+        label: list[int] | None = None,
+        mapping: dict[int, str] | None = None,
+        palette: dict[str, tuple[float, ...]] | None = None
     ):
         self._onset = onset
         self._offset = offset
@@ -81,46 +86,46 @@ class SongBarcode():
         self.transition = None
 
     @property
-    def onset(self) -> List[float]:
+    def onset(self) -> list[float] | None:
         return self._onset
 
     @onset.setter
-    def onset(self, onset: List[float]) -> None:
+    def onset(self, onset: list[float]) -> None:
         self._onset = onset
 
     @property
-    def offset(self) -> List[float]:
+    def offset(self) -> list[float] | None:
         return self._offset
 
     @offset.setter
-    def offset(self, offset: List[float]) -> None:
+    def offset(self, offset: list[float]) -> None:
         self._offset = offset
 
     @property
-    def label(self) -> List[int]:
+    def label(self) -> list[int] | None:
         return self._label
 
     @label.setter
-    def label(self, label: List[int]) -> None:
+    def label(self, label: list[int]) -> None:
         self._label = label
 
     @property
-    def mapping(self) -> Dict[int, str]:
+    def mapping(self) -> dict[int, str] | None:
         return self._mapping
 
     @mapping.setter
-    def mapping(self, mapping: Dict[int, str]) -> None:
+    def mapping(self, mapping: dict[int, str]) -> None:
         self._mapping = mapping
 
     @property
-    def palette(self) -> Dict[str, Tuple[float, float, float]]:
+    def palette(self) -> dict[str, tuple[float, ...]] | None:
         return self._palette
 
     @palette.setter
-    def palette(self, palette: Dict[str, Tuple[float, float, float]]) -> None:
+    def palette(self, palette: dict[str, tuple[float, ...]]) -> None:
         self._palette = palette
 
-    def build(self) -> Tuple[np.ndarray, np.ndarray]:
+    def build(self) -> tuple[npt.NDArray, npt.NDArray]:
         self.transitions()
         self.colors()
 
@@ -150,7 +155,7 @@ class SongBarcode():
             .astype('object')
         )
 
-        for start, stop, label in zip(self.onset, self.offset, self.label):
+        for start, stop, label in zip(self.onset, self.offset, self.label, strict=True):
             transition[
                 int((start - begin) / resolution):
                 int((stop - begin) / resolution)
@@ -160,7 +165,12 @@ class SongBarcode():
 
 
 class Builder(Base):
-    def __init__(self, ax: Axes = None, color=None, transition=None):
+    def __init__(
+        self,
+        ax: Axes | None = None,
+        color: list[npt.NDArray] | None = None,
+        transition: list[npt.NDArray] | None = None
+    ):
         super().__init__()
 
         self._ax = ax
@@ -168,7 +178,7 @@ class Builder(Base):
         self._transition = transition
 
     @property
-    def ax(self) -> Axes:
+    def ax(self) -> Axes | None:
         return self._ax
 
     @ax.setter
@@ -176,33 +186,33 @@ class Builder(Base):
         self._ax = ax
 
     @property
-    def color(self) -> List[np.ndarray]:
+    def color(self) -> list[npt.NDArray] | None:
         return self._color
 
     @color.setter
-    def color(self, color: List[np.ndarray]) -> None:
+    def color(self, color: list[npt.NDArray]) -> None:
         self._color = color
 
     @property
-    def transition(self) -> List[np.ndarray]:
+    def transition(self) -> list[npt.NDArray] | None:
         return self._transition
 
     @transition.setter
-    def transition(self, transition: List[np.ndarray]) -> None:
+    def transition(self, transition: list[npt.NDArray]) -> None:
         self._transition = transition
 
-    def cluster(self) -> Self:  # noqa
+    def cluster(self) -> Self:
         # Hierarchical clustering
-        distance = self.component.collection.get('distance')
+        distance = self.component.get('distance')
 
         distance = squareform(distance)
         linkage_matrix = linkage(distance, 'single')
 
-        self.component.collection['linkage'] = linkage_matrix
+        self.component['linkage'] = linkage_matrix
 
         return self
 
-    def cut(self) -> Self:  # noqa
+    def cut(self) -> Self:
         # Make a list of symbols padded to equal length
         self.transition = np.array(self.transition, dtype='object')
 
@@ -220,17 +230,17 @@ class Builder(Base):
             for i in cut
         ]
 
-        self.component.collection['cut'] = cut
+        self.component['cut'] = cut
 
         return self
 
-    def dendrogram(self) -> Self:  # noqa
-        linkage = self.component.collection.get('linkage')
+    def dendrogram(self) -> Self:
+        linkage = self.component.get('linkage')
 
         if self.ax is None:
             self._grid()
 
-            ax = self.component.collection.get('axx')
+            ax = self.component.get('axx')
 
             dn = dendrogram(
                 linkage,
@@ -258,12 +268,12 @@ class Builder(Base):
                 truncate_mode='none'
             )
 
-        self.component.collection['dendrogram'] = dn
+        self.component['dendrogram'] = dn
 
         return self
 
-    def distance(self) -> Self:  # noqa
-        cut = self.component.collection.get('cut')
+    def distance(self) -> Self:
+        cut = self.component.get('cut')
         length = len(cut)
 
         # Create a distance matrix
@@ -281,15 +291,15 @@ class Builder(Base):
             for i, j in items
         )
 
-        for distance, (i, j) in zip(distances, items):
+        for distance, (i, j) in zip(distances, items, strict=True):
             matrix[i, j] = distance
             matrix[j, i] = distance
 
-        self.component.collection['distance'] = matrix
+        self.component['distance'] = matrix
 
         return self
 
-    def _grid(self) -> Self:  # noqa
+    def _grid(self) -> Self:
         figsize = self.settings.figure.get('figsize')
         figure = plt.figure(figsize=figsize)
 
@@ -306,16 +316,16 @@ class Builder(Base):
         axx = plt.subplot(x)
         axy = plt.subplot(y)
 
-        self.component.collection['figure'] = figure
-        self.component.collection['grid'] = grid
-        self.component.collection['axx'] = axx
-        self.component.collection['axy'] = axy
+        self.component['figure'] = figure
+        self.component['grid'] = grid
+        self.component['axx'] = axx
+        self.component['axy'] = axy
 
         return self
 
-    def image(self) -> Self:  # noqa
-        colors = self.component.collection.get('colors')
-        dendrogram = self.component.collection.get('dendrogram')
+    def image(self) -> Self:
+        colors = self.component.get('colors')
+        dendrogram = self.component.get('dendrogram')
 
         leaves = dendrogram.get('leaves')
         leaves = np.array(leaves)
@@ -329,12 +339,12 @@ class Builder(Base):
 
         self.ax.axis('off')
 
-        self.component.collection['image'] = image
+        self.component['image'] = image
 
         return self
 
-    def initialize(self) -> Self:  # noqa
-        default: Dict[Any, Any] = {}
+    def initialize(self) -> Self:
+        default: dict[Any, Any] = {}
 
         if self.settings is not None:
             merge: defaultdict = defaultdict(dict)
@@ -352,7 +362,7 @@ class Builder(Base):
 
         return self
 
-    def matrix(self) -> Self:  # noqa
+    def matrix(self) -> Self:
         # Subset dataset
         self.color = self.color[:self.settings.nex]
         self.transition = self.transition[:self.settings.nex]
@@ -376,11 +386,11 @@ class Builder(Base):
 
         colors.swapaxes(0, 1)
 
-        self.component.collection['colors'] = colors
+        self.component['colors'] = colors
 
         return self
 
-    def title(self) -> Self:  # noqa
+    def title(self) -> Self:
         """Sets the title of the plot based on settings.
 
         Args:
@@ -391,21 +401,39 @@ class Builder(Base):
 
         """
 
-        ax = self.component.collection.get('axx')
+        title = f"Barcode for {self.settings.name} using {self.settings.cluster} Clustering"
 
-        title = f"Barcode for {self.settings.name}"
-
-        ax.set_title(
+        self.ax.set_title(
             title,
             fontsize=18,
-            pad=25
+            pad=125
         )
 
         return self
 
 
-class Barcode(Plot):
-    def build(self) -> Component:
+class BarcodeFCM(Plot):
+    def build(self) -> dict[Any, Any]:
+        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+
+        return (
+            self.builder
+            .initialize()
+            .matrix()
+            .cut()
+            .distance()
+            .cluster()
+            .dendrogram()
+            .image()
+            .title()
+            .get()
+        )
+
+
+class BarcodeHDBSCAN(Plot):
+    def build(self) -> dict[Any, Any]:
+        self.builder.settings['cluster'] = 'HDBSCAN'
+
         return (
             self.builder
             .initialize()

@@ -28,7 +28,7 @@ def relative(path: str) -> pathlib.PurePath:
 
 
 # Find the "venv" folder relative to file
-def walk(file: pathlib.Path):
+def walk(file: pathlib.Path) -> pathlib.Path | None:
     """Recursively finds the 'venv' folder relative to the given file.
 
     Args:

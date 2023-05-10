@@ -6,12 +6,14 @@ Logger
 
 import logging
 
+from collections.abc import Generator
 from constant import LOGS
 from contextlib import contextmanager
+from typing import Any
 
 
 @contextmanager
-def logger():
+def logger() -> Generator[None, Any, None]:
     """
     A context manager for setting up a logger.
 

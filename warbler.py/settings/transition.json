@@ -1,0 +1,12 @@
+{
+    "colorline": {
+        "alpha": 0.05,
+        "cmap": "cubehelix",
+        "linewidth": 3,
+        "norm": [0.0, 1.0]
+    },
+    "figure": {
+        "figsize": [10, 10]
+    },
+    "padding": 0.1
+}

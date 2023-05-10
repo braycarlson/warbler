@@ -1,10 +1,16 @@
+"""
+FCM
+---
+
+"""
+
 import numpy as np
 
 from datatype.dataset import Dataset
 from fcmeans import FCM
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

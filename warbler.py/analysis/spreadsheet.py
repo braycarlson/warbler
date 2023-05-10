@@ -8,7 +8,7 @@ from constant import OUTPUT
 from datatype.dataset import Dataset
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
@@ -23,11 +23,7 @@ def main():
         'filter_bytes'
     ]
 
-    dataframe.drop(
-        drop,
-        axis=1,
-        inplace=True
-    )
+    dataframe = dataframe.drop(drop, axis=1)
 
     path = OUTPUT.joinpath('dataset.xlsx')
 

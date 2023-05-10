@@ -13,7 +13,7 @@ from datatype.settings import Settings
 from datatype.signal import Signal
 
 
-def main():
+def main() -> None:
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 

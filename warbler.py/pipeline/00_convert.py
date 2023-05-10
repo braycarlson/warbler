@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 @bootstrap
-def main():
+def main() -> None:
     suffix = [
         '.aac',
         '.aif',
@@ -57,7 +57,7 @@ def main():
 
     sr = settings.sample_rate
 
-    for directory, individual in zip(DIRECTORIES, INDIVIDUALS):
+    for directory, individual in zip(DIRECTORIES, INDIVIDUALS, strict=True):
         if individual.stem == directory.stem:
             files = [
                 file

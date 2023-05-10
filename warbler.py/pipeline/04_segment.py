@@ -13,13 +13,13 @@ from datatype.settings import resolve
 from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
-from typing import Any, Dict, List
+from typing import Any
 
 
 log = logging.getLogger(__name__)
 
 
-def get_segmentation(row: pd.Series) -> List[Dict[str, Any]]:
+def get_segmentation(row: pd.Series) -> list[dict[str, Any]]:
     """Extracts segment information from a row of data.
 
     Args:
@@ -34,7 +34,7 @@ def get_segmentation(row: pd.Series) -> List[Dict[str, Any]]:
 
     recording = []
 
-    iterable = zip(row.onset, row.offset)
+    iterable = zip(row.onset, row.offset, strict=True)
 
     folder = row.folder
     filename = row.filename
@@ -68,7 +68,7 @@ def get_segmentation(row: pd.Series) -> List[Dict[str, Any]]:
 
 
 @bootstrap
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
@@ -116,7 +116,7 @@ def main():
     )
 
     reject = dataframe.loc[mask]
-    reject.reset_index(drop=True, inplace=True)
+    reject = reject.reset_index(drop=True)
     reject = reject.copy()
 
     drop = [
@@ -125,16 +125,16 @@ def main():
         'settings'
     ]
 
-    reject.drop(drop, axis=1, inplace=True)
+    reject = reject.drop(drop, axis=1)
 
     # Mask the excluded notes from the dataframe
     dataframe = dataframe.loc[~mask]
-    dataframe.reset_index(drop=True, inplace=True)
+    dataframe = dataframe.reset_index(drop=True)
     dataframe = dataframe.copy()
 
     drop = ['exclude']
 
-    dataframe.drop(drop, axis=1, inplace=True)
+    dataframe = dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)
 

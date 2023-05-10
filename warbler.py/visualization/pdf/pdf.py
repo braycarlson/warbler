@@ -26,7 +26,7 @@ from datatype.signal import Signal
 from datatype.spectrogram import Linear, Spectrogram
 
 
-def main():
+def main() -> None:
     spreadsheet = SPREADSHEET.joinpath('2017.xlsx')
 
     dataframe = pd.read_excel(
@@ -52,9 +52,16 @@ def main():
 
         toc = []
 
-        iterable = zip(individuals, RECORDINGS, IMAGES, filenames, pages)
+        iterable = zip(
+            individuals,
+            RECORDINGS,
+            IMAGES,
+            filenames,
+            pages,
+            strict=True
+        )
 
-        for index, (individual, recording, image, filename, page) in enumerate(iterable, 1):
+        for _, (individual, recording, image, filename, page) in enumerate(iterable, 1):
             if key == individual and filename == recording.stem == image.stem:
                 print(f"Processing: {filename}")
 

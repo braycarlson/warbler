@@ -27,7 +27,7 @@ from datatype.spectrogram import (
 )
 
 
-def main():
+def main() -> None:
     # Signal
     path = DATASET.joinpath('DbWY_STE2017/recordings/STE05_DbWY2017.wav')
     signal = Signal(path)

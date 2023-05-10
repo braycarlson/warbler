@@ -6,7 +6,6 @@ Gallery
 
 from __future__ import annotations
 
-from datatype.interactive import Interactive
 from IPython.display import display
 from ipywidgets import (
     Button,
@@ -14,11 +13,14 @@ from ipywidgets import (
     Layout,
     Output
 )
-from typing import List
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datatype.interactive import Interactive
 
 
 class Gallery:
-    def __init__(self, collection: List[Interactive]):
+    def __init__(self, collection: list[Interactive]):
         self.collection = collection
 
         self.index = 0
@@ -36,7 +38,7 @@ class Gallery:
         """
 
         with self.output:
-            self.output.clear_output(True)
+            self.output.clear_output(wait=True)
 
             widget = self.collection[self.index]
             plot = widget.create()
@@ -61,7 +63,7 @@ class Gallery:
 
         return self.output
 
-    def on_next(self, button: Button) -> None:
+    def on_next(self, _: Button) -> None:
         """Event handler for the 'Next' button click.
 
         Args:
@@ -76,7 +78,7 @@ class Gallery:
 
         self.create()
 
-    def on_previous(self, button: Button) -> None:
+    def on_previous(self, _: Button) -> None:
         """Event handler for the 'Previous' button click.
 
         Args:

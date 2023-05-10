@@ -5,42 +5,47 @@ Segmentation
 """
 
 import numpy as np
+import numpy.typing as npt
 
+from datatype.settings import Settings
+from datatype.signal import Signal
 from datatype.spectrogram import Segment, Spectrogram
 from scipy import ndimage
+from typing import Any
+
 
 
 class DynamicThresholdSegmentation:
-    def __init__(self, signal=None, settings=None):
-        self._component = {}
+    def __init__(self, signal: Signal | None = None, settings: Settings | None = None):
+        self._component: dict[Any, Any] = {}
         self._settings = settings
         self._signal = signal
 
     @property
-    def component(self):
+    def component(self) -> dict[Any, Any]:
         return self._component
 
     @component.setter
-    def component(self, component):
+    def component(self, component: dict[Any, Any]) -> None:
         self._component = component
 
     @property
-    def settings(self):
+    def settings(self) -> Settings:
         return self._settings
 
     @settings.setter
-    def settings(self, settings):
+    def settings(self, settings: Settings) -> None:
         self._settings = settings
 
     @property
-    def signal(self):
+    def signal(self) -> Signal:
         return self._signal
 
     @signal.setter
-    def signal(self, signal):
+    def signal(self, signal: Signal) -> None:
         self._signal = signal
 
-    def _calculate_onset_offset(self, signal: np.ndarray):
+    def _calculate_onset_offset(self, signal: npt.NDArray) -> npt.NDArray:
         """Calculates the onsets and offsets of a signal.
 
         Args:
@@ -72,7 +77,7 @@ class DynamicThresholdSegmentation:
 
         return np.array([onset, offset])
 
-    def start(self):
+    def start(self) -> dict[str, Any]:
         """Performs dynamic threshold segmentation on a signal.
 
         Args:

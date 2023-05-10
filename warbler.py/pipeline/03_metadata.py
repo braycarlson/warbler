@@ -19,7 +19,6 @@ from librosa.util.exceptions import ParameterError
 from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
-from typing import Tuple
 
 
 log = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ log = logging.getLogger(__name__)
 
 def get_onset_offset(
     series: pd.Series
-) -> Tuple[float, float] | Tuple[int, int]:
+) -> tuple[float, float] | tuple[int, int]:
     """Calculates the onset and offset of a signal.
 
     Args:
@@ -68,7 +67,7 @@ def get_onset_offset(
 
 
 @bootstrap
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
@@ -119,13 +118,13 @@ def main():
     )
 
     mask = (
-        dataframe.onset.isnull() |
-        dataframe.offset.isnull()
+        dataframe.onset.isna() |
+        dataframe.offset.isna()
     )
 
     # Create a new dataframe for erroneous recordings
     reject = dataframe.loc[mask]
-    reject.reset_index(drop=True, inplace=True)
+    reject = reject.reset_index(drop=True)
     reject = reject.copy()
 
     drop = [
@@ -138,11 +137,11 @@ def main():
         'signal'
     ]
 
-    reject.drop(drop, axis=1, inplace=True)
+    reject = reject.drop(drop, axis=1)
 
     # Mask the erroneous recordings from the dataframe
     dataframe = dataframe[~mask]
-    dataframe.reset_index(drop=True, inplace=True)
+    dataframe = dataframe.reset_index(drop=True)
     dataframe = dataframe.copy()
 
     dataset.save(dataframe)
@@ -157,12 +156,11 @@ def main():
             dataframe = pd.merge(dataframe, reject,  how='outer')
 
         # Merge the erroneous and non-viable dataframe
-        dataframe.reset_index(drop=True, inplace=True)
+        dataframe = dataframe.reset_index(drop=True)
         dataframe = dataframe.copy()
 
-        dataframe.sort_values(
-            by=['folder', 'filename'],
-            inplace=True
+        dataframe = dataframe.sort_values(
+            by=['folder', 'filename']
         )
 
         dataset.save(dataframe)

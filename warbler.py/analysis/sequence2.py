@@ -6,6 +6,7 @@ Sequence2
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 
 from constant import CWD, PICKLE, PROJECTION, SETTINGS
@@ -29,10 +30,9 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
 from tqdm import tqdm
-from typing import List
 
 
-def create_grid(collection: np.ndarray, text: str) -> Pillow:
+def create_grid(collection: npt.NDArray, text: str) -> Pillow:
     """Create a grid image from a collection of images.
 
     Args:
@@ -103,7 +103,7 @@ def create_grid(collection: np.ndarray, text: str) -> Pillow:
     return grid
 
 
-def create_signal_page(collection: np.ndarray, text: str) -> Pillow:
+def create_signal_page(collection: npt.NDArray, text: str) -> Pillow:
     """Create a signal page image from a collection of images.
 
     Args:
@@ -141,7 +141,7 @@ def create_signal_page(collection: np.ndarray, text: str) -> Pillow:
         size=(width, height)
     )
 
-    for index, image in enumerate(collection):
+    for _, image in enumerate(collection):
         x = int(
             (width - image.width) / 2
         )
@@ -178,7 +178,7 @@ def create_signal_page(collection: np.ndarray, text: str) -> Pillow:
     return grid
 
 
-def get_buffer(row: pd.Series) -> List[BytesIO]:
+def get_buffer(row: pd.Series) -> list[BytesIO]:
     """Create a list of image buffers from a row of data.
 
     Args:
@@ -483,7 +483,7 @@ def get_buffer(row: pd.Series) -> List[BytesIO]:
     return poster
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
@@ -503,7 +503,7 @@ def main():
     filenames = dataframe.filename.tolist()
     buffers = dataframe.buffer.tolist()
 
-    for folder, filename, buffer in zip(folders, filenames, buffers):
+    for folder, filename, buffer in zip(folders, filenames, buffers, strict=True):
         print(f"Processing: {filename}")
 
         images = [

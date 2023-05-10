@@ -7,11 +7,13 @@ Settings
 from __future__ import annotations
 
 import json
-import pathlib
 
 from constant import CWD
 from types import SimpleNamespace
-from typing import Any, Dict
+from typing import Any, Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 def resolve(relative: str) -> Settings:
@@ -35,7 +37,7 @@ class Settings(SimpleNamespace):
         super().__init__(**data)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> Self:  # noqa
+    def from_dict(cls: type[Self], data: dict[str, Any]) -> Self:
         """Creates a Settings object from a dictionary.
 
         Args:
@@ -49,7 +51,7 @@ class Settings(SimpleNamespace):
         return cls(**data)
 
     @classmethod
-    def from_file(cls, path: str | pathlib.Path) -> Self:  # noqa
+    def from_file(cls: type[Self], path: str | pathlib.Path) -> Self:
         """Creates a Settings object by loading the settings from a file.
 
         Args:
@@ -65,7 +67,7 @@ class Settings(SimpleNamespace):
             return cls(**data)
 
     @classmethod
-    def from_object(cls, data: object) -> Self:  # noqa
+    def from_object(cls: type[Self], data: object) -> Self:
         """Creates a Settings object from the __dict__ of an object.
 
         Args:
@@ -78,7 +80,7 @@ class Settings(SimpleNamespace):
 
         return cls(**data.__dict__)
 
-    def update(self, data: Dict[str, Any]) -> None:
+    def update(self, data: dict[str, Any]) -> None:
         """Updates the settings object with new data.
 
         Args:

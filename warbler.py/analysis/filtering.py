@@ -6,6 +6,7 @@ Filtering
 
 import cv2
 import numpy as np
+import numpy.typing as npt
 
 from constant import SETTINGS
 from datatype.dataset import Dataset
@@ -25,12 +26,11 @@ from PIL import Image, ImageOps
 from skimage import filters
 
 
-def create_grid(collection: np.ndarray, text: str):
+def create_grid(collection: npt.NDArray):
     """Creates a grid of images from a collection.
 
     Args:
         collection: A numpy array of images.
-        text: A string representing the text to be displayed.
 
     Returns:
         An image representing the grid of images.
@@ -142,7 +142,7 @@ def filter_image(image: Image):
     return image
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

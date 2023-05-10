@@ -8,7 +8,7 @@ from constant import SEGMENTATIONS
 from datatype.settings import Settings
 
 
-def main():
+def main() -> None:
     for path in SEGMENTATIONS:
         settings = Settings.from_file(path)
 

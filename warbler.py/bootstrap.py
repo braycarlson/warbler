@@ -4,6 +4,7 @@ Bootstrap
 
 """
 
+from collections.abc import Callable
 from constant import (
     DATASET,
     DIRECTORIES,
@@ -14,7 +15,6 @@ from constant import (
     PICKLE
 )
 from functools import wraps
-from typing import Any, Callable, Dict, Tuple
 
 
 def bootstrap(func: Callable) -> Callable:
@@ -29,7 +29,7 @@ def bootstrap(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def wrapper(*args: Tuple[Any, Any], **kwargs: Dict[str, Any]) -> Callable:
+    def wrapper() -> Callable:
         INPUT.mkdir(parents=True, exist_ok=True)
         OUTPUT.mkdir(parents=True, exist_ok=True)
 

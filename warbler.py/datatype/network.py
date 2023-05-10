@@ -11,14 +11,14 @@ import networkx as nx
 import numpy as np
 
 from collections import defaultdict
-from datatype.builder import Base, Component, Plot
+from datatype.builder import Base, Plot
 from datatype.settings import Settings
 from matplotlib.lines import Line2D
-from typing import Any, List
+from typing import Any, Self
 
 
 class Builder(Base):
-    def ax(self) -> Self:  # noqa
+    def ax(self) -> Self:
         """Create a new figure and axis.
 
         Returns:
@@ -32,12 +32,12 @@ class Builder(Base):
         ax.xaxis.set_visible(self.settings.is_axis)
         ax.yaxis.set_visible(self.settings.is_axis)
 
-        self.component.collection['ax'] = ax
-        self.component.collection['figure'] = figure
+        self.component['ax'] = ax
+        self.component['figure'] = figure
 
         return self
 
-    def build(self) -> Self:  # noqa
+    def build(self) -> Self:
         """Build the transition matrix and other data structures.
 
         Returns:
@@ -45,7 +45,7 @@ class Builder(Base):
 
         """
 
-        sequences = self.component.collection.get('sequences')
+        sequences = self.component.get('sequences')
 
         unique = np.unique(
             np.concatenate(sequences)
@@ -72,7 +72,7 @@ class Builder(Base):
                     element_dict[destination]
                 ] += 1
 
-        remove: List[Any] = []
+        remove: list[Any] = []
 
         min_cluster_sample = self.settings.min_cluster_sample
 
@@ -97,13 +97,13 @@ class Builder(Base):
 
         matrix = matrix / np.sum(matrix, axis=0)
 
-        self.component.collection['matrix'] = matrix
-        self.component.collection['element_dict'] = element_dict
-        self.component.collection['remove'] = remove
+        self.component['matrix'] = matrix
+        self.component['element_dict'] = element_dict
+        self.component['remove'] = remove
 
         return self
 
-    def centers(self) -> Self:  # noqa
+    def centers(self) -> Self:
         """Compute the center(s) of each label.
 
         Returns:
@@ -120,11 +120,11 @@ class Builder(Base):
             for label in np.unique(self.label)
         }
 
-        self.component.collection['element_centers'] = element_centers
+        self.component['element_centers'] = element_centers
 
         return self
 
-    def centroid(self) -> Self:  # noqa
+    def centroid(self) -> Self:
         """Plot the centroids of each label.
 
         Returns:
@@ -132,12 +132,12 @@ class Builder(Base):
 
         """
 
-        ax = self.component.collection.get('ax')
-        location = self.component.collection.get('location')
+        ax = self.component.get('ax')
+        location = self.component.get('location')
 
-        element_dict_r = self.component.collection.get('element_dict_r')
-        label = self.component.collection.get('label')
-        position = self.component.collection.get('position')
+        element_dict_r = self.component.get('element_dict_r')
+        label = self.component.get('label')
+        position = self.component.get('position')
 
         color = [
             label[element_dict_r[i]]
@@ -163,7 +163,7 @@ class Builder(Base):
 
         return self
 
-    def compute(self) -> Self:  # noqa
+    def compute(self) -> Self:
         """Compute the transition graph from the transition matrix.
 
         Returns:
@@ -171,8 +171,8 @@ class Builder(Base):
 
         """
 
-        column_names = self.component.collection.get('true')
-        matrix = self.component.collection.get('matrix')
+        column_names = self.component.get('true')
+        matrix = self.component.get('matrix')
 
         # Add all nodes to the list
         graph = nx.DiGraph()
@@ -204,22 +204,22 @@ class Builder(Base):
             nx.selfloop_edges(graph)
         )
 
-        self.component.collection['graph'] = graph
+        self.component['graph'] = graph
 
         return self
 
-    def drop(self) -> Self:  # noqa
+    def drop(self) -> Self:
         """Drop rows and columns from the transition matrix.
 
         Returns:
             The modified Builder instance.
 
         """
-        matrix = self.component.collection.get('matrix')
-        remove = self.component.collection.get('remove')
+        matrix = self.component.get('matrix')
+        remove = self.component.get('remove')
 
-        true_label: List[int] = []
-        used_drop_list: List[int] = []
+        true_label: list[int] = []
+        used_drop_list: list[int] = []
 
         length = len(matrix)
 
@@ -231,11 +231,11 @@ class Builder(Base):
 
             true_label.append(i + len(used_drop_list))
 
-        self.component.collection['true'] = true_label
+        self.component['true'] = true_label
 
         return self
 
-    def edges(self) -> Self:  # noqa
+    def edges(self) -> Self:
         """Plot the edges of the transition graph.
 
         Returns:
@@ -243,9 +243,9 @@ class Builder(Base):
 
         """
 
-        ax = self.component.collection.get('ax')
-        graph = self.component.collection.get('graph')
-        position = self.component.collection.get('position')
+        ax = self.component.get('ax')
+        graph = self.component.get('graph')
+        position = self.component.get('position')
 
         graph_weights = [
             graph[edge[0]][edge[1]]['weight']
@@ -267,7 +267,7 @@ class Builder(Base):
 
         return self
 
-    def element(self) -> Self:  # noqa
+    def element(self) -> Self:
         """Create a dictionary mapping element index to label.
 
         Returns:
@@ -275,18 +275,18 @@ class Builder(Base):
 
         """
 
-        element_dict = self.component.collection.get('element_dict')
+        element_dict = self.component.get('element_dict')
 
         element_dict_r = {
             v: k
             for k, v in element_dict.items()
         }
 
-        self.component.collection['element_dict_r'] = element_dict_r
+        self.component['element_dict_r'] = element_dict_r
 
         return self
 
-    def initialize(self) -> Self:  # noqa
+    def initialize(self) -> Self:
         """Set the default settings and update them with the custom settings.
 
         Returns:
@@ -298,6 +298,7 @@ class Builder(Base):
             'figure': {
                 'figsize': (9, 8)
             },
+            'cluster': 'HDBSCAN',
             'ignore': [-1],
             'is_axis': False,
             'is_cluster': True,
@@ -325,7 +326,7 @@ class Builder(Base):
 
         return self
 
-    def nodes(self) -> Self:  # noqa
+    def nodes(self) -> Self:
         """Compute the positions of the nodes in the transition graph.
 
         Returns:
@@ -333,10 +334,10 @@ class Builder(Base):
 
         """
 
-        graph = self.component.collection.get('graph')
-        element_centers = self.component.collection.get('element_centers')
-        element_dict_r = self.component.collection.get('element_dict_r')
-        position = self.component.collection.get('position')
+        graph = self.component.get('graph')
+        element_centers = self.component.get('element_centers')
+        element_dict_r = self.component.get('element_dict_r')
+        position = self.component.get('position')
 
         # Graph positions
         position = nx.random_layout(graph)
@@ -350,12 +351,12 @@ class Builder(Base):
         values = list(position.values())
         location = np.vstack(values)
 
-        self.component.collection['location'] = location
-        self.component.collection['position'] = position
+        self.component['location'] = location
+        self.component['position'] = position
 
         return self
 
-    def legend(self) -> Self:  # noqa
+    def legend(self) -> Self:
         """Plot the legend for the labels.
 
         Returns:
@@ -363,9 +364,9 @@ class Builder(Base):
 
         """
 
-        element_dict_r = self.component.collection.get('element_dict_r')
-        label = self.component.collection.get('label')
-        position = self.component.collection.get('position')
+        element_dict_r = self.component.get('element_dict_r')
+        label = self.component.get('label')
+        position = self.component.get('position')
 
         test = {
             element_dict_r[i]: label[element_dict_r[i]]
@@ -408,7 +409,7 @@ class Builder(Base):
 
         return self
 
-    def sequences(self) -> Self:  # noqa
+    def sequences(self) -> Self:
         """Create a list of sequences based on the labels.
 
         Returns:
@@ -421,11 +422,11 @@ class Builder(Base):
             for sequence in np.unique(self.sequence)
         ]
 
-        self.component.collection['sequences'] = sequences
+        self.component['sequences'] = sequences
 
         return self
 
-    def title(self) -> Self:  # noqa
+    def title(self) -> Self:
         """Sets the title of the plot based on settings.
 
         Args:
@@ -436,9 +437,9 @@ class Builder(Base):
 
         """
 
-        ax = self.component.collection.get('ax')
+        ax = self.component.get('ax')
 
-        title = f"Network for {self.settings.name}"
+        title = f"Network for {self.settings.name} using {self.settings.cluster} Clustering"
 
         ax.set_title(
             title,
@@ -449,14 +450,48 @@ class Builder(Base):
         return self
 
 
-class Network(Plot):
-    def build(self) -> Component:
+class NetworkFCM(Plot):
+    def build(self) -> dict[Any, Any]:
         """Build the network graph.
 
         Returns:
             Component: The constructed network graph component.
 
         """
+
+        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+
+        return (
+            self.builder
+            .initialize()
+            .ax()
+            .title()
+            .palette()
+            .sequences()
+            .centers()
+            .build()
+            .element()
+            .drop()
+            .compute()
+            .nodes()
+            .palette()
+            .edges()
+            .centroid()
+            .legend()
+            .get()
+        )
+
+
+class NetworkHDBSCAN(Plot):
+    def build(self) -> dict[Any, Any]:
+        """Build the network graph.
+
+        Returns:
+            Component: The constructed network graph component.
+
+        """
+
+        self.builder.settings['cluster'] = 'HDBSCAN'
 
         return (
             self.builder

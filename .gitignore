@@ -11,7 +11,8 @@ warbler.py/warbler.py.egg-info/
 *.bat
 *.xlsx
 *.zip
-
+*.sublime-project
+*.sublime-workspace
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

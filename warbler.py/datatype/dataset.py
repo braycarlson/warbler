@@ -7,25 +7,27 @@ Dataset
 from __future__ import annotations
 
 import lzma
-import pandas as pd
-import pathlib
 import pickle
 import shutil
 
 from abc import ABC, abstractmethod
 from constant import PICKLE
-from typing import NoReturn
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
+    import pathlib
 
 
 class PicklingStrategy(ABC):
     """Abstract base class for pickling strategies."""
 
-    def __init__(self, path):
-        self.filename = 'dataframe'
+    def __init__(self, filename: str = 'dataframe'):
+        self.filename = filename
         self.extension = None
 
     @property
-    def path(self):
+    def path(self) -> pathlib.Path:
         """Get the full path of the pickle file.
 
         Returns:
@@ -36,13 +38,13 @@ class PicklingStrategy(ABC):
         return PICKLE.joinpath(self.filename + self.extension)
 
     @abstractmethod
-    def load(self) -> NoReturn:
+    def load(self) -> pd.DataFrame:
         """Load the data from the pickle file."""
 
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, dataframe) -> None:
+    def save(self, dataframe: pd.DataFrame) -> None:
         """Save the data to the pickle file.
 
         Args:
@@ -56,7 +58,7 @@ class PicklingStrategy(ABC):
 class Compressed(PicklingStrategy):
     """A pickling strategy that compresses the data using lzma."""
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self.filename = filename
         self.extension = '.xz'
 
@@ -74,7 +76,7 @@ class Compressed(PicklingStrategy):
         with lzma.open(self.path, 'rb') as handle:
             return pickle.load(handle)
 
-    def save(self, dataframe: pd.DataFrame):
+    def save(self, dataframe: pd.DataFrame) -> None:
         """Save the data to the compressed pickle file.
 
         Args:
@@ -89,7 +91,7 @@ class Compressed(PicklingStrategy):
 class Uncompressed(PicklingStrategy):
     """A pickling strategy that saves the data without compression."""
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self.filename = filename
         self.extension = '.pkl'
 
@@ -122,7 +124,7 @@ class Uncompressed(PicklingStrategy):
 class Dataset():
     """A dataset class for managing pickled data."""
 
-    def __init__(self, filename):
+    def __init__(self, filename: str):
         self._strategy = Uncompressed(filename)
 
     @property

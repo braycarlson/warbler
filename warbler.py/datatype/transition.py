@@ -11,24 +11,33 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from collections import defaultdict
-from datatype.builder import Base, Component, Plot
+from datatype.builder import Base, Plot
 from datatype.settings import Settings
+from typing import Any, Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 
 class Builder(Base):
-    def ax(self) -> Self:  # noqa
+    def ax(self) -> Self:
         figsize = self.settings.figure.get('figsize')
         figure, ax = plt.subplots(figsize=figsize)
 
         ax.axis('off')
 
-        self.component.collection['ax'] = ax
-        self.component.collection['figure'] = figure
+        self.component['ax'] = ax
+        self.component['figure'] = figure
 
         return self
 
-    def _collection(self, x: np.ndarray, y: np.ndarray, array=None) -> Self:  # noqa
-        ax = self.component.collection.get('ax')
+    def _collection(
+        self,
+        x: npt.NDArray,
+        y: npt.NDArray,
+        array: npt.NDArray = None
+    ) -> Self:
+        ax = self.component.get('ax')
 
         alpha = self.settings.colorline.get('alpha')
         cmap = self.settings.colorline.get('cmap')
@@ -69,11 +78,11 @@ class Builder(Base):
         )
 
         ax.add_collection(collection)
-        self.component.collection['collection'] = collection
+        self.component['collection'] = collection
 
         return self
 
-    def colorline(self) -> Self:  # noqa
+    def colorline(self) -> Self:
         for sequence in np.unique(self.sequence):
             mask = self.sequence == sequence
             embedding = self.embedding[mask]
@@ -88,7 +97,7 @@ class Builder(Base):
 
         return self
 
-    def initialize(self) -> Self:  # noqa
+    def initialize(self) -> Self:
         default = {
             'colorline': {
                 'alpha': 0.05,
@@ -118,8 +127,8 @@ class Builder(Base):
 
         return self
 
-    def range(self) -> Self:  # noqa
-        ax = self.component.collection.get('ax')
+    def range(self) -> Self:
+        ax = self.component.get('ax')
 
         xmin, xmax = np.sort(self.embedding[:, 0])[
             np.array(
@@ -152,7 +161,7 @@ class Builder(Base):
 
         return self
 
-    def title(self) -> Self:  # noqa
+    def title(self) -> Self:
         """Sets the title of the plot based on settings.
 
         Args:
@@ -163,7 +172,7 @@ class Builder(Base):
 
         """
 
-        ax = self.component.collection.get('ax')
+        ax = self.component.get('ax')
 
         title = f"Transition for {self.settings.name}"
 
@@ -177,7 +186,7 @@ class Builder(Base):
 
 
 class Transition(Plot):
-    def build(self) -> Component:
+    def build(self) -> dict[Any, Any]:
         return (
             self.builder
             .initialize()

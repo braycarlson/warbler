@@ -1,0 +1,28 @@
+{
+    "figure": {
+        "figsize": [9, 8]
+    },
+    "legend": {
+        "borderaxespad": 0,
+        "bbox_to_anchor": [1.15, 1.00]
+    },
+    "line": {
+        "marker": "o",
+        "rasterized": false
+    },
+    "scatter": {
+        "alpha": 0.50,
+        "color": "black",
+        "label": null,
+        "rasterized": false,
+        "s": 10
+    },
+    "cluster": "HDBSCAN",
+    "is_axis": false,
+    "is_cluster": true,
+    "is_color": true,
+    "is_legend": true,
+    "is_title": true,
+    "name": "Adelaide's warbler",
+    "palette": "tab20"
+}

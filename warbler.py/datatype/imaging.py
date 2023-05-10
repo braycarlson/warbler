@@ -10,19 +10,22 @@ import cv2
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
 from datatype.plot import StandardSpectrogram
-from datatype.settings import Settings
-from datatype.signal import Signal
 from datatype.spectrogram import compress, create_spectrogram
 from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
 from skimage import filters
-from typing import Any, List
+from typing import Any, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datatype.settings import Settings
+    from datatype.signal import Signal
 
 
-def create_figure(plot: BytesIO | np.ndarray, text: str):
+def create_figure(plot: BytesIO | npt.NDArray, text: str):
     """Creates a figure with an image and text.
 
     Args:
@@ -36,8 +39,7 @@ def create_figure(plot: BytesIO | np.ndarray, text: str):
 
     if isinstance(plot, BytesIO):
         image = Pillow.open(plot)
-
-    if isinstance(plot, np.ndarray):
+    else:
         image = Pillow.fromarray(~plot)
 
     image = ImageOps.expand(
@@ -65,7 +67,7 @@ def create_figure(plot: BytesIO | np.ndarray, text: str):
     return image
 
 
-def create_grid(collection: np.ndarray):
+def create_grid(collection: npt.NDArray):
     """Creates a grid of images from a collection.
 
     Args:
@@ -134,7 +136,7 @@ def create_grid(collection: np.ndarray):
     return grid
 
 
-def create_image(spectrogram: bytes | np.ndarray):
+def create_image(spectrogram: bytes | npt.NDArray):
     """Creates an image from a spectrogram.
 
     Args:
@@ -146,7 +148,7 @@ def create_image(spectrogram: bytes | np.ndarray):
 
     """
 
-    if isinstance(spectrogram, np.ndarray):
+    if isinstance(spectrogram, npt.NDArray):
         condition = (
             np.issubdtype(spectrogram.dtype, np.float32) |
             np.issubdtype(spectrogram.dtype, np.float64)
@@ -176,7 +178,7 @@ def create_plot(
     Args:
         signal: The signal object.
         settings: The settings object.
-        matrix: Optional numpy array for matrix modification.
+        matrix: numpy array for matrix modification.
 
     Returns:
         The BytesIO object containing the plot image.
@@ -197,7 +199,7 @@ def create_plot(
     return buffer
 
 
-def create_signal_page(collection: List[Any] | np.ndarray, text: str):
+def create_signal_page(collection: list[Any] | npt.NDArray, text: str):
     """Creates a page with a collection of images.
 
     Args:
@@ -235,7 +237,7 @@ def create_signal_page(collection: List[Any] | np.ndarray, text: str):
         size=(width, height),
     )
 
-    for index, image in enumerate(collection):
+    for _, image in enumerate(collection):
         x = int(
             (width - image.width) / 2
         )
@@ -273,7 +275,7 @@ def create_signal_page(collection: List[Any] | np.ndarray, text: str):
 
 
 def draw_segment(
-    spectrograms: np.ndarray,
+    spectrograms: npt.NDArray,
     maximum: int = 0,
     zoom: int = 2,
 ):
@@ -397,7 +399,7 @@ def filter_image(image: Pillow):
     return image
 
 
-def resize_image(image: np.ndarray):
+def resize_image(image: npt.NDArray):
     """Resizes an image.
 
     Args:

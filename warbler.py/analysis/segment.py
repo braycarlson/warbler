@@ -8,16 +8,17 @@ from datatype.dataset import Dataset
 from datatype.segmentation import DynamicThresholdSegmentation
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
     mask = dataframe['filename'] == 'STE02_2_YYLb2017'
     row = dataframe.loc[mask]
-    row.reset_index(inplace=True)
+    row = row.reset_index()
+    row = row.copy()
 
-    signal = row.at[0, 'signal']
-    settings = row.at[0, 'settings']
+    signal = row.loc[0, 'signal']
+    settings = row.loc[0, 'settings']
 
     algorithm = DynamicThresholdSegmentation()
     algorithm.signal = signal

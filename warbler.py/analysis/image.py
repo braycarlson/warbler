@@ -16,7 +16,7 @@ from datatype.settings import Settings
 from datatype.spectrogram import create_spectrogram
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
@@ -24,7 +24,7 @@ def main():
     maximum = minimum + 5
 
     subset = dataframe.iloc[minimum:maximum]
-    subset.reset_index(inplace=True)
+    subset = subset.reset_index()
     subset = subset.copy()
 
     path = SETTINGS.joinpath('dereverberate.json')

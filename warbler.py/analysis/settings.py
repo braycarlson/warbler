@@ -43,7 +43,7 @@ def insert() -> None:
         settings.save(segmentation)
 
 
-def update():
+def update() -> None:
     """Update an existing parameter in the settings and save the settings.
 
     Args:
@@ -61,7 +61,7 @@ def update():
         settings.save(segmentation)
 
 
-def main():
+def main() -> None:
     insert()
 
 

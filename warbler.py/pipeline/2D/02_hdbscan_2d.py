@@ -1,3 +1,9 @@
+"""
+HDBSCAN
+-------
+
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -7,7 +13,7 @@ from datatype.dataset import Dataset
 from hdbscan import HDBSCAN
 
 
-def main():
+def main() -> None:
     PROJECTION.mkdir(parents=True, exist_ok=True)
 
     dataset = Dataset('segment')

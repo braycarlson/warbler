@@ -5,6 +5,7 @@ Collection
 """
 
 import matplotlib.pyplot as plt
+import numpy.typing as npt
 
 from constant import SETTINGS
 from datatype.dataset import Dataset
@@ -17,8 +18,8 @@ from datatype.spectrogram import Linear, Spectrogram
 def plot(
     signal: Signal,
     settings: Settings,
-    matrix=None
-):
+    matrix: npt.NDArray | None = None
+) -> None:
     """Generates and displays a spectrogram plot.
 
     Args:
@@ -46,7 +47,7 @@ def plot(
     plt.close()
 
 
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 

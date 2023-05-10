@@ -7,14 +7,14 @@ Network
 import numpy as np
 
 from datatype.dataset import Dataset
-from datatype.network import Builder, Network
+from datatype.network import Builder, NetworkFCM
 
 
 def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.hdbscan_label_2d.unique()
+    unique = dataframe.fcm_label_2d.unique()
 
     settings = {
         'ignore': [-1],
@@ -30,10 +30,10 @@ def dataset() -> None:
 
     embedding = np.column_stack(coordinates)
 
-    label = dataframe.hdbscan_label_2d.to_numpy()
+    label = dataframe.fcm_label_2d.to_numpy()
     sequence = dataframe.sequence.to_numpy()
 
-    network = Network()
+    network = NetworkFCM()
 
     network.builder = Builder()
     network.embedding = embedding
@@ -44,11 +44,11 @@ def dataset() -> None:
 
     component = network.build()
 
-    figure = component.collection.get('figure')
+    figure = component.get('figure')
 
-    network.show()
+    # network.show()
 
-    filename = 'network_dataset.png'
+    filename = 'network_fcm_dataset.png'
 
     network.save(
         figure=figure,
@@ -60,7 +60,7 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.hdbscan_label_2d.unique()
+    unique = dataframe.fcm_label_2d.unique()
 
     settings = {
         'ignore': [-1],
@@ -83,10 +83,10 @@ def individual() -> None:
 
         embedding = np.column_stack(coordinates)
 
-        label = individual.hdbscan_label_2d.to_numpy()
+        label = individual.fcm_label_2d.to_numpy()
         sequence = individual.sequence.to_numpy()
 
-        network = Network()
+        network = NetworkFCM()
 
         network.builder = Builder()
         network.embedding = embedding
@@ -97,11 +97,11 @@ def individual() -> None:
 
         component = network.build()
 
-        figure = component.collection.get('figure')
+        figure = component.get('figure')
 
-        network.show()
+        # network.show()
 
-        filename = f"network_{folder}.png"
+        filename = f"network_fcm_{folder}.png"
 
         network.save(
             figure=figure,
@@ -109,7 +109,7 @@ def individual() -> None:
         )
 
 
-def main():
+def main() -> None:
     # Create a network graph for the entire dataset
     dataset()
 

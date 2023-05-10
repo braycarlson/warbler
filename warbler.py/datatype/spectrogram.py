@@ -12,18 +12,22 @@ import os
 import tensorflow as tf
 
 from abc import ABC, abstractmethod
-from datatype.settings import Settings
-from datatype.signal import Signal
 from librosa import mel_frequencies
 from PIL import Image
 from scipy.signal import lfilter
-from typing import NoReturn
+from typing import Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from datatype.settings import Settings
+    from datatype.signal import Signal
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-def compress(spectrogram: np.ndarray) -> np.ndarray:
+def compress(spectrogram: npt.NDArray) -> npt.NDArray:
     """Compresses the spectrogram by normalizing it.
 
     The values will be normalized between 0 and 1, and then
@@ -49,8 +53,8 @@ def compress(spectrogram: np.ndarray) -> np.ndarray:
 def create_spectrogram(
     signal: Signal,
     settings: Settings,
-    matrix=None
-) -> np.ndarray:
+    matrix: npt.NDArray | None = None
+) -> npt.NDArray:
     """Creates a spectrogram from the signal, settings and matrix.
 
     Args:
@@ -70,7 +74,7 @@ def create_spectrogram(
     return spectrogram.generate()
 
 
-def flatten(spectrogram: np.ndarray) -> np.ndarray:
+def flatten(spectrogram: npt.NDArray) -> npt.NDArray:
     """Flattens the spectrogram by reshaping it into a 2D array.
 
     Args:
@@ -92,7 +96,7 @@ def flatten(spectrogram: np.ndarray) -> np.ndarray:
     )
 
 
-def mel_matrix(settings: Settings) -> np.ndarray:
+def mel_matrix(settings: Settings) -> npt.NDArray:
     """Computes the mel filterbank matrix based on custom settings.
 
     Args:
@@ -147,7 +151,7 @@ def mel_matrix(settings: Settings) -> np.ndarray:
     return mel_matrix.numpy()
 
 
-def pad(spectrogram: np.ndarray, padding: int) -> np.ndarray:
+def pad(spectrogram: npt.NDArray, padding: int) -> npt.NDArray:
     """Pads the spectrogram with zeros to the specified padding size.
 
     Args:
@@ -176,7 +180,7 @@ def pad(spectrogram: np.ndarray, padding: int) -> np.ndarray:
     )
 
 
-def resize(spectrogram: np.ndarray, factor: int = 10) -> np.ndarray:
+def resize(spectrogram: npt.NDArray, factor: int = 10) -> npt.NDArray:
     """Resizes the spectrogram by applying a scaling factor.
 
     Args:
@@ -218,9 +222,9 @@ class Strategy(ABC):
 
     def __init__(
         self,
-        signal=None,
-        settings=None,
-        matrix=None,
+        signal: Signal | None = None,
+        settings: Settings | None = None,
+        matrix: npt.NDArray | None = None,
         normalize: bool = True
     ):
         self._data = None
@@ -230,7 +234,7 @@ class Strategy(ABC):
         self._settings = settings
 
     @property
-    def matrix(self) -> np.ndarray:
+    def matrix(self) -> npt.NDArray:
         """Get the transformation matrix used for the strategy.
 
         Returns:
@@ -241,7 +245,7 @@ class Strategy(ABC):
         return self._matrix
 
     @matrix.setter
-    def matrix(self, matrix: np.ndarray) -> None:
+    def matrix(self, matrix: npt.NDArray) -> None:
         self._matrix = matrix
 
     @property
@@ -278,10 +282,10 @@ class Strategy(ABC):
     def settings(self) -> Settings:
         """Get the Settings object associated with the strategy.
 
-         Returns:
-             Settings: The Settings object.
+        Returns:
+            Settings: The Settings object.
 
-         """
+        """
 
         return self._settings
 
@@ -289,7 +293,7 @@ class Strategy(ABC):
     def settings(self, settings: Settings) -> None:
         self._settings = settings
 
-    def build(self) -> Self:  # noqa
+    def build(self) -> Self:
         """Build the spectrogram using the specified strategy.
 
         Returns:
@@ -305,7 +309,7 @@ class Strategy(ABC):
 
         return self
 
-    def decibel_to_amplitude(self) -> Self:  # noqa
+    def decibel_to_amplitude(self) -> Self:
         """Convert the spectrogram from decibel to amplitude scale.
 
         Args:
@@ -323,7 +327,7 @@ class Strategy(ABC):
 
         return self
 
-    def denormalize(self) -> Self:  # noqa
+    def denormalize(self) -> Self:
         """Denormalize the spectrogram.
 
         Args:
@@ -340,7 +344,7 @@ class Strategy(ABC):
 
         return self
 
-    def normalize(self) -> Self:  # noqa
+    def normalize(self) -> Self:
         """Normalize the spectrogram.
 
         Args:
@@ -361,7 +365,7 @@ class Strategy(ABC):
 
         return self
 
-    def preemphasis(self) -> Self:  # noqa
+    def preemphasis(self) -> Self:
         """Apply a preemphasis filter to the audio signal.
 
         Args:
@@ -378,16 +382,16 @@ class Strategy(ABC):
 
         return self
 
-    def inverse_preemphasis(self) -> Self:  # noqa
+    def inverse_preemphasis(self) -> Self:
         """Apply an inverse preemphasis filter to the audio signal.
 
         Args:
             None.
 
-         Returns:
-             The modified Strategy instance.
+        Returns:
+            The modified Strategy instance.
 
-         """
+        """
 
         self.data = lfilter(
             [1],
@@ -397,7 +401,7 @@ class Strategy(ABC):
 
         return self
 
-    def stft(self) -> Self:  # noqa
+    def stft(self) -> Self:
         """Compute the Short-Time Fourier Transform of the audio signal.
 
         Args:
@@ -422,7 +426,7 @@ class Strategy(ABC):
 
         return self
 
-    def _istft(self) -> Self:  # noqa
+    def _istft(self) -> Self:
         """Compute the inverse Short-Time Fourier Transform of the spectrogram.
 
         Args:
@@ -446,7 +450,7 @@ class Strategy(ABC):
         return self
 
     @abstractmethod
-    def amplitude_to_decibel(self) -> NoReturn:
+    def amplitude_to_decibel(self) -> Self:
         """Convert the spectrogram from amplitude to decibel scale."""
 
         raise NotImplementedError
@@ -467,7 +471,7 @@ class Linear(Strategy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def amplitude_to_decibel(self) -> Self:  # noqa
+    def amplitude_to_decibel(self) -> Self:
         """Convert amplitude values to decibel scale.
 
         Returns:
@@ -499,7 +503,7 @@ class Mel(Strategy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def _create_basis(self) -> np.ndarray:
+    def _create_basis(self) -> npt.NDArray:
         """Create the Mel basis matrix.
 
         Returns:
@@ -518,7 +522,7 @@ class Mel(Strategy):
         basis = basis.T / np.sum(basis, axis=1)
         return np.nan_to_num(basis).T
 
-    def _linear_to_mel(self, basis: np.ndarray) -> np.ndarray:
+    def _linear_to_mel(self, basis: npt.NDArray) -> npt.NDArray:
         """Convert linear spectrogram to Mel spectrogram.
 
         Args:
@@ -532,7 +536,7 @@ class Mel(Strategy):
         basis = self._create_basis()
         return np.dot(basis, self.data)
 
-    def amplitude_to_decibel(self) -> Self:  # noqa
+    def amplitude_to_decibel(self) -> Self:
         """Convert amplitude values to decibel scale using Mel transformation.
 
         Args:
@@ -568,7 +572,7 @@ class Segment(Strategy):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-    def amplitude_to_decibel(self) -> Self:  # noqa
+    def amplitude_to_decibel(self) -> Self:
         """Convert amplitude values to decibel scale.
 
         Args:
@@ -599,11 +603,11 @@ class Spectrogram:
 
     """
 
-    def __init__(self, strategy=None):
+    def __init__(self, strategy : Strategy | None = None):
         self._strategy = strategy
 
     @property
-    def matrix(self) -> np.ndarray:
+    def matrix(self) -> npt.NDArray:
         """Get the Mel spectrogram matrix.
 
         Returns:
@@ -614,7 +618,7 @@ class Spectrogram:
         return self.strategy.matrix
 
     @matrix.setter
-    def matrix(self, matrix: np.ndarray):
+    def matrix(self, matrix: npt.NDArray) -> None:
         self.strategy.matrix = matrix
 
     @property
@@ -629,7 +633,7 @@ class Spectrogram:
         return self.strategy.normalize
 
     @normalize.setter
-    def normalize(self, normalize: bool):
+    def normalize(self, normalize: bool) -> None:
         self.strategy.normalize = normalize
 
     @property
@@ -644,7 +648,7 @@ class Spectrogram:
         return self.strategy.signal
 
     @signal.setter
-    def signal(self, signal: Signal):
+    def signal(self, signal: Signal) -> None:
         self.strategy.signal = signal
 
     @property
@@ -659,7 +663,7 @@ class Spectrogram:
         return self.strategy.settings
 
     @settings.setter
-    def settings(self, settings: Settings):
+    def settings(self, settings: Settings) -> None:
         self.strategy.settings = settings
 
     @property
@@ -674,10 +678,10 @@ class Spectrogram:
         return self._strategy
 
     @strategy.setter
-    def strategy(self, strategy: Strategy):
+    def strategy(self, strategy: Strategy) -> None:
         self._strategy = strategy
 
-    def generate(self) -> np.ndarray:
+    def generate(self) -> npt.NDArray:
         """Generate the spectrogram.
 
         Args:

@@ -1,9 +1,15 @@
+"""
+UMAP
+----
+
+"""
+
 from datatype.dataset import Dataset
 from datatype.spectrogram import flatten
 from umap import UMAP
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

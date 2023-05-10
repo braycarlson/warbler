@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 warnings.filterwarnings('ignore', category=UserWarning)
 
 
-def main():
+def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
@@ -44,9 +44,9 @@ def main():
         matrix = mel_matrix(settings)
 
     dataframe['duration'] = dataframe['duration'].astype(float)
-    dataframe = dataframe[~dataframe.isnull().any(axis=1)]
+    dataframe = dataframe[~dataframe.isna().any(axis=1)]
 
-    dataframe.reset_index(drop=True, inplace=True)
+    dataframe = dataframe.reset_index(drop=True)
     dataframe = dataframe.copy()
 
     padding = dataframe['scale'].apply(

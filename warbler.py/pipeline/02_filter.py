@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 @bootstrap
-def main():
+def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
