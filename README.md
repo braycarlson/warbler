@@ -6,7 +6,7 @@ warbler.py is a pipeline for segmenting, clustering and visualizing Adelaide's w
 
 ## Prerequisites
 
-* [pyenv](https://github.com/pyenv/pyenv) or [Python 3.9.5](https://www.python.org/downloads/)
+* [pyenv](https://github.com/pyenv/pyenv) or [Python 3.11.2](https://www.python.org/downloads/)
 * [Graphviz](https://graphviz.org/)
 * [ffmpeg](https://www.ffmpeg.org/)
 
