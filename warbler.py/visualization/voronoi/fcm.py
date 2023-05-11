@@ -6,7 +6,9 @@ Voronoi: FCM
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 from datatype.voronoi import Builder, VoronoiFCM
 
 
@@ -14,7 +16,9 @@ def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {}
+    # Load default settings
+    path = SETTINGS.joinpath('voronoi.json')
+    settings = Settings.from_file(path)
 
     unique = dataframe.fcm_label_2d.unique()
 
@@ -50,7 +54,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    # voronoi.show()
+    voronoi.show()
 
     filename = 'voronoi_fcm_dataset.png'
 
@@ -64,21 +68,18 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {}
+    # Load default settings
+    path = SETTINGS.joinpath('voronoi.json')
+    settings = Settings.from_file(path)
+
+    unique = dataframe.fcm_label_2d.unique()
 
     folders = dataframe.folder.unique()
-    unique = dataframe.fcm_label_2d.unique()
 
     for folder in folders:
         settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
-
-        # Mask the "noise"
-        individual = (
-            individual[individual.fcm_label_2d > -1]
-            .reset_index(drop=True)
-        )
 
         by = ['duration']
 
@@ -112,7 +113,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # voronoi.show()
+        voronoi.show()
 
         filename = f"voronoi_fcm_{folder}.png"
 

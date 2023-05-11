@@ -1,0 +1,13 @@
+{
+    "figure": {
+        "figsize": [
+            20,
+            4
+        ]
+    },
+    "cluster": "HDBSCAN",
+    "length": 100,
+    "maximum": 600,
+    "name": "Adelaide's warbler",
+    "nex": 600
+}

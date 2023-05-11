@@ -1,12 +1,14 @@
 """
-Network
--------
+Network: HDBSCAN
+----------------
 
 """
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 from datatype.network import Builder, NetworkFCM
 
 
@@ -14,14 +16,11 @@ def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.fcm_label_2d.unique()
+    # Load default settings
+    path = SETTINGS.joinpath('network.json')
+    settings = Settings.from_file(path)
 
-    settings = {
-        'ignore': [-1],
-        'min_cluster_sample': 0,
-        'min_connection': 0.05,
-        'name': 'Adelaide\'s warbler',
-    }
+    unique = dataframe.fcm_label_2d.unique()
 
     coordinates = [
         dataframe.umap_x_2d,
@@ -46,7 +45,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    # network.show()
+    network.show()
 
     filename = 'network_fcm_dataset.png'
 
@@ -60,14 +59,11 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.fcm_label_2d.unique()
+    # Load default settings
+    path = SETTINGS.joinpath('network.json')
+    settings = Settings.from_file(path)
 
-    settings = {
-        'ignore': [-1],
-        'min_cluster_sample': 0,
-        'min_connection': 0.05,
-        'name': 'Adelaide\'s warbler',
-    }
+    unique = dataframe.fcm_label_2d.unique()
 
     folders = dataframe.folder.unique()
 
@@ -99,7 +95,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # network.show()
+        network.show()
 
         filename = f"network_fcm_{folder}.png"
 

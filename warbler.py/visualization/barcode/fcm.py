@@ -1,12 +1,13 @@
 """
-Barcode
--------
+Barcode: FCM
+------------
 
 """
 
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from constant import SETTINGS
 from datatype.barcode import (
     BarcodeFCM,
     Builder,
@@ -14,11 +15,16 @@ from datatype.barcode import (
     SongBarcode
 )
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 
 
 def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
+
+    # Load default settings
+    path = SETTINGS.joinpath('barcode.json')
+    settings = Settings.from_file(path)
 
     unique = dataframe.folder.unique()
 
@@ -30,17 +36,6 @@ def main() -> None:
         'tab20',
         len(fcm)
     )
-
-    settings = {
-        'figure': {
-            'figsize': (20, 4),
-
-        },
-        'length': 100,
-        'maximum': 600,
-        'name': 'Adelaide\'s warbler',
-        'nex': 600
-    }
 
     for folder in unique:
         settings['name'] = folder
@@ -110,7 +105,7 @@ def main() -> None:
 
         barcode.build()
 
-        # barcode.show()
+        barcode.show()
 
         filename = f"barcode_{folder}.png"
 

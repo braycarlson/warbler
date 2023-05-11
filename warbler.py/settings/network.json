@@ -1,9 +1,14 @@
 {
     "figure": {
-        "figsize": [9, 8]
+        "figsize": [
+            9,
+            8
+        ]
     },
     "cluster": "HDBSCAN",
-    "ignore": [-1],
+    "ignore": [
+        -1
+    ],
     "is_axis": false,
     "is_cluster": true,
     "is_color": true,
@@ -11,5 +16,6 @@
     "is_title": true,
     "min_cluster_sample": 0,
     "min_connection": 0.05,
+    "name": "Adelaide's warbler",
     "palette": "tab20"
 }

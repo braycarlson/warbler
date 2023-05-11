@@ -6,7 +6,9 @@ Voronoi: HDBSCAN
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 from datatype.voronoi import Builder, VoronoiHDBSCAN
 
 
@@ -14,7 +16,9 @@ def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {}
+    # Load default settings
+    path = SETTINGS.joinpath('voronoi.json')
+    settings = Settings.from_file(path)
 
     unique = dataframe.hdbscan_label_2d.unique()
 
@@ -70,21 +74,24 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {}
+    # Load default settings
+    path = SETTINGS.joinpath('voronoi.json')
+    settings = Settings.from_file(path)
+
+    unique = dataframe.hdbscan_label_2d.unique()
+
+    # Mask the "noise"
+    dataframe = (
+        dataframe[dataframe.hdbscan_label_2d > -1]
+        .reset_index(drop=True)
+    )
 
     folders = dataframe.folder.unique()
-    unique = dataframe.hdbscan_label_2d.unique()
 
     for folder in folders:
         settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
-
-        # Mask the "noise"
-        individual = (
-            individual[individual.hdbscan_label_2d > -1]
-            .reset_index(drop=True)
-        )
 
         by = ['duration']
 
@@ -118,7 +125,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # voronoi.show()
+        voronoi.show()
 
         filename = f"voronoi_hdbscan_{folder}.png"
 

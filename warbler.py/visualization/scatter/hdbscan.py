@@ -6,13 +6,23 @@ Scatter: HDBSCAN
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 from datatype.scatter import Builder, ScatterHDBSCAN
 
 
 def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
+
+    # Load default settings
+    path = SETTINGS.joinpath('scatter.json')
+    settings = Settings.from_file(path)
+
+    # Change the default to accomodate a larger dataset
+    settings['scatter']['alpha'] = 0.50
+    settings['scatter']['s'] = 10
 
     unique = dataframe.hdbscan_label_2d.unique()
 
@@ -30,14 +40,6 @@ def dataset() -> None:
     embedding = np.column_stack(coordinates)
     label = dataframe.hdbscan_label_2d.to_numpy()
 
-    settings = {
-        'scatter': {
-            'alpha': 0.50,
-            's': 10
-        },
-        'name': 'Adelaide\'s warbler',
-    }
-
     scatter = ScatterHDBSCAN()
 
     scatter.builder = Builder()
@@ -50,7 +52,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    # scatter.show()
+    scatter.show()
 
     filename = 'scatter_hdbscan_dataset.png'
 
@@ -64,29 +66,28 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {
-        'scatter': {
-            'alpha': 0.50,
-            's': 10
-        },
-        'name': 'Adelaide\'s warbler',
-    }
+    # Load default settings
+    path = SETTINGS.joinpath('scatter.json')
+    settings = Settings.from_file(path)
 
-    folders = dataframe.folder.unique()
+    # Change the default to accomodate a smaller dataset
+    settings['scatter']['alpha'] = 0.50
+    settings['scatter']['s'] = 10
+
     unique = dataframe.hdbscan_label_2d.unique()
 
+    # Mask the "noise"
+    dataframe = (
+        dataframe[dataframe.hdbscan_label_2d > -1]
+        .reset_index(drop=True)
+    )
+
+    folders = dataframe.folder.unique()
+
     for folder in folders:
-        settings['scatter']['alpha'] = 0.75
-        settings['scatter']['s'] = 25
         settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
-
-        # Mask the "noise"
-        individual = (
-            individual[individual.hdbscan_label_2d > -1]
-            .reset_index(drop=True)
-        )
 
         coordinates = [
             individual.umap_x_2d,
@@ -108,7 +109,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # scatter.show()
+        scatter.show()
 
         filename = f"scatter_hdbscan_{folder}.png"
 

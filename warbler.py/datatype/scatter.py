@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 
-from collections import defaultdict
 from datatype.builder import Base, Plot
-from datatype.settings import Settings
 from matplotlib.lines import Line2D
 from typing import Any, Self
 
@@ -45,62 +43,6 @@ class Builder(Base):
 
         self.component['ax'] = ax
         self.component['figure'] = figure
-
-        return self
-
-    def initialize(self) -> Self:
-        """Sets default settings and updates them with custom settings.
-
-        Args:
-            None.
-
-        Returns:
-            The modified Builder instance.
-
-        """
-
-        default = {
-            'figure': {
-                'figsize': (9, 8)
-            },
-            'legend': {
-                'borderaxespad': 0,
-                'bbox_to_anchor': (1.15, 1.00),
-            },
-            'line': {
-                'marker': 'o',
-                'rasterized': False
-            },
-            'scatter': {
-                'alpha': 0.50,
-                'color': 'black',
-                'label': None,
-                'rasterized': False,
-                's': 10
-            },
-            'cluster': 'HDBSCAN',
-            'is_axis': False,
-            'is_cluster': True,
-            'is_color': True,
-            'is_legend': True,
-            'is_title': True,
-            'name': 'Adelaide\'s warbler',
-            'palette': 'tab20',
-        }
-
-        if self.settings is not None:
-            merge: defaultdict = defaultdict(dict)
-            merge.update(default)
-
-            for key, value in self.settings.items():
-                if isinstance(value, dict):
-                    merge[key].update(value)
-                else:
-                    merge[key] = value
-
-            default = dict(merge)
-
-        self.settings = Settings.from_dict(default)
 
         return self
 
@@ -247,11 +189,11 @@ class ScatterFCM(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+        cluster = {'cluster': 'Fuzzy C-Means'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .ax()
             .title()
             .palette()
@@ -284,11 +226,11 @@ class ScatterHDBSCAN(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'HDBSCAN'
+        cluster = {'cluster': 'HDBSCAN'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .ax()
             .title()
             .palette()

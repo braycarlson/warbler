@@ -6,13 +6,23 @@ Scatter: FCM
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.scatter import Builder, ScatterFCM
+from datatype.settings import Settings
 
 
 def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
+
+    # Load default settings
+    path = SETTINGS.joinpath('scatter.json')
+    settings = Settings.from_file(path)
+
+    # Change the default to accomodate a larger dataset
+    settings['scatter']['alpha'] = 0.50
+    settings['scatter']['s'] = 10
 
     unique = dataframe.fcm_label_2d.unique()
 
@@ -23,14 +33,6 @@ def dataset() -> None:
 
     embedding = np.column_stack(coordinates)
     label = dataframe.fcm_label_2d.to_numpy()
-
-    settings = {
-        'scatter': {
-            'alpha': 0.50,
-            's': 10
-        },
-        'name': 'Adelaide\'s warbler',
-    }
 
     scatter = ScatterFCM()
 
@@ -44,7 +46,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    # scatter.show()
+    scatter.show()
 
     filename = 'scatter_fcm_dataset.png'
 
@@ -58,20 +60,18 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {
-        'scatter': {
-            'alpha': 0.50,
-            's': 10
-        },
-        'name': 'Adelaide\'s warbler',
-    }
+    # Load default settings
+    path = SETTINGS.joinpath('scatter.json')
+    settings = Settings.from_file(path)
+
+    # Change the default to accomodate a smaller dataset
+    settings['scatter']['alpha'] = 0.50
+    settings['scatter']['s'] = 10
 
     folders = dataframe.folder.unique()
     unique = dataframe.fcm_label_2d.unique()
 
     for folder in folders:
-        settings['scatter']['alpha'] = 0.75
-        settings['scatter']['s'] = 25
         settings['name'] = folder
 
         individual = dataframe[dataframe.folder == folder]
@@ -96,7 +96,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # scatter.show()
+        scatter.show()
 
         filename = f"scatter_fcm_{folder}.png"
 

@@ -10,9 +10,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 
-from collections import defaultdict
 from datatype.builder import Base, Plot
-from datatype.settings import Settings
 from matplotlib.lines import Line2D
 from typing import Any, Self
 
@@ -286,46 +284,6 @@ class Builder(Base):
 
         return self
 
-    def initialize(self) -> Self:
-        """Set the default settings and update them with the custom settings.
-
-        Returns:
-            The modified Builder instance.
-
-        """
-
-        default = {
-            'figure': {
-                'figsize': (9, 8)
-            },
-            'cluster': 'HDBSCAN',
-            'ignore': [-1],
-            'is_axis': False,
-            'is_cluster': True,
-            'is_color': True,
-            'is_legend': True,
-            'is_title': True,
-            'min_cluster_sample': 0,
-            'min_connection': 0.05,
-            'palette': 'tab20'
-        }
-
-        if self.settings is not None:
-            merge: defaultdict = defaultdict(dict)
-            merge.update(default)
-
-            for key, value in self.settings.items():
-                if isinstance(value, dict):
-                    merge[key].update(value)
-                else:
-                    merge[key] = value
-
-            default = dict(merge)
-
-        self.settings = Settings.from_dict(default)
-
-        return self
-
     def nodes(self) -> Self:
         """Compute the positions of the nodes in the transition graph.
 
@@ -459,11 +417,11 @@ class NetworkFCM(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+        cluster = {'cluster': 'Fuzzy C-Means'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .ax()
             .title()
             .palette()
@@ -491,11 +449,11 @@ class NetworkHDBSCAN(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'HDBSCAN'
+        cluster = {'cluster': 'HDBSCAN'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .ax()
             .title()
             .palette()

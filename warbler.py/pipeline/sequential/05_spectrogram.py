@@ -25,6 +25,7 @@ from datatype.spectrogram import (
     resize
 )
 from logger import logger
+from PIL import ImageOps
 from tqdm import tqdm
 
 
@@ -101,6 +102,24 @@ def main() -> None:
     dataframe['original'] = (
         dataframe['scale']
         .progress_apply(create_image)
+    )
+
+    tqdm.pandas(desc='Invert')
+
+    dataframe['original'] = (
+        dataframe['original']
+        .apply(
+            lambda x: ImageOps.invert(x)
+        )
+    )
+
+    tqdm.pandas(desc='Flip')
+
+    dataframe['original'] = (
+        dataframe['original']
+        .apply(
+            lambda x: ImageOps.flip(x)
+        )
     )
 
     tqdm.pandas(desc='Array')

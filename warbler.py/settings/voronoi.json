@@ -1,6 +1,9 @@
 {
     "figure": {
-        "figsize": [10, 10]
+        "figsize": [
+            10,
+            10
+        ]
     },
     "grid": {
         "wspace": 0,
@@ -8,7 +11,10 @@
     },
     "legend": {
         "borderaxespad": 0,
-        "bbox_to_anchor": [1.20, 1.0772]
+        "bbox_to_anchor": [
+            1.20,
+            1.0772
+        ]
     },
     "line": {
         "color": "white",

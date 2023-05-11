@@ -9,9 +9,7 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import numpy as np
 
-from collections import defaultdict
 from datatype.builder import Base, Plot
-from datatype.settings import Settings
 from matplotlib.lines import Line2D
 from matplotlib import gridspec
 from scipy.spatial import cKDTree
@@ -133,90 +131,6 @@ class Builder(Base):
         self.component['figure'] = figure
         self.component['grid'] = grid
         self.component['n_column'] = n_column
-
-        return self
-
-    def initialize(self) -> Self:
-        """Set the default settings for the plot.
-
-        Args:
-            None.
-
-        Returns:
-            The modified Builder instance.
-
-        """
-
-        default = {
-            'figure': {
-                'figsize': (10, 10)
-            },
-            'grid': {
-                'wspace': 0,
-                'hspace': 0
-            },
-            'legend': {
-                'borderaxespad': 0,
-                'bbox_to_anchor': (1.20, 1.0772)
-            },
-            'line': {
-                'color': 'white',
-                'marker': 'o',
-                'rasterized': False
-            },
-            'scatter': {
-                'alpha': 0.50,
-                'color': 'black',
-                'rasterized': False,
-                's': 10
-            },
-            'voronoi': {
-                'line': {
-                    'alpha': 1.00,
-                    'color': 'black',
-                    'ls': 'solid',
-                    'lw': 1,
-                    'rasterized': False
-                },
-                'matshow': {
-                    'origin': 'upper',
-                    'interpolation': 'bicubic',
-                    'aspect': 'auto',
-                    'cmap': plt.cm.Greys
-                },
-                'scatter': {
-                    'alpha': 0.75,
-                    'color': 'black',
-                    'rasterized': False,
-                    's': 10
-                },
-                'linewidth': 1,
-                'n_subset': -1,
-            },
-            'cluster': 'HDBSCAN',
-            'color': 'k',
-            'is_color': True,
-            'is_legend': True,
-            'is_line': True,
-            'name': 'Adelaide\'s warbler',
-            'padding': 0.1,
-            'palette': 'tab20',
-            'size': 15
-        }
-
-        if self.settings is not None:
-            merge: defaultdict = defaultdict(dict)
-            merge.update(default)
-
-            for key, value in self.settings.items():
-                if isinstance(value, dict):
-                    merge[key].update(value)
-                else:
-                    merge[key] = value
-
-            default = dict(merge)
-
-        self.settings = Settings.from_dict(default)
 
         return self
 
@@ -613,11 +527,11 @@ class VoronoiFCM(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+        cluster = {'cluster': 'Fuzzy C-Means'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .grid()
             .range()
             .mask()
@@ -657,11 +571,11 @@ class VoronoiHDBSCAN(Plot):
 
         """
 
-        self.builder.settings['cluster'] = 'HDBSCAN'
+        cluster = {'cluster': 'HDBSCAN'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .grid()
             .range()
             .mask()

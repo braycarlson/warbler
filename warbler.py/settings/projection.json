@@ -1,0 +1,8 @@
+{
+    "fcm": null,
+    "hdbscan": null,
+    "marker": {
+        "opacity": 0.25,
+        "size": 3
+    }
+}

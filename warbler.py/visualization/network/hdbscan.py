@@ -1,12 +1,14 @@
 """
-Network
--------
+Network: FCM
+------------
 
 """
 
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
+from datatype.settings import Settings
 from datatype.network import Builder, NetworkHDBSCAN
 
 
@@ -14,14 +16,17 @@ def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
+    # Load default settings
+    path = SETTINGS.joinpath('network.json')
+    settings = Settings.from_file(path)
+
     unique = dataframe.hdbscan_label_2d.unique()
 
-    settings = {
-        'ignore': [-1],
-        'min_cluster_sample': 0,
-        'min_connection': 0.05,
-        'name': 'Adelaide\'s warbler',
-    }
+    # # Mask the "noise"
+    # dataframe = (
+    #     dataframe[dataframe.hdbscan_label_2d > -1]
+    #     .reset_index(drop=True)
+    # )
 
     coordinates = [
         dataframe.umap_x_2d,
@@ -46,7 +51,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    # network.show()
+    network.show()
 
     filename = 'network_hdbscan_dataset.png'
 
@@ -60,14 +65,17 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
+    # Load default settings
+    path = SETTINGS.joinpath('network.json')
+    settings = Settings.from_file(path)
+
     unique = dataframe.hdbscan_label_2d.unique()
 
-    settings = {
-        'ignore': [-1],
-        'min_cluster_sample': 0,
-        'min_connection': 0.05,
-        'name': 'Adelaide\'s warbler',
-    }
+    # # Mask the "noise"
+    # dataframe = (
+    #     dataframe[dataframe.hdbscan_label_2d > -1]
+    #     .reset_index(drop=True)
+    # )
 
     folders = dataframe.folder.unique()
 
@@ -99,7 +107,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # network.show()
+        network.show()
 
         filename = f"network_hdbscan_{folder}.png"
 

@@ -14,7 +14,7 @@ def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    X = np.concatenate(
+    x = np.concatenate(
         (
             [dataframe.umap_x_3d],
             [dataframe.umap_y_3d],
@@ -22,12 +22,12 @@ def main() -> None:
         )
     )
 
-    X = X.transpose()
+    x = x.transpose()
 
     fcm = FCM(n_clusters=6)
-    fcm.fit(X)
+    fcm.fit(x)
 
-    labels = fcm.predict(X)
+    labels = fcm.predict(x)
 
     dataframe['fcm_label_3d'] = labels
 

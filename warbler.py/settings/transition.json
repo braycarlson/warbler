@@ -3,10 +3,17 @@
         "alpha": 0.05,
         "cmap": "cubehelix",
         "linewidth": 3,
-        "norm": [0.0, 1.0]
+        "norm": [
+            0.0,
+            1.0
+        ]
     },
     "figure": {
-        "figsize": [10, 10]
+        "figsize": [
+            10,
+            10
+        ]
     },
+    "name": "Adelaide's warbler",
     "padding": 0.1
 }

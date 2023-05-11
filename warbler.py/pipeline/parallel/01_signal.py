@@ -13,6 +13,7 @@ from datatype.dataset import Dataset
 from datatype.signal import Signal
 from logger import logger
 from natsort import os_sorted
+from tqdm import tqdm
 
 
 log = logging.getLogger(__name__)
@@ -32,12 +33,16 @@ def main() -> None:
 
     # Sort directories according to OS
     individuals = os_sorted(individuals)
+    total = len(individuals)
 
-    for individual in individuals:
+    progress = tqdm(individuals, desc='Signal', total=total)
+
+    for individual in progress:
         if not individual.is_dir():
             continue
 
         folder = individual.stem
+        progress.set_description(folder)
 
         recordings = os_sorted(
             individual.glob('recordings/*.wav')
@@ -49,7 +54,6 @@ def main() -> None:
 
         for recording, segmentation in zip(recordings, segmentations, strict=True):
             filename = recording.stem
-            print(f"Processing: {filename}")
 
             signal = Signal(recording)
 

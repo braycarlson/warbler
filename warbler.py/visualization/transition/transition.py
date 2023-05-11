@@ -7,27 +7,25 @@ Transition
 import matplotlib.pyplot as plt
 import numpy as np
 
+from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.transition import Builder, Transition
+from datatype.settings import Settings
 
 
 def dataset() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    settings = {
-        'colorline': {
-            'alpha': 0.25,
-            'cmap': plt.get_cmap('cubehelix'),
-            'linewidth': 0.5,
-            'norm': plt.Normalize(0.0, 1.0),
-        },
-        'figure': {
-            'figsize': (10, 10)
-        },
-        'name': 'Adelaide\'s warbler',
-        'padding': 0.1
-    }
+    # Load default settings
+    path = SETTINGS.joinpath('transition.json')
+    settings = Settings.from_file(path)
+
+    # Change the default to accomodate a larger dataset
+    settings['colorline']['alpha'] = 0.25
+    settings['colorline']['cmap'] = plt.get_cmap('cubehelix')
+    settings['colorline']['linewidth'] = 0.5
+    settings['colorline']['norm'] = plt.Normalize(0.0, 1.0)
 
     coordinates = [
         dataframe.umap_x_2d,
@@ -62,21 +60,17 @@ def individual() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    unique = dataframe.folder.unique()
+    # Load default settings
+    path = SETTINGS.joinpath('transition.json')
+    settings = Settings.from_file(path)
 
-    settings = {
-        'colorline': {
-            'alpha': 0.25,
-            'cmap': plt.get_cmap('cubehelix'),
-            'linewidth': 6,
-            'norm': plt.Normalize(0.0, 1.0),
-        },
-        'figure': {
-            'figsize': (10, 10)
-        },
-        'name': 'Adelaide\'s warbler',
-        'padding': 0.1
-    }
+    # Change the default to accomodate a smaller dataset
+    settings['colorline']['alpha'] = 0.25
+    settings['colorline']['cmap'] = plt.get_cmap('cubehelix')
+    settings['colorline']['linewidth'] = 6
+    settings['colorline']['norm'] = plt.Normalize(0.0, 1.0)
+
+    unique = dataframe.folder.unique()
 
     for folder in unique:
         settings['name'] = folder
@@ -102,7 +96,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        # transition.show()
+        transition.show()
 
         filename = f"transition_{folder}.png"
 

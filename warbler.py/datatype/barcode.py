@@ -11,9 +11,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from collections import defaultdict
 from datatype.builder import Base, Plot
-from datatype.settings import Settings
 from joblib import Parallel, delayed
 from matplotlib import gridspec
 from matplotlib import ticker
@@ -343,25 +341,6 @@ class Builder(Base):
 
         return self
 
-    def initialize(self) -> Self:
-        default: dict[Any, Any] = {}
-
-        if self.settings is not None:
-            merge: defaultdict = defaultdict(dict)
-            merge.update(default)
-
-            for key, value in self.settings.items():
-                if isinstance(value, dict):
-                    merge[key].update(value)
-                else:
-                    merge[key] = value
-
-            default = dict(merge)
-
-        self.settings = Settings.from_dict(default)
-
-        return self
-
     def matrix(self) -> Self:
         # Subset dataset
         self.color = self.color[:self.settings.nex]
@@ -414,11 +393,11 @@ class Builder(Base):
 
 class BarcodeFCM(Plot):
     def build(self) -> dict[Any, Any]:
-        self.builder.settings['cluster'] = 'Fuzzy C-Means'
+        cluster = {'cluster': 'Fuzzy C-Means'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .matrix()
             .cut()
             .distance()
@@ -432,11 +411,11 @@ class BarcodeFCM(Plot):
 
 class BarcodeHDBSCAN(Plot):
     def build(self) -> dict[Any, Any]:
-        self.builder.settings['cluster'] = 'HDBSCAN'
+        cluster = {'cluster': 'HDBSCAN'}
+        self.builder.settings.update(cluster)
 
         return (
             self.builder
-            .initialize()
             .matrix()
             .cut()
             .distance()

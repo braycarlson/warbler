@@ -10,7 +10,6 @@ import cv2
 import math
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 
 from datatype.plot import StandardSpectrogram
 from datatype.spectrogram import compress, create_spectrogram
@@ -21,6 +20,8 @@ from skimage import filters
 from typing import Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
+    import numpy.typing as npt
+
     from datatype.settings import Settings
     from datatype.signal import Signal
 
@@ -104,7 +105,7 @@ def create_grid(collection: npt.NDArray):
 
     for index, image in enumerate(collection, 0):
         image = create_image(image)
-        image = ImageOps.invert(image)
+        # image = ImageOps.invert(image)
 
         grid.paste(
             image,
@@ -148,7 +149,7 @@ def create_image(spectrogram: bytes | npt.NDArray):
 
     """
 
-    if isinstance(spectrogram, npt.NDArray):
+    if isinstance(spectrogram, np.ndarray):
         condition = (
             np.issubdtype(spectrogram.dtype, np.float32) |
             np.issubdtype(spectrogram.dtype, np.float64)
@@ -158,14 +159,12 @@ def create_image(spectrogram: bytes | npt.NDArray):
             spectrogram = compress(spectrogram)
 
         image = Pillow.fromarray(spectrogram)
-        image = ImageOps.invert(image)
 
     if isinstance(spectrogram, bytes):
         buffer = BytesIO(spectrogram)
         image = Pillow.open(buffer)
 
     return image
-    # return ImageOps.flip(image)
 
 
 def create_plot(
@@ -458,10 +457,6 @@ def to_bytes(image: Pillow):
     """
 
     image = to_numpy(image)
-
-    if np.mean(image) < 127.5:
-        image = np.invert(image)
-
     image = Pillow.fromarray(image)
 
     buffer = BytesIO()

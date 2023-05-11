@@ -10,9 +10,7 @@ import matplotlib.collections as mcoll
 import matplotlib.pyplot as plt
 import numpy as np
 
-from collections import defaultdict
 from datatype.builder import Base, Plot
-from datatype.settings import Settings
 from typing import Any, Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -97,36 +95,6 @@ class Builder(Base):
 
         return self
 
-    def initialize(self) -> Self:
-        default = {
-            'colorline': {
-                'alpha': 0.05,
-                'cmap': plt.get_cmap('cubehelix'),
-                'linewidth': 3,
-                'norm': plt.Normalize(0.0, 1.0),
-            },
-            'figure': {
-                'figsize': (10, 10)
-            },
-            'padding': 0.1
-        }
-
-        if self.settings is not None:
-            merge: defaultdict = defaultdict(dict)
-            merge.update(default)
-
-            for key, value in self.settings.items():
-                if isinstance(value, dict):
-                    merge[key].update(value)
-                else:
-                    merge[key] = value
-
-            default = dict(merge)
-
-        self.settings = Settings.from_dict(default)
-
-        return self
-
     def range(self) -> Self:
         ax = self.component.get('ax')
 
@@ -189,7 +157,6 @@ class Transition(Plot):
     def build(self) -> dict[Any, Any]:
         return (
             self.builder
-            .initialize()
             .ax()
             .title()
             .colorline()
