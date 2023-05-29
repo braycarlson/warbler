@@ -4,6 +4,8 @@ Segment
 
 """
 
+from __future__ import annotations
+
 import logging
 import pandas as pd
 
@@ -13,7 +15,10 @@ from datatype.settings import resolve
 from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Any
 
 
 log = logging.getLogger(__name__)
@@ -34,7 +39,7 @@ def get_segmentation(row: pd.Series) -> list[dict[str, Any]]:
 
     recording = []
 
-    iterable = zip(row.onset, row.offset, strict=True)
+    iterable = zip(row.onset, row.offset)
 
     folder = row.folder
     filename = row.filename

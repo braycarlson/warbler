@@ -338,7 +338,7 @@ class SegmentationSpectrogram(Plot):
         blue = mcolors.to_rgba('#0079d3', alpha=0.75)
         red = mcolors.to_rgba('#d1193e', alpha=0.75)
 
-        for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
+        for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
             color = blue
 
             if self.settings is not None:
@@ -458,7 +458,7 @@ class VocalEnvelopeSpectrogram(Plot):
 
         patches = []
 
-        for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
+        for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
             ax1.axvline(
                 onset,
                 color='dodgerblue',

@@ -4,10 +4,10 @@ Segment
 
 """
 
+from __future__ import annotations
+
 import fitz
 import numpy as np
-import numpy.typing as npt
-import pandas as pd
 
 from constant import PDF, SETTINGS
 from copy import deepcopy
@@ -18,7 +18,13 @@ from datatype.spectrogram import create_spectrogram
 from io import BytesIO
 from itertools import permutations
 from PIL import Image, ImageDraw, ImageFont, ImageOps
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+    import pandas as pd
+
+    from typing_extensions import Any
 
 
 def create_page(collection: list[Any] | npt.NDArray, text: str) -> Image:

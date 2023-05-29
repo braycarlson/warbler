@@ -4,6 +4,8 @@ Filter
 
 """
 
+from __future__ import annotations
+
 import logging
 
 from bootstrap import bootstrap

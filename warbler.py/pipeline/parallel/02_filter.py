@@ -4,16 +4,22 @@ Filter
 
 """
 
+from __future__ import annotations
+
 import logging
 
 from bootstrap import bootstrap
 from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.settings import resolve, Settings
-from datatype.signal  import Signal
+
 from joblib import delayed, Parallel
 from logger import logger
 from tqdm import tqdm
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datatype.signal  import Signal
 
 
 log = logging.getLogger(__name__)

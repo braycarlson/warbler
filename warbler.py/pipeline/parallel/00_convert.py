@@ -4,6 +4,8 @@ Convert
 
 """
 
+from __future__ import annotations
+
 import librosa
 import logging
 import soundfile as sf
@@ -57,7 +59,7 @@ def main() -> None:
 
     sr = settings.sample_rate
 
-    for directory, individual in zip(DIRECTORIES, INDIVIDUALS, strict=True):
+    for directory, individual in zip(DIRECTORIES, INDIVIDUALS):
         if individual.stem == directory.stem:
             files = [
                 file

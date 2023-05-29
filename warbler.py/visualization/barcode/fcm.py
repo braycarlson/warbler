@@ -4,6 +4,8 @@ Barcode: FCM
 
 """
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -49,7 +51,7 @@ def main() -> None:
 
         palette = {
             mapping[lab]: color
-            for lab, color in zip(fcm, label_pal, strict=True)
+            for lab, color in zip(fcm, label_pal)
         }
 
         figsize = (25, 3)

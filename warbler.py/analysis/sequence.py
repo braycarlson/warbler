@@ -4,10 +4,11 @@ Sequence
 
 """
 
+from __future__ import annotations
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 
 from constant import CWD, OUTPUT, PICKLE, SETTINGS
 from datatype.dataset import Dataset
@@ -35,6 +36,10 @@ from datatype.spectrogram import (
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
 from skimage import filters
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 
 def filter_image(image: Pillow) -> Pillow:
@@ -407,7 +412,7 @@ def main() -> None:
     original = []
     filtered = []
 
-    for index, (onset, offset) in enumerate(zip(onsets, offsets, strict=True), 0):
+    for index, (onset, offset) in enumerate(zip(onsets, offsets), 0):
         if index in custom.exclude:
             continue
 

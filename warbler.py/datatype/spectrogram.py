@@ -15,13 +15,14 @@ from abc import ABC, abstractmethod
 from librosa import mel_frequencies
 from PIL import Image
 from scipy.signal import lfilter
-from typing import Self, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
     from datatype.settings import Settings
     from datatype.signal import Signal
+    from typing_extensions import Self
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'

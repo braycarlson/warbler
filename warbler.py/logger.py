@@ -4,12 +4,17 @@ Logger
 
 """
 
+from __future__ import annotations
+
 import logging
 
-from collections.abc import Generator
 from constant import LOGS
 from contextlib import contextmanager
-from typing import Any
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from typing_extensions import Any
 
 
 @contextmanager

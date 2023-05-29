@@ -4,15 +4,20 @@ Segmentation
 
 """
 
-import numpy as np
-import numpy.typing as npt
+from __future__ import annotations
 
-from datatype.settings import Settings
-from datatype.signal import Signal
+import numpy as np
+
 from datatype.spectrogram import Segment, Spectrogram
 from scipy import ndimage
-from typing import Any
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from datatype.settings import Settings
+    from datatype.signal import Signal
+    from typing_extensions import Any
 
 
 class DynamicThresholdSegmentation:

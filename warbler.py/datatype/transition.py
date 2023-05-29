@@ -9,12 +9,13 @@ from __future__ import annotations
 import matplotlib.collections as mcoll
 import matplotlib.pyplot as plt
 import numpy as np
-
 from datatype.builder import Base, Plot
-from typing import Any, Self, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
+
+    from typing_extensions import Any, Self
 
 
 class Builder(Base):

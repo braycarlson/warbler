@@ -17,13 +17,14 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
 from skimage import filters
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
     from datatype.settings import Settings
     from datatype.signal import Signal
+    from typing_extensions import Any
 
 
 def create_figure(plot: BytesIO | npt.NDArray, text: str):

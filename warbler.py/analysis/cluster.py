@@ -4,6 +4,8 @@ Cluster
 
 """
 
+from __future__ import annotations
+
 from constant import DATASET
 from datatype.dataset import Dataset
 from datatype.settings import Settings

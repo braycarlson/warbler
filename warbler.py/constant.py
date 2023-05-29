@@ -4,11 +4,16 @@ Constant
 
 """
 
-import pathlib
+from __future__ import annotations
+
 import pickle
 
 from natsort import os_sorted
 from pathlib import Path, PurePath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 def relative(path: str) -> pathlib.PurePath:

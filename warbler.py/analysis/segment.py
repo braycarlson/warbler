@@ -4,6 +4,8 @@ Segment
 
 """
 
+from __future__ import annotations
+
 from datatype.dataset import Dataset
 from datatype.segmentation import DynamicThresholdSegmentation
 

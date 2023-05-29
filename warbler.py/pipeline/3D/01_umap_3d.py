@@ -4,6 +4,8 @@ UMAP
 
 """
 
+from __future__ import annotations
+
 from datatype.dataset import Dataset
 from datatype.spectrogram import flatten
 from umap import UMAP

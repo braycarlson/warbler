@@ -4,6 +4,8 @@ Spreadsheet
 
 """
 
+from __future__ import annotations
+
 from constant import OUTPUT
 from datatype.dataset import Dataset
 

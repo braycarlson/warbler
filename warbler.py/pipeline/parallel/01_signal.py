@@ -4,6 +4,8 @@ Signal
 
 """
 
+from __future__ import annotations
+
 import logging
 import pandas as pd
 
@@ -52,7 +54,7 @@ def main() -> None:
             individual.glob('segmentation/*.json')
         )
 
-        for recording, segmentation in zip(recordings, segmentations, strict=True):
+        for recording, segmentation in zip(recordings, segmentations):
             filename = recording.stem
 
             signal = Signal(recording)

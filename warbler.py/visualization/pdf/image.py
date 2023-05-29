@@ -4,9 +4,10 @@ Image
 
 """
 
+from __future__ import annotations
+
 import fitz
 import matplotlib.pyplot as plt
-import pandas as pd
 
 from constant import SETTINGS
 from copy import deepcopy
@@ -20,6 +21,10 @@ from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
 from datatype.spectrogram import create_spectrogram
 from io import BytesIO
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def create_document(subset: pd.DataFrame) -> None:
@@ -39,7 +44,7 @@ def create_document(subset: pd.DataFrame) -> None:
     setting = subset.settings.to_numpy()
     filename = subset.filename.to_numpy()
 
-    iterable = zip(filename, signal, setting, strict=True)
+    iterable = zip(filename, signal, setting)
 
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)

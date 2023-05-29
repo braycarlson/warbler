@@ -4,6 +4,8 @@ Spectrogram
 
 """
 
+from __future__ import annotations
+
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np

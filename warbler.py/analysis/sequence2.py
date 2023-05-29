@@ -4,10 +4,10 @@ Sequence2
 
 """
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
-import pandas as pd
 
 from constant import CWD, PICKLE, PROJECTION, SETTINGS
 from datatype.dataset import Dataset
@@ -30,6 +30,11 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageDraw, ImageFont, ImageOps
 from tqdm import tqdm
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+    import pandas as pd
 
 
 def create_grid(collection: npt.NDArray, text: str) -> Pillow:
@@ -503,7 +508,7 @@ def main() -> None:
     filenames = dataframe.filename.tolist()
     buffers = dataframe.buffer.tolist()
 
-    for folder, filename, buffer in zip(folders, filenames, buffers, strict=True):
+    for folder, filename, buffer in zip(folders, filenames, buffers):
         print(f"Processing: {filename}")
 
         images = [

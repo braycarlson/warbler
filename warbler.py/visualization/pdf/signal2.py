@@ -4,9 +4,10 @@ Signal2
 
 """
 
+from __future__ import annotations
+
 import fitz
 import numpy as np
-import pandas as pd
 
 from constant import PDF, SETTINGS
 from copy import deepcopy
@@ -19,6 +20,10 @@ from datatype.imaging import (
 from datatype.settings import Settings
 from io import BytesIO
 from itertools import permutations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 def to_string(method: list[str]) -> str:
@@ -52,7 +57,7 @@ def create_document(subset: pd.DataFrame) -> None:
     setting = subset.settings.to_numpy()
     filename = subset.filename.to_numpy()
 
-    iterable = zip(filename, signal, setting, strict=True)
+    iterable = zip(filename, signal, setting)
 
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)

@@ -12,10 +12,12 @@ import seaborn as sns
 from abc import ABC, abstractmethod
 from datatype.settings import Settings
 from plotly import graph_objs as go
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from typing_extensions import Any
 
 
 class Visitor(ABC):
@@ -239,7 +241,7 @@ class CoordinateTrace(Visitor):
             for i in range(0, len(palette), 2)
         ]
 
-        iterable = zip(labels, palette, strict=True)
+        iterable = zip(labels, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
@@ -260,7 +262,7 @@ class CoordinateTrace(Visitor):
 
         columns = [
             column
-            for pair in zip(columns, columns, strict=True)
+            for pair in zip(columns, columns)
             for column in pair
         ]
 
@@ -314,7 +316,7 @@ class CoordinateTrace(Visitor):
 
         columns = [
             column
-            for pair in zip(columns, columns, strict=True)
+            for pair in zip(columns, columns)
             for column in pair
         ]
 
@@ -370,7 +372,7 @@ class DurationTrace(Visitor):
             (69, 69, 69, 0.9)
         ]
 
-        iterable = zip(labels, palette, strict=True)
+        iterable = zip(labels, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
@@ -427,7 +429,7 @@ class DurationTrace(Visitor):
                 ]
             ]
 
-            for name, partition in zip(sizes, partitions, strict=True):
+            for name, partition in zip(sizes, partitions):
                 color = legend[name]
 
                 trace = go.Scattergl(
@@ -500,7 +502,7 @@ class DurationTrace(Visitor):
                 ]
             ]
 
-            for name, partition in zip(sizes, partitions, strict=True):
+            for name, partition in zip(sizes, partitions):
                 color = legend[name]
 
                 trace = go.Scatter3d(
@@ -543,7 +545,7 @@ class FuzzyClusterTrace(Visitor):
             .as_hex()
         )
 
-        iterable = zip(self.settings.fcm, palette, strict=True)
+        iterable = zip(self.settings.fcm, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
@@ -648,7 +650,7 @@ class HDBScanTrace(Visitor):
             .as_hex()
         )
 
-        iterable = zip(self.settings.hdbscan, palette, strict=True)
+        iterable = zip(self.settings.hdbscan, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
@@ -753,7 +755,7 @@ class IndividualTrace(Visitor):
             .as_hex()
         )
 
-        iterable = zip(labels, palette, strict=True)
+        iterable = zip(labels, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
@@ -858,7 +860,7 @@ class SequenceTrace(Visitor):
             .as_hex()
         )
 
-        iterable = zip(labels, palette, strict=True)
+        iterable = zip(labels, palette)
         return dict(iterable)
 
     def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:

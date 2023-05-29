@@ -4,15 +4,21 @@ Collection
 
 """
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
-import numpy.typing as npt
 
 from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.plot import StandardSpectrogram
 from datatype.settings import Settings
-from datatype.signal import Signal
 from datatype.spectrogram import Linear, Spectrogram
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
+
+    from datatype.signal import Signal
 
 
 def plot(

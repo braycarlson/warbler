@@ -4,7 +4,8 @@ Bootstrap
 
 """
 
-from collections.abc import Callable
+from __future__ import annotations
+
 from constant import (
     DATASET,
     DIRECTORIES,
@@ -15,6 +16,10 @@ from constant import (
     PICKLE
 )
 from functools import wraps
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def bootstrap(func: Callable) -> Callable:

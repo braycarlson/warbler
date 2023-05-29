@@ -13,7 +13,10 @@ from datatype.builder import Base, Plot
 from matplotlib.lines import Line2D
 from matplotlib import gridspec
 from scipy.spatial import cKDTree
-from typing import Any, Self
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Any, Self
 
 
 class Builder(Base):

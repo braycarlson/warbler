@@ -20,10 +20,12 @@ from ipywidgets import (
     VBox
 )
 from plotly import graph_objs as go
-from typing import Any, Self, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pandas as pd
+
+    from typing_extensions import Any, Self
 
 
 class DimensionalStrategy(ABC):

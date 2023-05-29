@@ -4,6 +4,8 @@ Image: Single
 
 """
 
+from __future__ import annotations
+
 import matplotlib.pyplot as plt
 
 from constant import SETTINGS

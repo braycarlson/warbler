@@ -4,7 +4,6 @@ Barcode
 
 """
 
-
 from __future__ import annotations
 
 import matplotlib as mpl
@@ -18,13 +17,13 @@ from matplotlib import ticker
 from nltk.metrics.distance import edit_distance
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
-from typing import TYPE_CHECKING
+from typing  import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
     from matplotlib.axes import Axes
-    from typing import Any, Self
+    from typing_extensions  import Any, Self
 
 
 def palplot(
@@ -153,7 +152,7 @@ class SongBarcode():
             .astype('object')
         )
 
-        for start, stop, label in zip(self.onset, self.offset, self.label, strict=True):
+        for start, stop, label in zip(self.onset, self.offset, self.label):
             transition[
                 int((start - begin) / resolution):
                 int((stop - begin) / resolution)
@@ -289,7 +288,7 @@ class Builder(Base):
             for i, j in items
         )
 
-        for distance, (i, j) in zip(distances, items, strict=True):
+        for distance, (i, j) in zip(distances, items):
             matrix[i, j] = distance
             matrix[j, i] = distance
 

@@ -14,14 +14,14 @@ import warnings
 from abc import abstractmethod
 from constant import PROJECTION
 from matplotlib.backends._backend_tk import FigureManagerTk
-from typing import TYPE_CHECKING
+from typing  import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
     from datatype.settings import Settings
     from matplotlib.figure import Figure
-    from typing import Any, Self
+    from typing_extensions  import Any, Self
 
 
 
@@ -136,7 +136,7 @@ class Base:
         )
 
         master = dict(
-            zip(self.unique, palette, strict=True)
+            zip(self.unique, palette)
         )
 
         label = {

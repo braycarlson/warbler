@@ -4,6 +4,8 @@ Global
 
 """
 
+from __future__ import annotations
+
 from constant import SEGMENTATIONS
 from datatype.settings import Settings
 

@@ -4,6 +4,8 @@ Image
 
 """
 
+from __future__ import annotations
+
 from constant import SETTINGS
 from datatype.dataset import Dataset
 from datatype.imaging import (

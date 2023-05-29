@@ -4,6 +4,8 @@ PDF
 
 """
 
+from __future__ import annotations
+
 import fitz
 import io
 import matplotlib.pyplot as plt
@@ -57,8 +59,7 @@ def main() -> None:
             RECORDINGS,
             IMAGES,
             filenames,
-            pages,
-            strict=True
+            pages
         )
 
         for _, (individual, recording, image, filename, page) in enumerate(iterable, 1):

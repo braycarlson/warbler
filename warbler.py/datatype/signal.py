@@ -19,12 +19,13 @@ from nara_wpe.wpe import wpe
 from nara_wpe.utils import istft, stft
 from scipy.io import wavfile
 from scipy.signal import butter, lfilter
-from typing import BinaryIO, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt
 
     from datatype.settings import Settings
+    from typing_extensions import BinaryIO
 
 
 class Strategy(ABC):

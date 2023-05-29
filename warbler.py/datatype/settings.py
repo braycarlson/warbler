@@ -11,10 +11,12 @@ import json
 from collections.abc import Mapping
 from constant import CWD
 from types import SimpleNamespace
-from typing import Any, Self, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pathlib
+
+    from typing_extensions import Any, Self
 
 
 def resolve(relative: str) -> Settings:

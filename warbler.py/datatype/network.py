@@ -12,7 +12,10 @@ import numpy as np
 
 from datatype.builder import Base, Plot
 from matplotlib.lines import Line2D
-from typing import Any, Self
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing_extensions import Any, Self
 
 
 class Builder(Base):
