@@ -568,6 +568,7 @@ class Builder:
             'offset',
             'duration',
             'minimum',
+            'mean',
             'maximum'
         ]
 

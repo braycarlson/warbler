@@ -53,7 +53,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    network.show()
+    # network.show()
 
     filename = 'network_hdbscan_dataset.png'
 
@@ -109,7 +109,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        network.show()
+        # network.show()
 
         filename = f"network_hdbscan_{folder}.png"
 

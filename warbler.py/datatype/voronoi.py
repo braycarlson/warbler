@@ -51,6 +51,19 @@ class Builder(Base):
             ]
         )
 
+        if self.settings.is_label:
+            axis.set_xlabel(
+                self.settings.x,
+                fontsize=20,
+                labelpad=30
+            )
+
+            axis.set_ylabel(
+                self.settings.y,
+                fontsize=20,
+                labelpad=30
+            )
+
         self.component['axis'] = axis
 
         return self
@@ -148,10 +161,16 @@ class Builder(Base):
 
         """
 
-        if not self.settings.is_legend:
+        if not self.settings.is_legend or self.label is None:
             return self
 
         label = self.component.get('label')
+
+        if not self.settings.is_numerical:
+            label = {
+                chr(k + 65): v
+                for k, v in label.items()
+            }
 
         handles = [
             Line2D(
@@ -212,15 +231,15 @@ class Builder(Base):
 
         axis.set_xlim(
             [
-                xmin,
-                xmax
+                xmin + 0.1,
+                xmax + 0.1
             ]
         )
 
         axis.set_ylim(
             [
-                ymin,
-                ymax
+                ymin + 0.1,
+                ymax + 0.1
             ]
         )
 
@@ -256,11 +275,11 @@ class Builder(Base):
             ]
         )
 
-        if self.label.size:
+        if self.label is not None and self.label.size:
             self.label = np.array(self.label)[mask]
 
-        self.spectrogram = np.array(self.spectrogram)[mask]
-        self.embedding = self.embedding[mask]
+            self.spectrogram = np.array(self.spectrogram)[mask]
+            self.embedding = self.embedding[mask]
 
         return self
 
@@ -318,7 +337,9 @@ class Builder(Base):
 
         axis = self.component.get('axis')
 
-        if self.settings.is_color:
+        self.settings.scatter['color'] = 'cornflowerblue'
+
+        if self.settings.is_color and self.label is not None:
             color = self.component.get('color')
             self.settings.scatter['color'] = color
 
@@ -359,7 +380,7 @@ class Builder(Base):
 
         axis = self.component.get('axis')
 
-        title = f"{self.settings.cluster} Clustering for {self.settings.name}"
+        title = f"{self.settings.cluster} for {self.settings.name}"
 
         axis.set_title(
             title,
@@ -530,8 +551,8 @@ class VoronoiFCM(Plot):
 
         """
 
-        cluster = {'cluster': 'Fuzzy C-Means'}
-        self.builder.settings.update(cluster)
+        cluster = self.builder.settings.cluster
+        self.builder.settings['cluster'] = cluster
 
         return (
             self.builder
@@ -574,8 +595,8 @@ class VoronoiHDBSCAN(Plot):
 
         """
 
-        cluster = {'cluster': 'HDBSCAN'}
-        self.builder.settings.update(cluster)
+        cluster = self.builder.settings.cluster
+        self.builder.settings['cluster'] = cluster
 
         return (
             self.builder

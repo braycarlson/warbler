@@ -147,35 +147,6 @@ class Plot(ABC):
             **kwargs
         )
 
-        # if self.signal.duration > 10:
-        #     window = 10
-
-        #     axes = plt.axes(
-        #         [0.0, 0.0, 0.65, 0.03],
-        #     )
-
-        #     slider = Slider(
-        #         axes,
-        #         'Position',
-        #         0.0,
-        #         self.signal.duration - window
-        #     )
-
-        #     def update(val):
-        #         ax.axis(
-        #             [
-        #                 slider.val,
-        #                 slider.val + window,
-        #                 y_minimum,
-        #                 y_maximum
-        #             ]
-        #         )
-
-        #         fig = plt.gcf()
-        #         fig.canvas.draw()
-
-        #     slider.on_changed(update)
-
         ax.initialize()
         ax._x_lim(x_maximum)
         ax._x_step(x_maximum)

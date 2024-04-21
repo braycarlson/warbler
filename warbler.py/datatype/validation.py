@@ -55,7 +55,7 @@ class Validate():
         x: npt.NDArray,
         y: npt.NDArray
     ) -> list[dict[str, float]]:
-        score = adjusted_rand_score(x, y)
+        score = silhouette_score(x, y)
         return {f"{i}-{j}": score}
 
     def _silhouette_score(self) -> int | float:
@@ -65,7 +65,7 @@ class Validate():
         return rand_score(self.x, self.y)
 
     def bootstrap(self, x: npt.NDArray) -> pd.DataFrame:
-        iteration = 5
+        iteration = 10
 
         result = Parallel(n_jobs=-1)(
             delayed(self._label)(x)

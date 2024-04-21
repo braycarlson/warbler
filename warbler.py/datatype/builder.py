@@ -6,6 +6,7 @@ Builder
 
 from __future__ import annotations
 
+import contextlib
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -13,8 +14,11 @@ import warnings
 
 from abc import abstractmethod
 from constant import PROJECTION
-from matplotlib.backends._backend_tk import FigureManagerTk
-from typing  import TYPE_CHECKING
+from matplotlib.cm import viridis
+from typing import TYPE_CHECKING
+
+with contextlib.suppress(ModuleNotFoundError):
+    from matplotlib.backends._backend_tk import FigureManagerTk
 
 if TYPE_CHECKING:
     import numpy.typing as npt
@@ -22,7 +26,6 @@ if TYPE_CHECKING:
     from datatype.settings import Settings
     from matplotlib.figure import Figure
     from typing_extensions  import Any, Self
-
 
 
 warnings.simplefilter('ignore', UserWarning)
@@ -124,11 +127,21 @@ class Base:
 
         """
 
+        if self.label is None:
+            return self
+
         if self.unique is None:
             self.unique = np.unique(self.label)
 
-        self.unique.sort()
+        if self.unique.dtype == np.int64:
+            self.unique.sort()
+
         n_colors = len(self.unique)
+
+        # palette =  [
+        #     viridis(i / (n_colors - 1))
+        #     for i in range(n_colors)
+        # ]
 
         palette = sns.color_palette(
             self.settings.palette,
@@ -144,11 +157,12 @@ class Base:
             for label in self.label
         }
 
-        label = dict(
-            sorted(
-                label.items()
+        if self.label.dtype == np.int64:
+            label = dict(
+                sorted(
+                    label.items()
+                )
             )
-        )
 
         if -1 in label:
             label[-1] = (0.85, 0.85, 0.85)

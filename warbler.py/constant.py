@@ -6,6 +6,7 @@ Constant
 
 from __future__ import annotations
 
+import json
 import pickle
 
 from natsort import os_sorted
@@ -181,3 +182,19 @@ IMAGES = os_sorted([
     for individual in INPUT.glob('printout/*/*.jpg')
     if individual.is_file()
 ])
+
+def object_hook(file: str) -> dict[int, list[float]]:
+    return {
+        int(key): value
+        for key, value in file.items()
+    }
+
+path = SETTINGS.joinpath('palette.json')
+
+with open(path, 'r') as handle:
+    file = handle.read()
+
+    MASTER = json.loads(
+        file,
+        object_hook=object_hook
+    )

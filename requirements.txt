@@ -1,4 +1,4 @@
--e warbler.py
+-e .
 
 clusteval
 fuzzy-c-means
@@ -25,7 +25,6 @@ plotly
 pydub
 # pygraphviz; sys_platform == 'linux'
 pymupdf
-tqdm
 seaborn
 scikit-image[optional]
 scikit-learn
@@ -34,7 +33,8 @@ SoundFile
 sphinx
 sphinx-rtd-theme
 tensorflow
+tqdm
 typing-extensions
 # umap-learn
 umap-learn[plot]
-voila
+# voila

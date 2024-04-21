@@ -1,4 +1,10 @@
 {
+    "colorbar": {
+        "bbox_to_anchor": [
+            1.20,
+            1.0772
+        ]
+    },
     "figure": {
         "figsize": [
             10,
@@ -14,7 +20,8 @@
         "bbox_to_anchor": [
             1.20,
             1.0772
-        ]
+        ],
+        "title": "Cluster"
     },
     "line": {
         "color": "white",
@@ -50,13 +57,19 @@
         "linewidth": 1,
         "n_subset": -1
     },
-    "cluster": "HDBSCAN",
+    "cluster": "Fuzzy C-Means Clustering",
     "color": "k",
     "is_color": true,
+    "is_diagonal": true,
+    "is_label": true,
     "is_legend": true,
     "is_line": true,
-    "name": "Adelaide's warbler",
+    "is_numerical": false,
+    "name": "Adelaide's Warbler",
     "padding": 0.1,
     "palette": "tab20",
-    "size": 15
+    "size": 15,
+    "x": "x",
+    "y": "y",
+    "z": "z"
 }

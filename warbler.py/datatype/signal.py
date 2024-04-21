@@ -133,9 +133,24 @@ class Signal:
     """
 
     def __init__(self, path: str | BinaryIO | pathlib.Path | None = None):
-        self._strategy = Scipy()
-        self._path = path
-        self._rate, self._data = self._load()
+        self.strategy = Scipy()
+        self.path = path
+        self.rate, self.data = self._load()
+
+    def __len__(self) -> int:
+        """Get the length of the audio data.
+
+        This method returns the size of the first dimension of the audio data. If
+        the data is a one-dimensional numpy array, it returns the number of samples.
+        If the data is a multi-dimensional numpy array, it returns the size of the
+        first dimension (e.g., the number of channels in a stereo signal).
+
+        Returns:
+            int: The size of the first dimension of the audio data.
+
+        """
+
+        return len(self.data)
 
     def _load(self) -> tuple[int, npt.NDArray]:
         """Load audio data using the selected strategy.
@@ -158,63 +173,6 @@ class Signal:
             data = np.array(data / 32768.0).astype('float32')
 
         return rate, data
-
-    @property
-    def strategy(self) -> Strategy:
-        """Get the current strategy for loading audio data.
-
-        Returns:
-            The current strategy for loading audio.
-
-        """
-
-        return self._strategy
-
-    @strategy.setter
-    def strategy(self, strategy: Strategy) -> None:
-        self._strategy = strategy
-
-    @property
-    def data(self) -> npt.NDArray:
-        """Get the audio data.
-
-        Returns:
-            The audio data as a NumPy array.
-
-        """
-
-        return self._data
-
-    @data.setter
-    def data(self, data: npt.NDArray) -> None:
-        self._data = data
-
-    @property
-    def path(self) -> str | BinaryIO | pathlib.Path | None:
-        """Get the path to the audio file.
-
-        Returns:
-            A string or pathlib.Path object representing the path to the
-            audio file.
-
-        """
-
-        return self._path
-
-    @path.setter
-    def path(self, path: str | BinaryIO | pathlib.Path) -> None:
-        self._path = path
-
-    @property
-    def rate(self) -> int:
-        """Get the sample rate of the audio signal.
-
-        Returns:
-            The sample rate as an integer.
-
-        """
-
-        return self._rate
 
     @property
     def duration(self) -> float:
@@ -315,6 +273,25 @@ class Signal:
         maximum = max(halved[threshold])
 
         return (minimum, maximum)
+
+    def mean(self) -> npt.NDArray:
+        # Perform FFT
+        fft = scipy.fft.fft(self.data)
+
+        # The frequencies corresponding to the FFT coefficients
+        frequencies = scipy.fft.fftfreq(
+            len(self.data),
+            1 / self.rate
+        )
+
+        # Keep the positive frequencies (up to the Nyquist frequency)
+        mask = frequencies > 0
+        frequencies = frequencies[mask]
+        power = np.abs(fft[mask])**2
+
+        # Compute the mean frequency, which is the weighted sum of frequencies
+        # (weights are the power spectrum)
+        return np.sum(frequencies * power) / np.sum(power)
 
     def normalize(self) -> None:
         """Normalize the audio signal to have maximum amplitude 1.

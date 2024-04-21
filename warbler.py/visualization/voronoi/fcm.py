@@ -22,6 +22,9 @@ def dataset() -> None:
     path = SETTINGS.joinpath('voronoi.json')
     settings = Settings.from_file(path)
 
+    settings.cluster = 'Fuzzy C-Means Clustering'
+    settings.is_label = False
+
     unique = dataframe.fcm_label_2d.unique()
 
     by = ['duration']
@@ -40,7 +43,7 @@ def dataset() -> None:
 
     embedding = np.column_stack(coordinates)
 
-    spectrogram = dataframe.original_array.to_numpy()
+    spectrogram = dataframe.filter_array.to_numpy()
     label = dataframe.fcm_label_2d.to_numpy()
 
     voronoi = VoronoiFCM()
@@ -56,7 +59,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    voronoi.show()
+    # voronoi.show()
 
     filename = 'voronoi_fcm_dataset.png'
 
@@ -73,6 +76,9 @@ def individual() -> None:
     # Load default settings
     path = SETTINGS.joinpath('voronoi.json')
     settings = Settings.from_file(path)
+
+    settings.cluster = 'Fuzzy C-Means Clustering'
+    settings.is_label = False
 
     unique = dataframe.fcm_label_2d.unique()
 
@@ -99,7 +105,7 @@ def individual() -> None:
 
         embedding = np.column_stack(coordinates)
 
-        spectrogram = individual.original_array.to_numpy()
+        spectrogram = individual.filter_array.to_numpy()
         label = individual.fcm_label_2d.to_numpy()
 
         voronoi = VoronoiFCM()
@@ -115,7 +121,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        voronoi.show()
+        # voronoi.show()
 
         filename = f"voronoi_fcm_{folder}.png"
 
@@ -127,7 +133,7 @@ def individual() -> None:
 
 def main() -> None:
     # Create a voronoi plot for the entire dataset
-    dataset()
+    # dataset()
 
     # Create a voronoi plot for each individual
     individual()

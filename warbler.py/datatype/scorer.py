@@ -93,9 +93,14 @@ class FukuyamaSugenoIndex(Strategy):
         )
 
         inertia = np.sum(distances * self.estimator.u)
-        min_distance = np.min(distances, axis=1)
-        min_distance_membership = np.min(self.estimator.u, axis=1)
-        return inertia / (np.sum(min_distance * min_distance_membership) + 1e-8)
+        mean = np.mean(self.x, axis=0)
+
+        distances = np.sum(
+            (self.x - mean) ** 2,
+            axis=1
+        )
+
+        return inertia - np.sum(distances)
 
 
 class PartitionCoefficient(Strategy):
@@ -111,24 +116,6 @@ class PartitionCoefficient(Strategy):
 
     def score(self) -> int | float:
         return self.estimator.partition_coefficient
-
-
-class PartitionCoefficientDifference(Strategy):
-    def __init__(self):
-        super().__init__()
-        self.maximize = True
-
-    def __repr__(self) -> str:
-        return 'partition_coefficient_difference'
-
-    def __str__(self) -> str:
-        return 'Partition Coefficient Difference'
-
-    def score(self) -> int | float:
-        return (
-            self.estimator.partition_entropy_coefficient -
-            self.estimator.partition_coefficient
-        )
 
 
 class PartitionEntropyCoefficient(Strategy):
@@ -184,7 +171,10 @@ class SumOfSquaredErrors(Strategy):
             axis=2
         )
 
-        return np.sum(distances * self.estimator.u)
+        return np.sum(
+            distances *
+            self.estimator.u**self.estimator.m
+        )
 
 
 class XieBeniIndex(Strategy):
@@ -199,20 +189,60 @@ class XieBeniIndex(Strategy):
         return 'Xie-Beni Index'
 
     def score(self) -> int | float:
-        distances = np.sum(
-            (self.x[:, np.newaxis] - self.estimator.centers) ** 2,
-            axis=2
-        )
+        n_samples, _ = self.x.shape
+        n_clusters = len(self.estimator.centers)
+
+        label = np.argmax(self.estimator.u, axis=1)
 
         compactness = np.sum(
-            distances * self.estimator.u
+            [np.sum(self.estimator.u[label == i, i]**2 *
+                np.linalg.norm(self.x[label == i]
+                    - self.estimator.centers[i], axis=1)**2)
+            for i in range(n_clusters)]
         )
 
-        separation = np.sum(
-            (self.estimator.centers[:, np.newaxis, :] - self.estimator.centers) ** 2
-        )
+        separation = np.min([
+            np.linalg.norm(self.estimator.centers[i] - self.estimator.centers[j])**2
+            for i in range(n_clusters) for j in range(i + 1, n_clusters)
+        ])
 
-        return compactness / separation
+        return compactness / (n_samples * separation)
+
+
+class MultiScorer:
+    def __init__(self, strategies: list[Strategy] = None):
+        self.strategies = strategies
+
+    def __call__(self):
+        score = {}
+
+        for strategy in self.strategies:
+            name = repr(strategy)
+            score[name] = strategy.score()
+
+        return score
+
+    @property
+    def estimator(self) -> FCM:
+        pass
+
+    @estimator.setter
+    def estimator(self, estimator: FCM) -> None:
+        for strategy in self.strategies:
+            strategy.estimator = estimator
+
+    @property
+    def maximize(self) -> bool:
+        return self.strategy.maximize
+
+    @property
+    def x(self) -> npt.NDArray:
+        pass
+
+    @x.setter
+    def x(self, x: npt.NDArray) -> None:
+        for strategy in self.strategies:
+            strategy.x = x
 
 
 class Scorer:
@@ -220,7 +250,18 @@ class Scorer:
         self.strategy = strategy
 
     def __call__(self):
-        return self.strategy.score()
+        score = {}
+
+        name = repr(self.strategy)
+        score[name] = self.strategy.score()
+
+        return score
+
+    def __repr__(self) -> str:
+        return repr(self.strategy)
+
+    def __str__(self) -> str:
+        return str(self.strategy)
 
     @property
     def estimator(self) -> FCM:

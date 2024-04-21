@@ -10,7 +10,9 @@ import numpy as np
 import seaborn as sns
 
 from abc import ABC, abstractmethod
+from datatype.partition import Partition
 from datatype.settings import Settings
+from matplotlib.cm import viridis
 from plotly import graph_objs as go
 from typing import TYPE_CHECKING
 
@@ -89,6 +91,113 @@ class Visitor(ABC):
     @settings.setter
     def settings(self, settings: Settings) -> None:
         self._settings = settings
+
+
+class AcousticTrace(Visitor):
+    def __init__(self):
+        super().__init__()
+
+        self.column = None
+
+    def palette(self, labels: Any) -> Any:
+        """Generate a color palette dictionary based on labels.
+
+        Args:
+            labels: Array of labels.
+
+        Returns:
+            A dictionary mapping labels to RGBA color tuples.
+
+        """
+
+        total = len(labels)
+
+        palette = [
+            viridis(i / (total - 1))
+            for i in range(total)
+        ]
+
+        iterable = zip(labels, palette)
+        return dict(iterable)
+
+    def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
+        """Generate 2D scatter plots for each label in the dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
+        traces = []
+
+        partition = Partition()
+        partition.dataframe = dataframe
+        partition.column = self.column
+
+        partitions, sizes = partition.divide()
+        legend = self.palette(sizes)
+
+        for name, partition in zip(sizes, partitions):
+            color = legend[name]
+
+            trace = go.Scattergl(
+                x=partition.umap_x_2d,
+                y=partition.umap_y_2d,
+                customdata=[partition.index],
+                mode='markers',
+                marker=dict(
+                    color=f"rgba{color}",
+                    **self.settings.marker
+                ),
+                name=name
+            )
+
+            traces.append(trace)
+
+        return traces
+
+    def three(self, dataframe: pd.DataFrame) -> list[go.Scatter3d]:
+        """Generate 3D scatter plots for each label in the dataframe.
+
+        Args:
+            dataframe: Input dataframe.
+
+        Returns:
+            A list of scatter plot traces.
+
+        """
+
+        traces = []
+
+        partition = Partition()
+        partition.dataframe = dataframe
+        partition.column = self.column
+
+        partitions, sizes = partition.divide()
+        legend = self.palette(sizes)
+
+        for name, partition in zip(sizes, partitions):
+            color = legend[name]
+
+            trace = go.Scatter3d(
+                x=partition.umap_x_3d,
+                y=partition.umap_y_3d,
+                z=partition.umap_z_3d,
+                customdata=[partition.index],
+                mode='markers',
+                marker=dict(
+                    color=f"rgba{color}",
+                    **self.settings.marker
+                ),
+                name=name
+            )
+
+            traces.append(trace)
+
+        return traces
 
 
 class AnimationTrace(Visitor):
@@ -353,180 +462,17 @@ class CoordinateTrace(Visitor):
         return traces
 
 
-class DurationTrace(Visitor):
-    def palette(self, labels: Any) -> Any:
-        """Generate a color palette dictionary based on labels.
+class DurationTrace(AcousticTrace):
+    def __init__(self):
+        super().__init__()
 
-        Args:
-            labels: Array of labels.
-
-        Returns:
-            A dictionary mapping labels to RGBA color tuples.
-
-        """
-
-        palette = [
-            (212, 212, 212, 0.9),
-            (154, 154, 154, 0.9),
-            (112, 112, 112, 0.9),
-            (69, 69, 69, 0.9)
-        ]
-
-        iterable = zip(labels, palette)
-        return dict(iterable)
-
-    def two(self, dataframe: pd.DataFrame) -> list[go.Scattergl]:
-        """Generate 2D scatter plots for each label in the dataframe.
-
-        Args:
-            dataframe: Input dataframe.
-
-        Returns:
-            A list of scatter plot traces.
-
-        """
-
-        labels = dataframe.hdbscan_label_2d.unique()
-        labels = labels[labels != -1]
-
-        sizes = [
-            'Minumum to Minimum Median',
-            'Minimum Median to Median',
-            'Median to Median Maximum',
-            'Median Maximum to Maximum',
-        ]
-
-        legend = self.palette(sizes)
-
-        traces = []
-
-        for label in labels:
-            cluster = dataframe[dataframe.hdbscan_label_2d == label]
-
-            minimum = cluster.duration.min()
-            median = cluster.duration.median()
-            maximum = cluster.duration.max()
-
-            minimum_median = (median + minimum) / 2
-            maximum_median = (maximum + median) / 2
-
-            partitions = [
-                cluster.loc[
-                    (cluster.duration >= minimum) &
-                    (cluster.duration < minimum_median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= minimum_median) &
-                    (cluster.duration < median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= median) &
-                    (cluster.duration < maximum_median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= maximum_median) &
-                    (cluster.duration < maximum)
-                ]
-            ]
-
-            for name, partition in zip(sizes, partitions):
-                color = legend[name]
-
-                trace = go.Scattergl(
-                    x=partition.umap_x_2d,
-                    y=partition.umap_y_2d,
-                    customdata=[partition.index],
-                    mode='markers',
-                    marker=dict(
-                        color=f"rgba{color}",
-                        **self.settings.marker
-                    ),
-                    name=str(label)
-                )
-
-                traces.append(trace)
-
-        return traces
-
-    def three(self, dataframe: pd.DataFrame) -> list[go.Scatter3d]:
-        """Generate 3D scatter plots for each label in the dataframe.
-
-        Args:
-            dataframe: Input dataframe.
-
-        Returns:
-            A list of scatter plot traces.
-
-        """
-
-        labels = dataframe.hdbscan_label_2d.unique()
-        labels = labels[labels > -1]
-
-        sizes = [
-            'Minumum to Minimum Median',
-            'Minimum Median to Median',
-            'Median to Median Maximum',
-            'Median Maximum to Maximum',
-        ]
-
-        legend = self.palette(sizes)
-
-        traces = []
-
-        for label in labels:
-            cluster = dataframe[dataframe.hdbscan_label_2d == label]
-
-            minimum = cluster.duration.min()
-            median = cluster.duration.median()
-            maximum = cluster.duration.max()
-
-            minimum_median = (median + minimum) / 2
-            maximum_median = (maximum + median) / 2
-
-            partitions = [
-                cluster.loc[
-                    (cluster.duration >= minimum) &
-                    (cluster.duration < minimum_median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= minimum_median) &
-                    (cluster.duration < median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= median) &
-                    (cluster.duration < maximum_median)
-                ],
-                cluster.loc[
-                    (cluster.duration >= maximum_median) &
-                    (cluster.duration < maximum)
-                ]
-            ]
-
-            for name, partition in zip(sizes, partitions):
-                color = legend[name]
-
-                trace = go.Scatter3d(
-                    x=partition.umap_x_3d,
-                    y=partition.umap_y_3d,
-                    z=partition.umap_z_3d,
-                    customdata=[partition.index],
-                    mode='markers',
-                    marker=dict(
-                        color=f"rgba{color}",
-                        **self.settings.marker
-                    ),
-                    name=str(label)
-                )
-
-                traces.append(trace)
-
-        return traces
+        self.column = 'duration'
 
 
 class FuzzyClusterTrace(Visitor):
     """Generate visualization traces for Fuzzy C-Means clustering."""
 
-    def palette(self, labels: Any = None) -> Any:
+    def palette(self, _: Any = None) -> Any:
         """Generate a color palette based on the Fuzzy C-Means settings.
 
         Returns:
@@ -631,7 +577,7 @@ class FuzzyClusterTrace(Visitor):
 class HDBScanTrace(Visitor):
     """A class for generating visualization traces for HDBScan clustering."""
 
-    def palette(self, labels: Any = None) -> Any:
+    def palette(self, _: Any = None) -> Any:
         """Generate a color palette based on the HDBScan settings.
 
         Returns:
@@ -838,6 +784,27 @@ class IndividualTrace(Visitor):
             traces.append(trace)
 
         return traces
+
+
+class MaximumFrequencyTrace(AcousticTrace):
+    def __init__(self):
+        super().__init__()
+
+        self.column = 'maximum'
+
+
+class MeanFrequencyTrace(AcousticTrace):
+    def __init__(self):
+        super().__init__()
+
+        self.column = 'mean'
+
+
+class MinimumFrequencyTrace(AcousticTrace):
+    def __init__(self):
+        super().__init__()
+
+        self.column = 'minimum'
 
 
 class SequenceTrace(Visitor):

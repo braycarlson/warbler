@@ -22,6 +22,8 @@ def dataset() -> None:
     path = SETTINGS.joinpath('voronoi.json')
     settings = Settings.from_file(path)
 
+    settings.cluster = 'HDBSCAN Clustering'
+
     unique = dataframe.hdbscan_label_2d.unique()
 
     # Mask the "noise"
@@ -46,7 +48,7 @@ def dataset() -> None:
 
     embedding = np.column_stack(coordinates)
 
-    spectrogram = dataframe.original_array.to_numpy()
+    spectrogram = dataframe.filter_array.to_numpy()
     label = dataframe.hdbscan_label_2d.to_numpy()
 
     voronoi = VoronoiHDBSCAN()
@@ -62,7 +64,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    voronoi.show()
+    # voronoi.show()
 
     filename = 'voronoi_hdbscan_dataset.png'
 
@@ -111,7 +113,7 @@ def individual() -> None:
 
         embedding = np.column_stack(coordinates)
 
-        spectrogram = individual.original_array.to_numpy()
+        spectrogram = individual.filter_array.to_numpy()
         label = individual.hdbscan_label_2d.to_numpy()
 
         voronoi = VoronoiHDBSCAN()
@@ -127,7 +129,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        voronoi.show()
+        # voronoi.show()
 
         filename = f"voronoi_hdbscan_{folder}.png"
 

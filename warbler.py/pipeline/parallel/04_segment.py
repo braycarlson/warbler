@@ -50,6 +50,7 @@ def get_segmentation(row: pd.Series) -> list[dict[str, Any]]:
     for sequence, (onset, offset) in enumerate(iterable, 0):
         segment = signal.segment(onset, offset)
         minimum, maximum = segment.frequencies()
+        mean = segment.mean()
 
         template = {
             'folder': folder,
@@ -60,6 +61,7 @@ def get_segmentation(row: pd.Series) -> list[dict[str, Any]]:
             'offset': offset,
             'sequence': sequence,
             'minimum': minimum,
+            'mean': mean,
             'maximum': maximum,
             'exclude': False
         }

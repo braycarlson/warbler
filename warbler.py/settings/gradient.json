@@ -1,0 +1,70 @@
+{
+    "colorbar": {
+        "label": "Frequency (Hz)"
+    },
+    "figure": {
+        "figsize": [
+            10,
+            10
+        ]
+    },
+    "grid": {
+        "wspace": 0,
+        "hspace": 0
+    },
+    "legend": {
+        "borderaxespad": 0,
+        "bbox_to_anchor": [
+            1.20,
+            1.0772
+        ]
+    },
+    "line": {
+        "color": "white",
+        "marker": "o",
+        "rasterized": false
+    },
+    "scatter": {
+        "alpha": 0.50,
+        "color": "black",
+        "rasterized": false,
+        "s": 10
+    },
+    "voronoi": {
+        "line": {
+            "alpha": 1.00,
+            "color": "black",
+            "ls": "solid",
+            "lw": 1,
+            "rasterized": false
+        },
+        "matshow": {
+            "origin": "upper",
+            "interpolation": "bicubic",
+            "aspect": "auto",
+            "cmap": "Greys"
+        },
+        "scatter": {
+            "alpha": 0.75,
+            "color": "black",
+            "rasterized": false,
+            "s": 10
+        },
+        "linewidth": 1,
+        "n_subset": -1
+    },
+    "cluster": "Fuzzy C-Means Clustering",
+    "color": "k",
+    "is_color": true,
+    "is_diagonal": true,
+    "is_label": true,
+    "is_legend": true,
+    "is_line": true,
+    "name": "Adelaide's Warbler",
+    "padding": 0.1,
+    "palette": "tab20",
+    "size": 15,
+    "x": "x",
+    "y": "y",
+    "z": "z"
+}

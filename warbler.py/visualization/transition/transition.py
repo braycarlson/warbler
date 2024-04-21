@@ -48,7 +48,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    transition.show()
+    # transition.show()
 
     filename = 'transition_dataset.png'
 
@@ -98,7 +98,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        transition.show()
+        # transition.show()
 
         filename = f"transition_{folder}.png"
 

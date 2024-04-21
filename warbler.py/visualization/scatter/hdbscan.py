@@ -54,7 +54,7 @@ def dataset() -> None:
 
     figure = component.get('figure')
 
-    scatter.show()
+    # scatter.show()
 
     filename = 'scatter_hdbscan_dataset.png'
 
@@ -111,7 +111,7 @@ def individual() -> None:
 
         figure = component.get('figure')
 
-        scatter.show()
+        # scatter.show()
 
         filename = f"scatter_hdbscan_{folder}.png"
 

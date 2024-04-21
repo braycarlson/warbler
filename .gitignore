@@ -5,6 +5,8 @@ notebook/.ipynb_checkpoints/
 output/
 warbler.py/avgn/data/
 warbler.py/docs/
+warbler.py/test/
+warbler.py/visualization/animation/frames/
 warbler.py/warbler.py.egg-info/
 
 *.7z

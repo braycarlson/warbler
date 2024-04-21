@@ -170,7 +170,7 @@ class SpectrogramAxes(Axes):
         """Format the spectrogram plot."""
 
         self.format_coord = (
-            lambda x, y: "Time={:1.17f}, Frequency={:1.2f}".format(x, y)
+            lambda x, y: f"Time={x:1.17f}, Frequency={y:1.2f}"
         )
 
 
