@@ -4,10 +4,16 @@ warbler is a pipeline for segmenting, clustering and visualizing Adelaide's warb
 
 This research is motivated by the repositories of Dr. Tim Sainburg ([AVGN](https://github.com/timsainb/avgn_paper) and [vocalization segmentation](https://github.com/timsainb/vocalization-segmentation)) and Dr. Mara Thomas ([UMAP Tutorial](https://github.com/marathomas/tutorial_repo))
 
-## Dimensionality Reduction and Fuzzy C-Means Clustering
+## UMAP and Fuzzy C-Means Clustering
 
 <p align="center">
-    <img src="asset/cluster.png" alt="The dimensionality reduction and clustering of a Adelaide's warbler dataset" width="100%"/>
+    <img src="asset/fuzzy.png" alt="The dimensionality reduction and Fuzzy C-Means clustering of a Adelaide's warbler dataset" width="100%"/>
+</p>
+
+## UMAP and HDBSCAN
+
+<p align="center">
+    <img src="asset/hdbscan.png" alt="The dimensionality reduction and HDBSCAN clustering of a Adelaide's warbler dataset" width="100%"/>
 </p>
 
 ## Prerequisites

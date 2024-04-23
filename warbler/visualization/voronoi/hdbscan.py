@@ -27,6 +27,7 @@ def dataset(save: bool = False) -> None:
     settings = Settings.from_file(path)
 
     settings.cluster = 'HDBSCAN Clustering'
+    settings.is_label = False
 
     unique = dataframe.hdbscan_label_2d.unique()
 
@@ -86,6 +87,8 @@ def individual(save: bool = False) -> None:
     # Load default settings
     path = SETTINGS.joinpath('voronoi.json')
     settings = Settings.from_file(path)
+
+    settings.is_label = False
 
     unique = dataframe.hdbscan_label_2d.unique()
 
@@ -149,7 +152,7 @@ def main() -> None:
     plt.style.use('science')
 
     # Create a voronoi plot for the entire dataset
-    dataset(save=False)
+    dataset(save=True)
 
     # # Create a voronoi plot for each individual
     # individual(save=False)
