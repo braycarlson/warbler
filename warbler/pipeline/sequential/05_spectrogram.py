@@ -1,0 +1,202 @@
+from __future__ import annotations
+
+import logging
+import numpy as np
+import pickle
+import warnings
+
+from PIL import ImageOps
+from tqdm import tqdm
+from warbler.bootstrap import bootstrap
+from warbler.constant import PICKLE, SETTINGS
+from warbler.datatype.dataset import Dataset
+from warbler.datatype.imaging import (
+    create_image,
+    filter_image,
+    to_bytes,
+    to_numpy
+)
+from warbler.datatype.settings import Settings
+from warbler.datatype.signal import Signal
+from warbler.datatype.spectrogram import (
+    create_spectrogram,
+    mel_matrix,
+    pad,
+    resize
+)
+from warbler.logger import logger
+
+
+log = logging.getLogger(__name__)
+
+warnings.filterwarnings(
+    'ignore',
+    category=UserWarning
+)
+
+
+@bootstrap
+def main() -> None:
+    dataset = Dataset('segment')
+    dataframe = dataset.load()
+
+    # Deserialize the segment
+    dataframe['segment'] = dataframe['segment'].apply(
+        lambda x: Signal.deserialize(x)
+    )
+
+    path = SETTINGS.joinpath('spectrogram.json')
+    settings = Settings.from_file(path)
+
+    path = PICKLE.joinpath('matrix.npy')
+
+    if path.is_file():
+        matrix = np.load(path, allow_pickle=True)
+    else:
+        matrix = mel_matrix(settings)
+        np.save(path, matrix, allow_pickle=True)
+
+    tqdm.pandas(desc='Spectrogram')
+
+    dataframe['spectrogram'] = (
+        dataframe['segment']
+        .progress_apply(
+            create_spectrogram,
+            args=(settings, matrix)
+        )
+    )
+
+    tqdm.pandas(desc='Resize')
+
+    dataframe['scale'] = (
+        dataframe['spectrogram']
+        .progress_apply(resize)
+    )
+
+    # Original spectrogram
+    padding = dataframe['spectrogram'].progress_apply(
+        lambda x: len(x.T)
+    ).max()
+
+    tqdm.pandas(desc='Padding')
+
+    dataframe['spectrogram'] = (
+        dataframe['spectrogram']
+        .apply(
+            pad,
+            args=(padding, )
+        )
+    )
+
+    # Log-scaled spectrogram
+    padding = dataframe['scale'].progress_apply(
+        lambda x: len(x.T)
+    ).max()
+
+    tqdm.pandas(desc='Padding')
+
+    dataframe['scale'] = (
+        dataframe['scale']
+        .progress_apply(
+            pad,
+            args=(padding, )
+        )
+    )
+
+    tqdm.pandas(desc='Image')
+
+    # Use 'spectrogram' or 'scale'
+    dataframe['original'] = (
+        dataframe['scale']
+        .progress_apply(create_image)
+    )
+
+    tqdm.pandas(desc='Invert')
+
+    dataframe['original'] = (
+        dataframe['original']
+        .apply(
+            lambda x: ImageOps.invert(x)
+        )
+    )
+
+    tqdm.pandas(desc='Flip')
+
+    dataframe['original'] = (
+        dataframe['original']
+        .apply(
+            lambda x: ImageOps.flip(x)
+        )
+    )
+
+    tqdm.pandas(desc='Array')
+
+    dataframe['original_array'] = (
+        dataframe['original']
+        .progress_apply(to_numpy)
+    )
+
+    tqdm.pandas(desc='Bytes')
+
+    dataframe['original_bytes'] = (
+        dataframe['original']
+        .progress_apply(to_bytes)
+    )
+
+    tqdm.pandas(desc='Array')
+
+    dataframe['filter_array'] = (
+        dataframe['original']
+        .progress_apply(filter_image)
+    )
+
+    tqdm.pandas(desc='Bytes')
+
+    dataframe['filter_bytes'] = (
+        dataframe['filter_array']
+        .progress_apply(to_bytes)
+    )
+
+    dataframe = dataframe.drop('original', axis=1)
+
+    # Serialize the segment
+    dataframe['segment'] = dataframe['segment'].apply(
+        lambda x: x.serialize()
+    )
+
+    # Serialize the spectrogram
+    dataframe['spectrogram'] = dataframe['spectrogram'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    # Serialize the scale
+    dataframe['scale'] = dataframe['scale'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    # Serialize the original_array
+    dataframe['original_array'] = dataframe['original_array'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    # Serialize the original_bytes
+    dataframe['original_bytes'] = dataframe['original_bytes'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    # Serialize the filter_array
+    dataframe['filter_array'] = dataframe['filter_array'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    # Serialize the filter_bytes
+    dataframe['filter_bytes'] = dataframe['filter_bytes'].apply(
+        lambda x: pickle.dumps(x).hex()
+    )
+
+    dataset.save(dataframe)
+
+
+if __name__ == '__main__':
+    with logger():
+        main()

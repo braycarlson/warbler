@@ -25,13 +25,15 @@ plotly
 pydub
 # pygraphviz; sys_platform == 'linux'
 pymupdf
-seaborn
+SciencePlots
 scikit-image[optional]
 scikit-learn
 scipy
+seaborn
 SoundFile
 sphinx
 sphinx-rtd-theme
+tables
 tensorflow
 tqdm
 typing-extensions

@@ -1,13 +1,15 @@
-# warbler.py
+# warbler
 input/
 logs/
 notebook/.ipynb_checkpoints/
 output/
-warbler.py/avgn/data/
-warbler.py/docs/
-warbler.py/test/
-warbler.py/visualization/animation/frames/
-warbler.py/warbler.py.egg-info/
+warbler/avgn/data/
+warbler/analysis/
+warbler/docs/
+warbler/helper/
+warbler/test/
+warbler/visualization/animation/frames/
+warbler/warbler.egg-info/
 
 *.7z
 *.bat

@@ -1,5 +1,5 @@
 [project]
-name = "warbler.py"
+name = "warbler"
 description = "A pipeline for segmenting, clustering and visualizing Adelaide's warbler songs"
 version = "0.0.1"
 authors = [
@@ -10,6 +10,18 @@ authors = [
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.pyright]
+exclude = [
+    "*.jpg",
+    "*.png",
+    "venv",
+]
+ignore = [
+    "*.jpg",
+    "*.png",
+    "venv",
+]
 
 [tool.ruff]
 # Enable pycodestyle (`E`) and Pyflakes (`F`) codes by default.
@@ -35,6 +47,7 @@ ignore = [
     "I001",
     "INP001",
     "PLR0915",
+    "PLR0913",
     "Q000",
     "Q000",
     "T201",

@@ -1,0 +1,44 @@
+.left {
+    width: 30% !important;
+    margin-left: 50px;
+    margin-right: 100px;
+}
+
+.left > .widget-image {
+    width: 50% !important;
+}
+
+.right {
+    width: 90% !important;
+    overflow: hidden !important;
+}
+
+.description {
+    background-color: transparent !important;
+    border: 1px solid black; !important;
+    width: 300px; !important;
+}
+
+.description td, .description th {
+    border: none !important;
+    padding: 5px 10px !important;
+    text-align: center !important;
+}
+
+.js-plotly-plot .plotly .cursor-crosshair,
+.js-plotly-plot .plotly .cursor-move {
+    cursor: default !important;
+}
+
+.projection {
+    width: 100% !important;
+}
+
+.button {
+    margin-top: 50px;
+}
+
+.widget-button {
+    margin-left: 50px;
+    margin-right: 50px;
+}
