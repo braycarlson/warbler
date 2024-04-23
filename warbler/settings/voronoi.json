@@ -59,7 +59,7 @@
     },
     "cluster": "Fuzzy C-Means Clustering",
     "color": "k",
-    "is_cluster_color": false,
+    "is_cluster_color": true,
     "is_color": true,
     "is_diagonal": true,
     "is_label": true,

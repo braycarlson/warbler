@@ -1,6 +1,10 @@
 ## warbler
 
-warbler is a pipeline for segmenting, clustering and visualizing Adelaide's warbler songs based on the repositories of Dr. Tim Sainburg ([AVGN](https://github.com/timsainb/avgn_paper) and [vocalization segmentation](https://github.com/timsainb/vocalization-segmentation)) and Dr. Mara Thomas ([UMAP Tutorial](https://github.com/marathomas/tutorial_repo)) using a dataset from Dr. David Logue of [The Birdsong Lab](http://david-logue.squarespace.com/).
+warbler is a pipeline for segmenting, clustering and visualizing Adelaide's warbler songs, which uses a dataset from Dr. David Logue of [The Birdsong Lab](http://david-logue.squarespace.com/). This pipeline uses [UMAP](https://umap-learn.readthedocs.io/en/latest/) to perform dimensionality reduction, and [HDBSCAN](https://hdbscan.readthedocs.io/en/latest/how_hdbscan_works.html) and [Fuzzy C-Means clustering](https://fuzzy-c-means.readthedocs.io/en/latest/) for clustering.
+
+This research is motivated by the repositories of Dr. Tim Sainburg ([AVGN](https://github.com/timsainb/avgn_paper) and [vocalization segmentation](https://github.com/timsainb/vocalization-segmentation)) and Dr. Mara Thomas ([UMAP Tutorial](https://github.com/marathomas/tutorial_repo))
+
+## Dimensionality Reduction and Fuzzy C-Means Clustering
 
 <p align="center">
     <img src="asset/cluster.png" alt="The dimensionality reduction and clustering of a Adelaide's warbler dataset" width="100%"/>

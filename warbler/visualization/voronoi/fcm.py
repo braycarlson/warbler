@@ -147,9 +147,6 @@ def individual(save: bool = False) -> None:
 def main() -> None:
     plt.style.use('science')
 
-    path = SETTINGS.joinpath('dark.mplstyle')
-    plt.style.use(path)
-
     # Create a voronoi plot for the entire dataset
     dataset(save=True)
 

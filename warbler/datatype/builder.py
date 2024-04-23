@@ -165,7 +165,7 @@ class Plot:
         self,
         figure: Figure | None = None,
         filename: str | None = None,
-        transparent: bool = True
+        transparent: bool = False
     ) -> None:
         if filename is None:
             filename = 'plot.png'
