@@ -407,6 +407,8 @@ class Builder(Base):
                     ]
                 )
 
+                line['color'] = '#e7e6e6'
+
                 lines.append(
                     Line2D(
                         [infig_position_start[0], infig_position[0]],
