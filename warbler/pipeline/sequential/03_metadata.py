@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import numpy as np
-import pickle
 
 from librosa.util.exceptions import ParameterError
 from operator import attrgetter
@@ -11,8 +10,7 @@ from warbler.bootstrap import bootstrap
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.segmentation import DynamicThresholdSegmentation
-from warbler.datatype.settings import resolve, Settings
-from warbler.datatype.signal import Signal
+from warbler.datatype.settings import Settings
 from warbler.logger import logger
 from typing_extensions import TYPE_CHECKING
 
@@ -61,11 +59,6 @@ def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
-    # Deserialize the signal
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: Signal.deserialize(x)
-    )
-
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 
@@ -91,7 +84,7 @@ def main() -> None:
 
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
+        .progress_apply(Settings.resolve)
     )
 
     dataframe['exclude'] = [settings.exclude] * len(dataframe)
@@ -112,35 +105,13 @@ def main() -> None:
         )
     )
 
-    # Serialize the signal
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: x.serialize()
-    )
-
-    # Serialize the settings
-    dataframe['settings'] = dataframe['settings'].apply(
-        lambda x: x.serialize()
-    )
-
-    # Serialize the exclude list
-    dataframe['exclude'] = dataframe['exclude'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the onset array
-    dataframe['onset'] = dataframe['onset'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the offset array
-    dataframe['offset'] = dataframe['offset'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
     mask = (
         dataframe.onset.isna() |
         dataframe.offset.isna()
     )
+
+    drop = ['settings']
+    dataframe = dataframe.drop(drop, axis=1)
 
     # Create a new dataframe for erroneous recordings
     reject = dataframe.loc[mask]
@@ -153,7 +124,6 @@ def main() -> None:
         'onset',
         'offset',
         'rate',
-        'settings',
         'signal'
     ]
 

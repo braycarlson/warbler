@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pickle
 import scienceplots
 
 from warbler.constant import SETTINGS
@@ -17,13 +16,6 @@ from warbler.datatype.settings import Settings
 def dataset(save: bool = False) -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
-
-    # Deserialize the filter_array
-    dataframe['filter_array'] = dataframe['filter_array'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
 
     dataframe['midpoint'] = (
         (dataframe['maximum'] + dataframe['minimum']) /

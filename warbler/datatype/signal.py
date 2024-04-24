@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import base64
 import io
 import librosa
 import noisereduce as nr
@@ -8,7 +7,6 @@ import numpy as np
 import scipy
 import scipy.signal
 import soundfile as sf
-import struct
 
 from scipy.signal import windows
 
@@ -96,25 +94,23 @@ class Signal:
         return rate, data
 
     @classmethod
-    def deserialize(cls: type[Self], data: str) -> Signal:
-        data_bytes = base64.b64decode(data)
-        buffer = io.BytesIO(data_bytes)
+    def deserialize(cls: type[Self], signal: str) -> Signal:
+        signal = dict(signal)
 
-        length = buffer.read(4)
-        length = struct.unpack('I', length)[0]
-        path = buffer.read(length).decode('utf-8')
+        path = signal.get('path')
 
-        rate = buffer.read(4)
-        rate = struct.unpack('I', rate)[0]
+        path = (
+            io.BytesIO(path)
+            if isinstance(path, bytes)
+            else Path(path)
+        )
 
-        length = buffer.read(4)
-        length = struct.unpack('I', length)[0]
+        rate = signal.get('rate')
 
-        data = f'{length}f'
-        samples = buffer.read(4 * length)
-        data = struct.unpack(data, samples)
-
-        data = np.array(data, dtype='float32')
+        data = np.array(
+            signal.get('data'),
+            dtype='float32'
+        )
 
         signal = cls()
         signal.path = path
@@ -272,25 +268,14 @@ class Signal:
         )
 
     def serialize(self) -> None:
-        buffer = io.BytesIO()
+        if isinstance(self.path, io.BytesIO):
+            self.path.seek(0)
+            path = self.path.read()
+        else:
+            path = str(self.path)
 
-        path = str(self.path).encode('utf-8')
-        length = len(path)
-
-        data = struct.pack('I', length)
-        buffer.write(data)
-        buffer.write(path)
-
-        data  = struct.pack('I', self.rate)
-        buffer.write(data)
-
-        length = len(self.data)
-        data = struct.pack('I', length)
-        buffer.write(data)
-
-        data = f'{length}f'
-        data = struct.pack(data, *self.data)
-        buffer.write(data)
-
-        buffer = buffer.getvalue()
-        return base64.b64encode(buffer).decode('utf-8')
+        return {
+            'path': path,
+            'rate': self.rate,
+            'data': self.data.tolist()
+        }

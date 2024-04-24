@@ -13,8 +13,6 @@ from warbler.datatype.dataset import Dataset
 def main() -> None:
     plt.style.use('science')
 
-    PROJECTION.mkdir(parents=True, exist_ok=True)
-
     dataset = Dataset('segment')
     dataframe = dataset.load()
 

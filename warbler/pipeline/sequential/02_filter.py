@@ -6,8 +6,7 @@ from tqdm import tqdm
 from warbler.bootstrap import bootstrap
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset
-from warbler.datatype.settings import resolve, Settings
-from warbler.datatype.signal import Signal
+from warbler.datatype.settings import Settings
 from warbler.logger import logger
 
 
@@ -29,12 +28,7 @@ def main() -> None:
 
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
-    )
-
-    # Deserialize the signal
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: Signal.deserialize(x)
+        .progress_apply(Settings.resolve)
     )
 
     # Bandpass filter
@@ -87,15 +81,8 @@ def main() -> None:
         except Exception as exception:
             log.warning(exception)
 
-    # Serialize the signal
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: x.serialize()
-    )
-
-    # Serialize the settings
-    dataframe['settings'] = dataframe['settings'].apply(
-        lambda x: x.serialize()
-    )
+    drop = ['settings']
+    dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)
 

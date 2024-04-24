@@ -324,12 +324,14 @@ class Builder(Base):
 
         lines = []
 
+        rng = np.random.default_rng()
+
         # Loop through regions and select a point
         for key in axs:
             # Sample a point in (or near) Voronoi region
             nearest = np.argsort(np.abs(region - key))
             possible = np.where(region == region[nearest][0])[0]
-            selection = np.random.choice(possible, size=1)[0]
+            selection = rng.choice(possible, size=1)[0]
             region[selection] = 1e4
 
             if self.settings.is_cluster_color:

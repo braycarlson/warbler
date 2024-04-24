@@ -2,17 +2,20 @@ from __future__ import annotations
 
 import logging
 import numpy as np
-import pandas as pd
 
 from librosa.util.exceptions import ParameterError
-from logger import logger
 from operator import attrgetter
 from tqdm import tqdm
 from warbler.bootstrap import bootstrap
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.segmentation import DynamicThresholdSegmentation
-from warbler.datatype.settings import resolve, Settings
+from warbler.datatype.settings import Settings
+from warbler.logger import logger
+from typing_extensions import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 
 log = logging.getLogger(__name__)
@@ -81,7 +84,7 @@ def main() -> None:
 
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
+        .progress_apply(Settings.resolve)
     )
 
     dataframe['exclude'] = [settings.exclude] * len(dataframe)
@@ -107,6 +110,9 @@ def main() -> None:
         dataframe.offset.isna()
     )
 
+    drop = ['settings']
+    dataframe = dataframe.drop(drop, axis=1)
+
     # Create a new dataframe for erroneous recordings
     reject = dataframe.loc[mask]
     reject = reject.reset_index(drop=True)
@@ -118,7 +124,6 @@ def main() -> None:
         'onset',
         'offset',
         'rate',
-        'settings',
         'signal'
     ]
 

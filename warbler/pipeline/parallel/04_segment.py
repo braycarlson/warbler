@@ -8,7 +8,7 @@ from tqdm import tqdm
 from typing import TYPE_CHECKING
 from warbler.bootstrap import bootstrap
 from warbler.datatype.dataset import Dataset
-from warbler.datatype.settings import resolve
+from warbler.datatype.settings import Settings
 from warbler.logger import logger
 
 if TYPE_CHECKING:
@@ -66,7 +66,7 @@ def main() -> None:
     # Update the settings for each segmentation
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
+        .progress_apply(Settings.resolve)
     )
 
     tqdm.pandas(desc='Segmentation')
@@ -121,8 +121,7 @@ def main() -> None:
     dataframe = dataframe.reset_index(drop=True)
     dataframe = dataframe.copy()
 
-    drop = ['exclude']
-
+    drop = ['exclude', 'settings']
     dataframe = dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)

@@ -4,12 +4,11 @@ import logging
 import numpy as np
 import warnings
 
-from joblib import Parallel, delayed
-from warbler.logger import logger
+from joblib import delayed, Parallel
 from PIL import ImageOps
 from tqdm import tqdm
 from warbler.bootstrap import bootstrap
-from warbler.constant import PICKLE, SETTINGS
+from warbler.constant import PARQUET, SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.imaging import (
     create_image,
@@ -24,6 +23,7 @@ from warbler.datatype.spectrogram import (
     pad,
     resize
 )
+from warbler.logger import logger
 
 
 log = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ def main() -> None:
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 
-    path = PICKLE.joinpath('matrix.npy')
+    path = PARQUET.joinpath('matrix.npy')
 
     if path.is_file():
         matrix = np.load(path, allow_pickle=True)
@@ -148,6 +148,9 @@ def main() -> None:
         dataframe['filter_array']
         .progress_apply(to_bytes)
     )
+
+    drop = ['original']
+    dataframe = dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)
 

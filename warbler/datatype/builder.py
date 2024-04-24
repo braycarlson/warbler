@@ -183,6 +183,7 @@ class Plot:
                 bbox_inches='tight',
                 dpi=300,
                 format='png',
+                pad_inches=0.25,
                 transparent=transparent
             )
         else:
@@ -191,6 +192,7 @@ class Plot:
                 bbox_inches='tight',
                 dpi=300,
                 format='png',
+                pad_inches=0.25,
                 transparent=transparent
             )
 

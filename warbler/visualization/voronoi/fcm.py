@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import matplotlib.pyplot as plt
 import numpy as np
-import pickle
 import scienceplots
 
 from warbler.constant import SETTINGS
@@ -14,13 +13,6 @@ from warbler.datatype.voronoi import Builder, VoronoiFCM
 def dataset(save: bool = False) -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
-
-    # Deserialize the filter_array
-    dataframe['filter_array'] = dataframe['filter_array'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
 
     # Load default settings
     path = SETTINGS.joinpath('voronoi.json')
@@ -77,13 +69,6 @@ def dataset(save: bool = False) -> None:
 def individual(save: bool = False) -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
-
-    # Deserialize the filter_array
-    dataframe['filter_array'] = dataframe['filter_array'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
 
     # Load default settings
     path = SETTINGS.joinpath('voronoi.json')
@@ -148,7 +133,7 @@ def main() -> None:
     plt.style.use('science')
 
     # Create a voronoi plot for the entire dataset
-    dataset(save=True)
+    dataset(save=False)
 
     # # Create a voronoi plot for each individual
     # individual(save=False)

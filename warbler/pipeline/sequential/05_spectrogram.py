@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import logging
 import numpy as np
-import pickle
 import warnings
 
 from PIL import ImageOps
 from tqdm import tqdm
 from warbler.bootstrap import bootstrap
-from warbler.constant import PICKLE, SETTINGS
+from warbler.constant import PARQUET, SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.imaging import (
     create_image,
@@ -17,7 +16,6 @@ from warbler.datatype.imaging import (
     to_numpy
 )
 from warbler.datatype.settings import Settings
-from warbler.datatype.signal import Signal
 from warbler.datatype.spectrogram import (
     create_spectrogram,
     mel_matrix,
@@ -40,15 +38,10 @@ def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    # Deserialize the segment
-    dataframe['segment'] = dataframe['segment'].apply(
-        lambda x: Signal.deserialize(x)
-    )
-
     path = SETTINGS.joinpath('spectrogram.json')
     settings = Settings.from_file(path)
 
-    path = PICKLE.joinpath('matrix.npy')
+    path = PARQUET.joinpath('matrix.npy')
 
     if path.is_file():
         matrix = np.load(path, allow_pickle=True)
@@ -157,42 +150,8 @@ def main() -> None:
         .progress_apply(to_bytes)
     )
 
-    dataframe = dataframe.drop('original', axis=1)
-
-    # Serialize the segment
-    dataframe['segment'] = dataframe['segment'].apply(
-        lambda x: x.serialize()
-    )
-
-    # Serialize the spectrogram
-    dataframe['spectrogram'] = dataframe['spectrogram'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the scale
-    dataframe['scale'] = dataframe['scale'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the original_array
-    dataframe['original_array'] = dataframe['original_array'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the original_bytes
-    dataframe['original_bytes'] = dataframe['original_bytes'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the filter_array
-    dataframe['filter_array'] = dataframe['filter_array'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
-
-    # Serialize the filter_bytes
-    dataframe['filter_bytes'] = dataframe['filter_bytes'].apply(
-        lambda x: pickle.dumps(x).hex()
-    )
+    drop = ['original']
+    dataframe = dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)
 

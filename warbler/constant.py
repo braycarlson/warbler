@@ -59,9 +59,9 @@ OUTPUT.mkdir(parents=True, exist_ok=True)
 PDF = OUTPUT.joinpath('pdf')
 PDF.mkdir(parents=True, exist_ok=True)
 
-# The directory for pickled and compressed output
-PICKLE = OUTPUT.joinpath('pickle')
-PICKLE.mkdir(parents=True, exist_ok=True)
+# The directory for the Parquet output
+PARQUET = OUTPUT.joinpath('parquet')
+PARQUET.mkdir(parents=True, exist_ok=True)
 
 # The directory for projection(s)
 PROJECTION = OUTPUT.joinpath('projection')
@@ -93,7 +93,7 @@ SETTINGS = PACKAGE.joinpath('settings')
 # A set of filenames to ignore in further processing
 IGNORE = set()
 
-bad = PICKLE.joinpath('bad.pkl')
+bad = PARQUET.joinpath('bad.pkl')
 
 if bad.exists():
     with open(bad, 'rb') as handle:
@@ -103,7 +103,7 @@ if bad.exists():
             file = file.get('filename')
             IGNORE.add(file)
 
-error = PICKLE.joinpath('error.pkl')
+error = PARQUET.joinpath('error.pkl')
 
 if error.exists():
     with open(error, 'rb') as handle:

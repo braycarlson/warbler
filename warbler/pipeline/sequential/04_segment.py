@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import logging
 import pandas as pd
-import pickle
 
 from operator import attrgetter
 from tqdm import tqdm
 from typing import TYPE_CHECKING
 from warbler.bootstrap import bootstrap
 from warbler.datatype.dataset import Dataset
-from warbler.datatype.settings import resolve
-from warbler.datatype.signal import Signal
+from warbler.datatype.settings import Settings
 from warbler.logger import logger
 
 if TYPE_CHECKING:
@@ -63,31 +61,12 @@ def main() -> None:
     dataset = Dataset('signal')
     dataframe = dataset.load()
 
-    # Deserialize the signal
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: Signal.deserialize(x)
-    )
-
-    # Deserialize the onset(s)
-    dataframe['onset'] = dataframe['onset'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
-
-    # Deserialize the offset(s)
-    dataframe['offset'] = dataframe['offset'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
-
     tqdm.pandas(desc='Settings')
 
     # Update the settings for each segmentation
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
+        .progress_apply(Settings.resolve)
     )
 
     tqdm.pandas(desc='Segmentation')
@@ -142,19 +121,8 @@ def main() -> None:
     dataframe = dataframe.reset_index(drop=True)
     dataframe = dataframe.copy()
 
-    drop = ['exclude']
-
+    drop = ['exclude', 'settings']
     dataframe = dataframe.drop(drop, axis=1)
-
-    # Serialize the segment
-    dataframe['segment'] = dataframe['segment'].apply(
-        lambda x: x.serialize()
-    )
-
-    # Serialize the settings
-    dataframe['settings'] = dataframe['settings'].apply(
-        lambda x: x.serialize()
-    )
 
     dataset.save(dataframe)
 

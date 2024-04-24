@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-import lzma
-import pickle
+import numpy as np
+import pyarrow as pa
+import pyarrow.parquet as pq
 import shutil
 
 from abc import ABC, abstractmethod
-from pandas import HDFStore
 from typing import TYPE_CHECKING
-from warbler.constant import PICKLE
+from warbler.constant import PARQUET
+from warbler.datatype.settings import Settings
+from warbler.datatype.signal import Signal
 
 if TYPE_CHECKING:
     import pandas as pd
@@ -26,7 +28,7 @@ class DatasetStrategy(ABC):
 
     @property
     def path(self) -> Path:
-        return PICKLE.joinpath(self.filename + self.extension)
+        return PARQUET.joinpath(self.filename + self.extension)
 
     @abstractmethod
     def load(self) -> pd.DataFrame:
@@ -37,112 +39,125 @@ class DatasetStrategy(ABC):
         raise NotImplementedError
 
 
-class Compressed(DatasetStrategy):
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.extension = '.xz'
-
-    def chunk(self, chunksize: int) -> pd.DataFrame:
-        raise NotImplementedError
-
-    def load(self) -> pd.DataFrame:
-        if not self.path.is_file():
-            return self.path.touch()
-
-        with lzma.open(self.path, 'rb') as handle:
-            return pickle.load(handle)
-
-    def save(self, dataframe: pd.DataFrame) -> None:
-        if not dataframe.empty:
-            with lzma.open(self.path, 'wb') as handle:
-                pickle.dump(dataframe, handle)
-
-
-class Uncompressed(DatasetStrategy):
-    def __init__(self, filename: str):
-        self.filename = filename
-        self.extension = '.pkl'
-
-    def chunk(self, chunksize: int) -> pd.DataFrame:
-        raise NotImplementedError
-
-    def load(self) -> pd.DataFrame:
-        if not self.path.is_file():
-            return self.path.touch()
-
-        with open(self.path, 'rb') as handle:
-            return pickle.load(handle)
-
-    def save(self, dataframe: pd.DataFrame) -> None:
-        if not dataframe.empty:
-            with open(self.path, 'wb') as handle:
-                pickle.dump(dataframe, handle)
-
-
-class HierarchicalDataFormat(DatasetStrategy):
+class ParquetStrategy(DatasetStrategy):
     def __init__(self, filename: str, chunksize: int = 50):
-        self.buffer = None
+        self.columns = [
+            'scale',
+            'spectrogram',
+            'original_array',
+            'filter_array',
+        ]
         self.chunksize = chunksize
         self.filename = filename
-        self.extension = '.h5'
+        self.extension = '.parquet'
         self.start = 0
+        self.buffer = None
 
-    def load_buffer(self, start: int) -> None:
-        with HDFStore(self.filename, mode='r') as store:
-            if '/dataframe' in store:
-                stop = start + self.chunksize
-
-                self.buffer = store.select(
-                    'dataframe',
-                    start=start,
-                    stop=stop
+    def _serialize(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        for column in ['segment', 'signal']:
+            if column in dataframe.columns:
+                dataframe[column] = dataframe[column].apply(
+                    lambda x: x.serialize()
                 )
 
-                self.start = start
-            else:
-                message = 'No dataframe found.'
-                raise KeyError(message)
+        for column in self.columns:
+            if column in dataframe.columns:
+                dataframe[column + '_shape'] = dataframe[column].apply(
+                    lambda x: x.shape
+                )
 
-    def get(self, index: int) -> None:
+                dataframe[column] = dataframe[column].apply(
+                    lambda x: x.ravel().tolist()
+                )
+
+        return dataframe
+
+    def _deserialize(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        for column in ['segment', 'signal']:
+            if column in dataframe.columns:
+                dataframe[column] = dataframe[column].apply(Signal.deserialize)
+
+        for column in self.columns:
+            if column in dataframe.columns:
+                shape = column + '_shape'
+
+                if shape in dataframe.columns:
+                    dataframe[column] = dataframe.apply(
+                        lambda row,
+                        column=column,
+                        shape=shape: np.array(row[column]).reshape(row[shape]),
+                        axis=1
+                    )
+
+        return dataframe
+
+    def chunk(self) -> pd.DataFrame:
+        file = pq.ParquetFile(self.path)
+        length = file.num_row_groups
+
+        for index in range(length):
+            yield file.read_row_group(index).to_pandas()
+
+    def get(self, index: int) -> pd.Series:
         if index < self.start or index >= self.start + self.chunksize:
             self.load_buffer(index)
 
         local = index - self.start
         return self.buffer.iloc[local]
 
-    def chunk(self, chunksize: int) -> pd.DataFrame:
-        store = HDFStore(self.path, mode='r')
-
-        try:
-            if '/dataframe' in store:
-                yield from store.select('dataframe', chunksize=chunksize)
-            else:
-                message = 'No dataframe found.'
-                raise KeyError(message)
-        finally:
-            store.close()
+    def get_column(self, name: str) -> list[str]:
+        table = pq.read_table(self.path, columns=[name])
+        dataframe = table.to_pandas()
+        return dataframe[name].tolist()
 
     def load(self) -> pd.DataFrame:
-        with HDFStore(self.path) as store:
-            if '/dataframe' in store:
-                return store['/dataframe']
+        dataframe = pq.read_table(self.path).to_pandas()
+        return self._deserialize(dataframe)
 
-            message = 'No dataframe found.'
-            raise KeyError(message)
+    def load_buffer(self, index: int) -> None:
+        file = pq.ParquetFile(self.path)
+
+        length = file.num_row_groups
+        start = index // self.chunksize
+        stop = (index + self.chunksize) // self.chunksize
+
+        if start < length:
+            partition = range(
+                start,
+                min(stop, length)
+            )
+
+            buffer = file.read_row_groups(partition).to_pandas()
+            self.buffer = self._deserialize(buffer)
+
+            self.buffer['settings'] = (
+                self.buffer['segmentation']
+                .apply(Settings.resolve)
+            )
+
+            self.start = start * self.chunksize
+        else:
+            message = 'Start index is out of bounds.'
+            raise IndexError(message)
 
     def save(self, dataframe: pd.DataFrame) -> None:
-        with HDFStore(self.path, mode='w') as store:
-            if not dataframe.empty:
-                store.put(
-                    'dataframe',
-                    dataframe,
-                    format='table'
-                )
+        if 'settings' in dataframe.columns:
+            drop = ['settings']
+            dataframe = dataframe.drop(drop, axis=1)
+
+        dataframe = self._serialize(dataframe)
+        table = pa.Table.from_pandas(dataframe)
+
+        pq.write_table(
+            table,
+            self.path,
+            row_group_size=self.chunksize
+        )
 
 
 class Dataset:
     def __init__(self, filename: str):
-        self.strategy = HierarchicalDataFormat(filename)
+        self.strategy = ParquetStrategy(filename)
 
     @property
     def path(self) -> Path:
@@ -151,12 +166,21 @@ class Dataset:
     def chunk(self, chunksize: int) -> pd.DataFrame:
         return self.strategy.chunk(chunksize)
 
+    def get(self, index: int) -> pd.Series:
+        return self.strategy.get(index)
+
     def duplicate(self, filename: str) -> None:
         path = self.path.parent.joinpath(filename)
         shutil.copyfile(self.path, path)
 
+    def get_column(self, name: str) -> list[str]:
+        return self.strategy.get_column(name)
+
     def load(self) -> pd.DataFrame:
         return self.strategy.load()
+
+    def load_buffer(self, index: int) -> None:
+        return self.strategy.load_buffer(index)
 
     def save(self, dataframe: pd.DataFrame) -> None:
         self.strategy.save(dataframe)

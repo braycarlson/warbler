@@ -73,11 +73,6 @@ def main() -> None:
 
         dataframe = pd.DataFrame(collection)
 
-        # Serialize the signal
-        dataframe['signal'] = dataframe['signal'].apply(
-            lambda x: Signal.serialize(x)
-        )
-
         # Temporary
         spreadsheet = SPREADSHEET.joinpath('2017.xlsx')
 

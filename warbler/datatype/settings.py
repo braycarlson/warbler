@@ -12,11 +12,6 @@ if TYPE_CHECKING:
     from typing_extensions import Any, Self
 
 
-def resolve(relative: str) -> Settings:
-    path = CWD.joinpath(relative)
-    return Settings.from_file(path)
-
-
 class Settings(SimpleNamespace):
     def __init__(self, **data: Any):
         super().__init__(**data)
@@ -56,6 +51,11 @@ class Settings(SimpleNamespace):
     def from_object(cls: type[Self], data: object) -> Self:
         return cls(**data.__dict__)
 
+    @staticmethod
+    def resolve(relative: str) -> Settings:
+        path = CWD.joinpath(relative)
+        return Settings.from_file(path)
+
     def update(self, data: dict[str, Any]) -> None:
         for k in data:
             if k in self.__dict__:
@@ -70,4 +70,9 @@ class Settings(SimpleNamespace):
             )
 
     def serialize(self) -> str:
-        return json.dumps(self.__dict__)
+        settings = {
+            k: self._convert(v)
+            for k, v in self.__dict__.items()
+        }
+
+        return json.dumps(settings)

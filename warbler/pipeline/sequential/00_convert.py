@@ -13,7 +13,7 @@ from warbler.constant import (
     SETTINGS
 )
 from warbler.datatype.settings import Settings
-from logger import logger
+from warbler.logger import logger
 
 
 log = logging.getLogger(__name__)

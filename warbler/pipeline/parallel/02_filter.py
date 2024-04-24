@@ -3,13 +3,16 @@ from __future__ import annotations
 import logging
 
 from joblib import delayed, Parallel
-from logger import logger
 from tqdm import tqdm
 from warbler.bootstrap import bootstrap
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset
-from warbler.datatype.settings import resolve, Settings
-from warbler.datatype.signal import Signal
+from warbler.datatype.settings import Settings
+from warbler.logger import logger
+from typing_extensions import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from warbler.datatype.signal import Signal
 
 
 log = logging.getLogger(__name__)
@@ -28,14 +31,9 @@ def main() -> None:
 
     tqdm.pandas(desc='Settings')
 
-    # Deserialize
-    dataframe['signal'] = dataframe['signal'].apply(
-        lambda x: Signal.from_bytes(x)
-    )
-
     dataframe['settings'] = (
         dataframe['segmentation']
-        .progress_apply(resolve)
+        .progress_apply(Settings.resolve)
     )
 
     # Bandpass filter
@@ -90,6 +88,9 @@ def main() -> None:
             )
         except Exception as exception:
             log.warning(exception)
+
+    drop = ['settings']
+    dataframe.drop(drop, axis=1)
 
     dataset.save(dataframe)
 

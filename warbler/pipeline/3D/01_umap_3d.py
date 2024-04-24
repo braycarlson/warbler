@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pickle
-
 from umap import UMAP
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.spectrogram import flatten
@@ -11,13 +9,7 @@ def main() -> None:
     dataset = Dataset('segment')
     dataframe = dataset.load()
 
-    array = dataframe['filter_array'].apply(
-        lambda x: pickle.loads(
-            bytes.fromhex(x)
-        )
-    )
-
-    spectrogram = array.tolist()
+    spectrogram = dataframe['filter_array'].tolist()
     flattened = flatten(spectrogram)
 
     um = UMAP(
@@ -26,7 +18,8 @@ def main() -> None:
         min_dist=0.0,
         n_neighbors=5,
         n_components=3,
-        n_jobs=-1
+        n_jobs=-1,
+        random_state=42
     )
 
     embedding = um.fit_transform(flattened)

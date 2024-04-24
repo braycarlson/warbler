@@ -65,7 +65,7 @@ def main() -> None:
             metadata['filename'] = filename
             metadata['recording'] = recording.relative_to(CWD).as_posix()
             metadata['segmentation'] = segmentation.relative_to(CWD).as_posix()
-            metadata['signal'] = signal.serialize()
+            metadata['signal'] = signal
             metadata['rate'] = signal.rate
 
             collection.append(metadata)
