@@ -18,7 +18,7 @@ This research is motivated by the repositories of Dr. Tim Sainburg ([AVGN](https
 
 ## Prerequisites
 
-* [Python 3.11.2](https://www.python.org/downloads/)
+* [pyenv](https://github.com/pyenv/pyenv) or [Python 3.11.2](https://www.python.org/downloads/)
 * [Graphviz](https://graphviz.org/)
 * [ffmpeg](https://www.ffmpeg.org/)
 
