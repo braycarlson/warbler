@@ -3,9 +3,11 @@ from __future__ import annotations
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
+import scienceplots
 
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
+from pathlib import Path
 from typing import TYPE_CHECKING
 from warbler.datatype.builder import Base, Plot
 from warbler.constant import SETTINGS
@@ -14,6 +16,7 @@ from warbler.datatype.settings import Settings
 
 if TYPE_CHECKING:
     import numpy.typing as npt
+    import pandas as pd
 
     from typing_extensions import Any, Self
 
@@ -22,6 +25,7 @@ class Builder(Base):
     def __init__(
         self,
         component: dict[Any, Any] | None = None,
+        dataframe: pd.DataFrame | None = None,
         embedding: npt.NDArray | None = None,
         label: npt.NDArray | None = None,
         sequence: npt.NDArray | None = None,
@@ -39,7 +43,7 @@ class Builder(Base):
             unique
         )
 
-        self.dataframe = None
+        self.dataframe = dataframe
 
         self.unit = {
             'onset': 's',
@@ -68,8 +72,8 @@ class Builder(Base):
         ax2 = plt.subplot(gs[0, 0])
 
         ax2.set_title(
-            'Spectrogram',
-            fontsize=20,
+            'Image',
+            fontsize=24,
             pad=90
         )
 
@@ -78,7 +82,10 @@ class Builder(Base):
         # Table
         ax3 = plt.subplot(gs[0, 1])
 
-        plt.subplots_adjust(hspace=1.0)
+        plt.subplots_adjust(
+            hspace=1.0,
+            wspace=1.0
+        )
 
         self.component['ax'] = ax1
         self.component['ax2'] = ax2
@@ -101,6 +108,7 @@ class Builder(Base):
 
         ax.legend(
             handles=handles,
+            fontsize=16,
             **self.settings.legend
         )
 
@@ -202,7 +210,7 @@ class Builder(Base):
         for column, value in zip(columns, information):
             if column in features:
                 text.append(
-                    (column, str(value) + ' ' + self.unit[column])
+                    (column, str(value) + self.unit[column])
                 )
             else:
                 text.append(
@@ -216,8 +224,8 @@ class Builder(Base):
         )
 
         table.auto_set_font_size(False)
-        table.set_fontsize(12)
-        table.scale(1, 2.0)
+        table.set_fontsize(16)
+        table.scale(1.5, 2.0)
 
         for (row, _), cell in table.get_celld().items():
             if row % 2 == 0:
@@ -229,7 +237,7 @@ class Builder(Base):
 
         ax.set_title(
             'Acoustic Features',
-            fontsize=20,
+            fontsize=24,
             pad=90
         )
 
@@ -276,7 +284,7 @@ class Builder(Base):
 
         ax.set_title(
             title,
-            fontsize=20,
+            fontsize=24,
             pad=25
         )
 
@@ -316,16 +324,21 @@ class ScatterFCM(Plot):
             plt.subplots_adjust(
                 left=0.05,
                 right=0.85,
-                bottom=0.05
+                bottom=0.025
             )
 
             i = str(i).zfill(2)
-            figure.savefig(f"frames/frame_{i}.png")
+
+            figure.savefig(
+                f"frames/frame_{i}.png",
+                pad_inches=0.5
+            )
+
             plt.close()
 
 
 def main() -> None:
-    plt.style.use('science')
+    # plt.style.use('science')
 
     dataset = Dataset('segment')
     dataframe = dataset.load()
@@ -335,18 +348,16 @@ def main() -> None:
         'filter_bytes',
         'hdbscan_label_2d',
         'hdbscan_label_3d',
-        'original',
         'original_bytes',
         'scale',
         'segment',
-        'settings',
         'spectrogram',
         'umap_z_3d'
     ]
 
     dataframe = dataframe.drop(drop, axis=1)
 
-    order = [1, 0, 8, 3, 10, 5, 7, 2, 6, 4, 9, 13, 11, 12]
+    order = [1, 8, 0, 3, 10, 7, 5, 2, 6, 4, 12, 11, 13, 9]
 
     order_dict = {k: i for i, k in enumerate(order)}
 
@@ -374,6 +385,9 @@ def main() -> None:
     settings['scatter']['alpha'] = 0.25
     settings['scatter']['s'] = 50
     settings['row'] = row
+
+    frames = Path.cwd().joinpath('frames')
+    frames.mkdir(exist_ok=True, parents=True)
 
     unique = dataframe.fcm_label_2d.unique()
 

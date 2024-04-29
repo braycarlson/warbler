@@ -22,6 +22,7 @@ opencv-python
 pandas
 pillow
 plotly
+pyarrow
 pydub
 # pygraphviz; sys_platform == 'linux'
 pymupdf

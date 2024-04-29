@@ -56,10 +56,33 @@ class Settings(SimpleNamespace):
         path = CWD.joinpath(relative)
         return Settings.from_file(path)
 
-    def update(self, data: dict[str, Any]) -> None:
-        for k in data:
-            if k in self.__dict__:
-                self.__dict__[k] = data[k]
+    def is_same(self, settings: Settings) -> bool:
+        x = self.__dict__.keys()
+        y = settings.__dict__.keys()
+
+        common = set(x).intersection(y)
+
+        for key in common:
+            a = self[key]
+            b = settings[key]
+
+            condition = (
+                isinstance(a, list | tuple) and
+                isinstance(b, list | tuple) or
+                isinstance(a, dict) and
+                isinstance(b, dict)
+            )
+
+            if condition:
+                if list(a) != list(b):
+                    return False
+            elif hasattr(a, '__dict__') and hasattr(b, '__dict__'):
+                if not a.is_same(b):
+                    return False
+            elif a != b:
+                return False
+
+        return True
 
     def save(self, path: str | Path) -> None:
         with open(path, 'w+') as file:
@@ -76,3 +99,8 @@ class Settings(SimpleNamespace):
         }
 
         return json.dumps(settings)
+
+    def update(self, data: dict[str, Any]) -> None:
+        for k in data:
+            if k in self.__dict__:
+                self.__dict__[k] = data[k]
