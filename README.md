@@ -6,7 +6,7 @@ This research is motivated by the repositories of Dr. Tim Sainburg ([AVGN](https
 
 ## UMAP and Fuzzy C-Means Clustering
 <p align="center">
-    <img src="asset/dataset.gif" alt="An animation depicting the dimensionality reduction and Fuzzy C-Means clustering of a Adelaide's warbler dataset" width="100%"/>
+    <img src="asset/fuzzy_animation.gif" alt="An animation depicting the dimensionality reduction and Fuzzy C-Means clustering of a Adelaide's warbler dataset" width="100%"/>
 </p>
 
 <p align="center">
@@ -14,6 +14,10 @@ This research is motivated by the repositories of Dr. Tim Sainburg ([AVGN](https
 </p>
 
 ## UMAP and HDBSCAN
+<p align="center">
+    <img src="asset/hdbscan_animation.gif" alt="An animation depicting the dimensionality reduction and HDBSCAN clustering of a Adelaide's warbler dataset" width="100%"/>
+</p>
+
 <p align="center">
     <img src="asset/hdbscan.png" alt="The dimensionality reduction and HDBSCAN clustering of a Adelaide's warbler dataset" width="100%"/>
 </p>

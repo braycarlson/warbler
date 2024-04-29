@@ -8,13 +8,15 @@ from pathlib import Path
 
 
 def main() -> None:
+    cluster = 'hdbscan'
+
     if os.name == 'posix':
         folder = Path.cwd().joinpath('ffmpeg')
 
         current = os.environ.get('PATH', '')
         os.environ['PATH'] = f"{folder}:{current}"
 
-    frames = Path.cwd().joinpath('frames')
+    frames = Path.cwd().joinpath('frames', cluster)
     frames.mkdir(exist_ok=True, parents=True)
 
     files = [
@@ -33,7 +35,6 @@ def main() -> None:
             handle.write(f"file '{file}'\n")
             handle.write('duration 0.1\n')
 
-
     # .mp4
     subprocess.run(
         [
@@ -46,27 +47,10 @@ def main() -> None:
             '-safe',
             '0',
             '-i',
-            'frames/frames.txt',
+            f"{filelist}",
             'dataset.mp4'
         ]
     )
-
-    # # .webp
-    # subprocess.run(
-    #     [
-    #         'ffmpeg',
-    #         '-y',
-    #         '-r',
-    #         '15',
-    #         '-f',
-    #         'concat',
-    #         '-safe',
-    #         '0',
-    #         '-i',
-    #         'frames/frames.txt',
-    #         'dataset.webp'
-    #     ]
-    # )
 
 
 if __name__ == '__main__':
