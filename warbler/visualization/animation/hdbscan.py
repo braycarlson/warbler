@@ -11,7 +11,7 @@ import scienceplots
 from matplotlib.gridspec import GridSpec
 from matplotlib.lines import Line2D
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.builder import Base, Plot
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset

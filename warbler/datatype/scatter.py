@@ -3,7 +3,7 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 
 from matplotlib.lines import Line2D
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.builder import Base, Plot
 
 if TYPE_CHECKING:

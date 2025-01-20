@@ -4,7 +4,7 @@ import matplotlib.collections as mcoll
 import matplotlib.pyplot as plt
 import numpy as np
 
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.builder import Base, Plot
 
 if TYPE_CHECKING:

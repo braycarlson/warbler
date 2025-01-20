@@ -8,7 +8,7 @@ from matplotlib.animation import FuncAnimation
 from matplotlib.lines import Line2D
 from itertools import combinations
 from tqdm import tqdm
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import OUTPUT
 from warbler.datatype.dataset import Dataset
 

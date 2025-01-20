@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from copy import deepcopy
 from io import BytesIO
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.imaging import (

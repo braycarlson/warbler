@@ -13,14 +13,14 @@ from ipywidgets import (
     VBox
 )
 from plotly import graph_objs as go
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import SETTINGS
-from warbler.datatype.trace import AnimationTrace, Visitor
 
 if TYPE_CHECKING:
     import pandas as pd
 
     from typing_extensions import Any, Self
+    from warbler.datatype.trace import Visitor
 
 
 class DimensionalStrategy(ABC):
@@ -92,8 +92,17 @@ class Builder:
         self.height = 800
         self.width = 1000
 
+        self.unit = {
+            'onset': 's',
+            'offset': 's',
+            'duration': 's',
+            'minimum': 'Hz',
+            'mean': 'Hz',
+            'maximum': 'Hz'
+        }
+
     def animation(self) -> Self:
-        if not isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) != 'animation':
             return self
 
         figure = self.plot.component.get('figure')
@@ -158,7 +167,7 @@ class Builder:
         return self
 
     def audio(self) -> Self:
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return self
 
         player = Output()
@@ -174,7 +183,7 @@ class Builder:
         return self
 
     def description(self) -> Self:
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return self
 
         value = (
@@ -209,8 +218,15 @@ class Builder:
         return self
 
     def html(self) -> Self:
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return self
+
+        for column, unit in self.unit.items():
+            self.dataframe[column] = (
+                self.dataframe[column].apply(
+                    lambda x: f"{x:.2f}"
+                    ) + unit
+            )
 
         mask = (self.dataframe.folder.str.len() > 20)
 
@@ -240,6 +256,7 @@ class Builder:
             'offset',
             'duration',
             'minimum',
+            'mean',
             'maximum'
         ]
 
@@ -285,7 +302,7 @@ class Builder:
     def widget(self) -> Self:
         figure = self.plot.component.get('figure')
 
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             widget = go.Figure(figure)
         else:
             widget = go.FigureWidget(figure)
@@ -297,7 +314,7 @@ class Builder:
     def get(self) -> VBox:
         widget = self.plot.component.get('widget')
 
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return widget
 
         description = self.plot.component.get('description')
@@ -344,7 +361,7 @@ class Builder:
 
         box.add_class('projection')
 
-        if isinstance(self.strategy, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             self.strategy.animate()
 
         return box
@@ -444,7 +461,7 @@ class Builder:
             display(audio)
 
     def css(self) -> Self:
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return self
 
         stylesheet = SETTINGS.joinpath('stylesheet.css')
@@ -460,7 +477,7 @@ class Builder:
         return self
 
     def listener(self) -> Self:
-        if isinstance(self.strategy.trace, AnimationTrace):
+        if str(self.strategy.trace) == 'animation':
             return self
 
         widget = self.plot.component.get('widget')

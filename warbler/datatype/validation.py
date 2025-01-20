@@ -12,7 +12,7 @@ from sklearn.metrics import (
     rand_score
 )
 from tqdm import tqdm
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt

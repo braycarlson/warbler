@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import DATASET, DIRECTORIES
 
 if TYPE_CHECKING:

@@ -1,4 +1,5 @@
 # warbler
+demo/
 input/
 logs/
 notebook/.ipynb_checkpoints/
@@ -11,6 +12,10 @@ warbler/test/
 warbler/visualization/animation/frames/
 warbler/warbler.egg-info/
 
+asset/fuzzy.mov
+asset/fuzzy.mp4
+asset/hdbscan.mov
+asset/hdbscan.mp4
 *.7z
 *.bat
 *.xlsx

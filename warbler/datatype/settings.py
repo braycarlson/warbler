@@ -4,7 +4,7 @@ import json
 
 from collections.abc import Mapping
 from types import SimpleNamespace
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import CWD
 
 if TYPE_CHECKING:

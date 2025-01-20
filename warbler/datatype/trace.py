@@ -6,7 +6,7 @@ import seaborn as sns
 from abc import ABC, abstractmethod
 from matplotlib.cm import viridis
 from plotly import graph_objs as go
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.partition import Partition
 from warbler.datatype.settings import Settings
 
@@ -124,14 +124,13 @@ class AnimationTrace(Visitor):
     def __init__(self, settings: Settings = None):
         super().__init__(settings)
 
-        self._frames = []
+        self.frames = []
         self.x_eye = -1.0
         self.y_eye = 2.0
         self.z_eye = 0.5
 
-    @property
-    def frames(self) -> list[go.Frame]:
-        return self._frames
+    def __str__(self):
+        return 'animation'
 
     @staticmethod
     def rotate_z(
@@ -157,7 +156,7 @@ class AnimationTrace(Visitor):
                 -theta
             )
 
-            self._frames.append(
+            self.frames.append(
                 go.Frame(
                     layout={
                         'scene_camera_eye': {

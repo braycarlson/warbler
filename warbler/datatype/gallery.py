@@ -7,7 +7,7 @@ from ipywidgets import (
     Layout,
     Output
 )
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from warbler.datatype.interactive import Interactive

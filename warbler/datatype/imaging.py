@@ -9,7 +9,7 @@ from io import BytesIO
 from PIL import Image as Pillow
 from PIL import ImageChops, ImageDraw, ImageFont, ImageOps
 from skimage import filters
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.plot import StandardSpectrogram
 from warbler.datatype.spectrogram import compress, create_spectrogram
 

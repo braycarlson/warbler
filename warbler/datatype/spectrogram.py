@@ -9,7 +9,7 @@ from abc import ABC, abstractmethod
 from librosa import mel_frequencies
 from PIL import Image
 from scipy.signal import lfilter
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt

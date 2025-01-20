@@ -10,7 +10,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Rectangle
 # from matplotlib.widgets import Slider
 # from PIL import ImageOps
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.axes import LinearAxes, SpectrogramAxes
 
 if TYPE_CHECKING:

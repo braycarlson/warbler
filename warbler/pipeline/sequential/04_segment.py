@@ -5,7 +5,7 @@ import pandas as pd
 
 from operator import attrgetter
 from tqdm import tqdm
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.bootstrap import bootstrap
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.settings import Settings

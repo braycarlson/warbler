@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import LOGS
 
 if TYPE_CHECKING:

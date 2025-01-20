@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from scipy import ndimage
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.spectrogram import Segment, Spectrogram
 
 if TYPE_CHECKING:

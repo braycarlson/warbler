@@ -6,7 +6,7 @@ import pyarrow.parquet as pq
 import shutil
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import PARQUET
 from warbler.datatype.settings import Settings
 from warbler.datatype.signal import Signal

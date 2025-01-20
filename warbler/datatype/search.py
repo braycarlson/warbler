@@ -7,7 +7,7 @@ from fcmeans import FCM
 from itertools import product
 from joblib import Parallel, delayed
 from tqdm import tqdm
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import TUNING
 
 if TYPE_CHECKING:

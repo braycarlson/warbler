@@ -6,7 +6,7 @@ import numpy as np
 from copy import deepcopy
 from io import BytesIO
 from itertools import permutations
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import PDF, SETTINGS
 from warbler.datatype.dataset import Dataset
 from warbler.datatype.imaging import (

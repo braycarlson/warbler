@@ -19,7 +19,7 @@ from nara_wpe.utils import istft, stft
 from pathlib import Path
 from scipy.io import wavfile
 from scipy.signal import butter, lfilter
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt

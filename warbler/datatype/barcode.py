@@ -10,7 +10,7 @@ from matplotlib import ticker
 from nltk.metrics.distance import edit_distance
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import squareform
-from typing  import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.datatype.builder import Base, Plot
 
 if TYPE_CHECKING:

@@ -40,4 +40,4 @@ tqdm
 typing-extensions
 # umap-learn
 umap-learn[plot]
-# voila
+voila

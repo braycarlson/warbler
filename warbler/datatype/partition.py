@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from matplotlib.cm import viridis
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import pandas as pd

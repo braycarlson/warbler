@@ -8,7 +8,7 @@ from sklearn.metrics import (
     davies_bouldin_score,
     silhouette_score
 )
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import numpy.typing as npt

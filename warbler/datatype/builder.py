@@ -7,7 +7,7 @@ import seaborn as sns
 import warnings
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing_extensions import TYPE_CHECKING
 from warbler.constant import PROJECTION
 
 with contextlib.suppress(ModuleNotFoundError):
